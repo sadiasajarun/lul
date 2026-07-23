@@ -9,6 +9,7 @@
 
 import studentsUrl from "../../../Database/demo/students.csv?url";
 import assessmentsUrl from "../../../Database/demo/assessments.csv?url";
+import evaluationsUrl from "../../../Database/demo/evaluations.csv?url";
 import db from "../../../Database/demo/summary_dataset.json";
 import type { DashboardWidget, DynamicDashboardResponse } from "./openAIHelper";
 
@@ -48,8 +49,10 @@ function parseCsv(text: string): { headers: string[]; rows: Row[] } {
 
 let _students: { headers: string[]; rows: Row[] } | null = null;
 let _assessments: { headers: string[]; rows: Row[] } | null = null;
+let _evaluations: { headers: string[]; rows: Row[] } | null = null;
 async function loadStudents() { if (!_students) _students = parseCsv(await (await fetch(studentsUrl)).text()); return _students; }
 async function loadAssessments() { if (!_assessments) _assessments = parseCsv(await (await fetch(assessmentsUrl)).text()); return _assessments; }
+async function loadEvaluations() { if (!_evaluations) _evaluations = parseCsv(await (await fetch(evaluationsUrl)).text()); return _evaluations; }
 
 const DIVISIONS = ["Dhaka", "Chattogram", "Rajshahi", "Khulna", "Barishal", "Sylhet", "Rangpur", "Mymensingh"];
 const PROGRAMS: Record<string, string> = { abal: "ABAL", catchup: "Catchup", innovation: "Innovation" };
@@ -57,9 +60,20 @@ const CENTER_NAME: Record<string, string> = {};
 for (const e of (db as { me_evaluations: { center_id: string; center_name: string }[] }).me_evaluations) CENTER_NAME[e.center_id] = e.center_name;
 const fmt = (n: number) => n.toLocaleString("en-US");
 
-/** Is this a per-student row / ranking / result-sheet / grouping question? */
+/** M&E / centre-evaluation question (uses evaluations.csv). Deliberately NOT triggered by student
+ *  metrics (attendance / marks / nutrition / dropout), which are per-student, not per-centre. */
+function isMEQuery(p: string): boolean {
+  if (/attendance|nutrition|\bmarks?\b|dropout|enrol/.test(p)) return false;
+  if (/\bm&e\b|\bm ?and ?e\b|\bmonitor(ing)?\b|\bevaluation\b|pedagog|documentation|learning environment|\bengagement\b|days since|overdue|\binspect|assessment practice/.test(p)) return true;
+  if (/\bvisit(ed|s|ing)?\b/.test(p) && /\b(centre|center)s?\b/.test(p)) return true;
+  if (/\b(centre|center)s?\b/.test(p) && /\b(score|band|rating)\b/.test(p)) return true; // "centre score/band"
+  return false;
+}
+
+/** Is this a per-student row / ranking / result-sheet / grouping / M&E question? */
 export function isRowQuery(prompt: string): boolean {
   const p = prompt.toLowerCase();
+  if (isMEQuery(p)) return true;
   if (/result sheet|report card|mark ?sheet|marksheet/.test(p)) return true;
   const perStudent = /\bstudents?\b|\blearners?\b|\bpupils?\b|\bchild(ren)?\b/.test(p);
   const ranking = /\btop\s*\d+\b|\b\d+\s*(?:st|nd|rd|th)\b|\b(top|bottom|best|worst|highest|lowest|strongest|weakest|most|least|fewest)\b/.test(p);
@@ -119,9 +133,78 @@ function parseQuery(p: string): Parsed {
   return { metricCol, metricLabel, desc, limit, rankIndex, resultSheet, singular, nutrition, filters };
 }
 
-/** Answer a row/ranking/result-sheet/group question from the CSVs, or null if it can't be built. */
+/** Answer an M&E / centre-evaluation question from evaluations.csv (visit recency + score ranking). */
+async function meQuery(p: string): Promise<DynamicDashboardResponse | null> {
+  const { rows } = await loadEvaluations();
+  if (!rows.length) return null;
+
+  let ev = rows;
+  const scopeParts: string[] = [];
+  for (const d of DIVISIONS) if (p.includes(d.toLowerCase())) { ev = ev.filter((r) => (r.division || "").toLowerCase() === d.toLowerCase()); scopeParts.push(d); }
+  for (const k of Object.keys(PROGRAMS)) if (new RegExp(`\\b${k}\\b`).test(p)) { ev = ev.filter((r) => (r.program || "").toLowerCase().includes(k)); scopeParts.push(PROGRAMS[k]); }
+  const scope = scopeParts.join(" · ") || "all centres";
+  if (!ev.length) return { summary: `* No centres match this scope (${scope}).`, widgets: [] };
+
+  // ── VISIT RECENCY: "which centres didn't have M&E in the last 2 months / are overdue" ──
+  const timeM = p.match(/(\d+)\s*(month|week|day)/);
+  const negation = /\b(didn'?t|did not|not|no|without|missed|overdue|haven'?t|hasn'?t|never|due for|pending)\b/.test(p);
+  const visitWord = /\b(visit|m&e|m ?and ?e|monitor|evaluat|inspect|seen)\b/.test(p);
+  if (visitWord && (timeM || negation)) {
+    let thresholdDays = 60;
+    let windowLabel = "2 months";
+    if (timeM) {
+      const n = parseInt(timeM[1], 10);
+      const unit = timeM[2];
+      thresholdDays = unit === "month" ? n * 30 : unit === "week" ? n * 7 : n;
+      windowLabel = `${n} ${unit}${n > 1 ? "s" : ""}`;
+    }
+    const overdue = ev
+      .filter((r) => Number(r.days_since_visit) > thresholdDays)
+      .sort((a, b) => Number(b.days_since_visit) - Number(a.days_since_visit));
+    if (!overdue.length) return { summary: `* Every centre in scope (${scope}) has had an M&E visit within the last ${windowLabel} — none are overdue.`, widgets: [] };
+    const show = overdue.slice(0, 20);
+    return {
+      summary: `* **${overdue.length} centres** (${scope}) have had **no M&E visit in the last ${windowLabel}** (> ${thresholdDays} days).\n* Longest gap: **${overdue[0].center_name}** — **${overdue[0].days_since_visit} days** since its last visit.`,
+      widgets: [
+        { type: "metrics", title: "Overdue M&E", width: "full", metricsList: [
+          { label: `No visit in ${windowLabel}`, value: String(overdue.length), sub: `centres · ${scope}`, trendDirection: "down" },
+          { label: "Longest gap", value: `${overdue[0].days_since_visit} days`, sub: overdue[0].center_name },
+        ]},
+        { type: "table", title: `Centres with no M&E visit in the last ${windowLabel}`, width: "full",
+          tableHeaders: ["Centre", "Division", "Program", "Days since visit", "Last score", "Band"],
+          data: show.map((r) => ({ Centre: r.center_name, Division: r.division, Program: r.program, "Days since visit": Number(r.days_since_visit), "Last score": Number(r.score), Band: r.band })) },
+      ],
+    };
+  }
+
+  // ── M&E SCORE / DIMENSION RANKING ──
+  let col = "score", label = "M&E score";
+  if (/pedagog/.test(p)) { col = "pedagogy"; label = "Pedagogy"; }
+  else if (/document/.test(p)) { col = "documentation"; label = "Documentation"; }
+  else if (/learning environment|environment/.test(p)) { col = "learning_environment"; label = "Learning env"; }
+  else if (/engagement/.test(p)) { col = "engagement"; label = "Engagement"; }
+  else if (/assessment/.test(p)) { col = "assessments"; label = "Assessments"; }
+  const asc = /\b(lowest|worst|bottom|weakest|poor|least)\b/.test(p);
+  const limM = p.match(/\btop\s*(\d+)\b|\b(\d+)\s*(?:centre|center)/);
+  const limit = limM ? Math.min(parseInt(limM[1] || limM[2], 10), 40) : 10;
+  const sorted = [...ev].sort((a, b) => asc ? Number(a[col]) - Number(b[col]) : Number(b[col]) - Number(a[col]));
+  const show = sorted.slice(0, limit);
+  const dir = asc ? "Lowest" : "Highest";
+  return {
+    summary: `* ${dir}-${label.toLowerCase()} centre in scope (${scope}): **${show[0].center_name}** at **${Number(show[0][col])}** (band ${show[0].band}).\n* Centres ranked by ${label}; full list below.`,
+    widgets: [
+      { type: "chart", title: `${dir} ${label} — ${scope}`, width: "full", chartType: "bar", xAxisKey: "name", seriesKeys: [label],
+        data: show.map((r) => ({ name: r.center_name.length > 16 ? r.center_name.slice(0, 15) + "…" : r.center_name, [label]: Number(r[col]) })) },
+      { type: "table", title: `Centres ranked by ${label}`, width: "full", tableHeaders: ["Rank", "Centre", "Division", "Program", label, "Band"],
+        data: show.map((r, i) => ({ Rank: i + 1, Centre: r.center_name, Division: r.division, Program: r.program, [label]: Number(r[col]), Band: r.band })) },
+    ],
+  };
+}
+
+/** Answer a row/ranking/result-sheet/group/M&E question from the CSVs, or null if it can't be built. */
 export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse | null> {
   const p = prompt.toLowerCase();
+  if (isMEQuery(p)) { const me = await meQuery(p); if (me) return me; }
   const q = parseQuery(p);
   const { rows } = await loadStudents();
   if (!rows.length) return null;
