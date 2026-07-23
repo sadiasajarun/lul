@@ -63,7 +63,8 @@ const fmt = (n: number) => n.toLocaleString("en-US");
 /** M&E / centre-evaluation question (uses evaluations.csv). Deliberately NOT triggered by student
  *  metrics (attendance / marks / nutrition / dropout), which are per-student, not per-centre. */
 function isMEQuery(p: string): boolean {
-  if (/attendance|nutrition|\bmarks?\b|dropout|enrol/.test(p)) return false;
+  // Student metrics + subjects are per-student/centre-of-students, NOT the centre's M&E scorecard.
+  if (/attendance|nutrition|\bmarks?\b|dropout|enrol|bangla|math|english|science|religion|life ?skill|\bbgs\b|subject/.test(p)) return false;
   if (/\bm&e\b|\bm ?and ?e\b|\bmonitor(ing)?\b|\bevaluation\b|pedagog|documentation|learning environment|\bengagement\b|days since|overdue|\binspect|assessment practice/.test(p)) return true;
   if (/\bvisit(ed|s|ing)?\b/.test(p) && /\b(centre|center)s?\b/.test(p)) return true;
   if (/\b(centre|center)s?\b/.test(p) && /\b(score|band|rating)\b/.test(p)) return true; // "centre score/band"
@@ -74,6 +75,9 @@ function isMEQuery(p: string): boolean {
 export function isRowQuery(prompt: string): boolean {
   const p = prompt.toLowerCase();
   if (isMEQuery(p)) return true;
+  // A centre/division named with a metric or ranking word → a group question (e.g. "worse center in
+  // bangla marks", "lowest attendance centre") — route to the row engine, not the LLM/subject branch.
+  if (/\b(centre|center|division|district)s?\b/.test(p) && /\b(marks?|score|subject|attendance|risk|dropout|nutrition|best|worst|worse|lowest|highest|top|bottom|most|least|rank|bangla|math|english|science|religion|life ?skill|bgs)\b/.test(p)) return true;
   if (/result sheet|report card|mark ?sheet|marksheet/.test(p)) return true;
   const perStudent = /\bstudents?\b|\blearners?\b|\bpupils?\b|\bchild(ren)?\b/.test(p);
   const ranking = /\btop\s*\d+\b|\b\d+\s*(?:st|nd|rd|th)\b|\b(top|bottom|best|worst|highest|lowest|strongest|weakest|most|least|fewest)\b/.test(p);
@@ -223,23 +227,41 @@ export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse
     const dimLabelG = dimKey === "center_id" ? "Centre" : dimKey === "district" ? "District" : "Division";
     const nameOfG = (g: string) => dimKey === "center_id" ? (CENTER_NAME[g] || `Centre ${g}`) : g;
 
-    // ── AVERAGE a metric per group: "which centre has the lowest attendance / highest avg score" ──
+    // ── AVERAGE a metric per group: "which centre has the lowest attendance / worst Bangla marks" ──
+    const SUBJECTS: Record<string, string> = { bangla: "Bangla", mathematics: "Math", math: "Math", english: "English", science: "Science", religion: "Religion", "life skills": "Life Skills", "life skill": "Life Skills", bgs: "BGS" };
+    let subject: string | null = null;
+    for (const k of Object.keys(SUBJECTS)) if (p.includes(k)) { subject = SUBJECTS[k]; break; }
     const avgAttendance = /attendance|present|absent/.test(p);
-    const avgScore = !avgAttendance && /\b(score|marks?|result|grade|performance|perform)\b/.test(p) && !/\brisk\b/.test(p);
+    const avgScore = !avgAttendance && (subject !== null || /\b(score|marks?|result|grade|performance|perform)\b/.test(p)) && !/\brisk\b/.test(p);
     if (avgAttendance || avgScore) {
-      const col = avgAttendance ? "attendance_pct" : "latest_avg_score";
-      const metricLabel = avgAttendance ? "Avg attendance %" : "Avg score";
+      const metricLabel = avgAttendance ? "Avg attendance %" : subject ? `${subject} avg` : "Avg score";
       const unit = avgAttendance ? "%" : "";
       const agg = new Map<string, { sum: number; n: number }>();
-      for (const r of filtered) {
-        const v = Number(r[col]);
-        if (!Number.isFinite(v)) continue;
-        const cur = agg.get(r[dimKey]) ?? { sum: 0, n: 0 };
-        cur.sum += v; cur.n += 1; agg.set(r[dimKey], cur);
+      if (subject && !avgAttendance) {
+        // subject-specific marks → join assessments (that subject) with each student's group
+        const { rows: aRows } = await loadAssessments();
+        const grp = new Map(filtered.map((r) => [r.student_id, r[dimKey]] as const));
+        for (const a of aRows) {
+          if ((a.subject || "").toLowerCase() !== subject.toLowerCase()) continue;
+          const g = grp.get(a.student_id);
+          if (g === undefined) continue;
+          const v = Number(a.latest);
+          if (!Number.isFinite(v)) continue;
+          const cur = agg.get(g) ?? { sum: 0, n: 0 };
+          cur.sum += v; cur.n += 1; agg.set(g, cur);
+        }
+      } else {
+        const col = avgAttendance ? "attendance_pct" : "latest_avg_score";
+        for (const r of filtered) {
+          const v = Number(r[col]);
+          if (!Number.isFinite(v)) continue;
+          const cur = agg.get(r[dimKey]) ?? { sum: 0, n: 0 };
+          cur.sum += v; cur.n += 1; agg.set(r[dimKey], cur);
+        }
       }
       const rowsA = [...agg.entries()].map(([g, s]) => ({ g, avg: Math.round((s.sum / s.n) * 10) / 10, n: s.n }));
-      if (!rowsA.length) return { summary: `* No data to average by ${dimLabelG.toLowerCase()} in scope (${scope}).`, widgets: [] };
-      const asc = /\b(lowest|worst|least|bottom|poorest|weakest)\b/.test(p);
+      if (!rowsA.length) return { summary: `* No ${subject ?? ""} data to average by ${dimLabelG.toLowerCase()} in scope (${scope}).`, widgets: [] };
+      const asc = /\b(lowest|worst|worse|least|bottom|poorest|weakest)\b/.test(p);
       rowsA.sort((a, b) => asc ? a.avg - b.avg : b.avg - a.avg);
       const showA = rowsA.slice(0, 12);
       const topA = rowsA[0];
@@ -254,7 +276,7 @@ export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse
           data: showA.map((e, i) => ({ Rank: i + 1, [dimLabelG]: nameOfG(e.g), [metricLabel]: `${e.avg}${unit}`, Students: e.n })) },
       ];
       return {
-        summary: `* **${nameOfG(topA.g)}** has the ${asc ? "lowest" : "highest"} ${metricLabel.toLowerCase()} — **${topA.avg}${unit}** (across ${topA.n} students).\n* ${dimLabelG}s ranked by average ${avgAttendance ? "attendance" : "score"}; full list below.`,
+        summary: `* **${nameOfG(topA.g)}** has the ${asc ? "lowest" : "highest"} ${metricLabel.toLowerCase()} — **${topA.avg}${unit}** (across ${topA.n} students).\n* ${dimLabelG}s ranked by average ${subject ?? (avgAttendance ? "attendance" : "score")}; full list below.`,
         widgets: widgetsA,
       };
     }

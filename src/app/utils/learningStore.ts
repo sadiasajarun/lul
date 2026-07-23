@@ -16,7 +16,7 @@
 
 import { KB_VERSION } from "../lib/knowledgeBase";
 
-const CACHE_KEY = "kb_answer_cache_v4"; // v4: invalidates answers cached before the M&E row-engine branch
+const CACHE_KEY = "kb_answer_cache_v5"; // v5: invalidates answers cached before centre subject-marks routing
 const WEIGHTS_KEY = "kb_fact_weights_v1";
 const MAX_CACHE = 200;
 
