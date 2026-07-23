@@ -1,0 +1,160 @@
+# Rubric for grading ship-phase output (production deployment readiness).
+#
+# Used in VETO blend mode (lib/gate.js): either the deterministic gate or
+# this evaluator can refuse to ship. Higher bar than other phases because
+# production deploys are hard to roll back. The article's recommendation
+# explicitly: ship phase deserves a "veto" blend, not "soft_score."
+#
+# This evaluator runs after calculate-drift (which is itself an LLM that
+# decides GO/NO_GO based on its own drift math). Independent grading
+# catches the case where calculate-drift is over-confident.
+
+name: ship-evaluation
+version: 1
+
+scope: >
+  Built production artifacts (backend/dist, frontend/dist or equivalent),
+  environment configuration (.env.example, deployment configs), and the
+  SHIP_REPORT.md decision. The evaluator does not re-run builds or
+  re-typecheck — those are deterministic gates. It grades whether shipping
+  this artifact, with this configuration, to production is responsible.
+
+criteria:
+
+  shippability:
+    weight: 0.30
+    question: >
+      Does the built artifact look like something a real user could use
+      on the open internet? No localhost URLs baked into bundles, no
+      hardcoded API keys, no debug flags left on, env vars actually
+      consumed (not just declared in .env.example), no half-complete
+      modules with TODO returns.
+    anchors:
+      - score: 1.0
+        description: >
+          Built artifacts reference only production-style URLs. Every
+          declared env var is actually read at runtime. No secrets in
+          source. No "TODO" / "FIXME" / "stub" markers in critical paths.
+          API base URL configurable via env. Zero references to
+          localhost in built JS.
+      - score: 0.7
+        description: >
+          Mostly clean. 1-2 leftover dev-mode artifacts (e.g., one
+          console.log left in critical path, one localhost fallback in
+          a config file). Env vars consumed. No secrets.
+      - score: 0.4
+        description: >
+          Multiple production-readiness gaps. Localhost URLs in built
+          bundles. Env vars declared but hardcoded fallbacks override
+          them. Several TODOs in non-trivial paths.
+      - score: 0.1
+        description: >
+          Built artifact is not shippable. Hardcoded localhost as the
+          API base. Hardcoded test users. Critical features still on
+          mock data. Secrets in source.
+
+  drift_validation:
+    weight: 0.25
+    question: >
+      Does the SHIP_REPORT.md drift score reflect reality? Read the seed
+      goal + constraints + ontology, scan the actual built product, and
+      independently judge: did the agent's GO decision earn itself, or
+      did it under-estimate drift to ship?
+    anchors:
+      - score: 1.0
+        description: >
+          Independent reading of seed → built product matches the report's
+          drift score within 0.05. GO decision is justified — every key
+          seed promise is delivered. Constraints visibly respected.
+      - score: 0.7
+        description: >
+          Report's drift score is roughly right (within 0.10). GO decision
+          stands. Some seed promises are partially-delivered but the gap
+          is honestly noted in the reasoning paragraph.
+      - score: 0.4
+        description: >
+          Report under-estimates drift. The agent claimed drift_score=0.15
+          but independent reading shows 0.30+: a major declared feature
+          is missing or a hard constraint is violated and the report
+          glosses over it.
+      - score: 0.1
+        description: >
+          Report is fictional. Claims GO with drift_score=0.10 but the
+          built product is missing critical declared features or violates
+          hard constraints. Self-eval bias at maximum.
+
+  operational_readiness:
+    weight: 0.20
+    question: >
+      Will the deployed system be operable? Are health-check endpoints
+      present, structured logging configured, error tracking wired,
+      DB migrations runnable, graceful shutdown implemented? Could an
+      on-call engineer debug a 3am page?
+    anchors:
+      - score: 1.0
+        description: >
+          /health endpoint returns useful state. Structured logging
+          (winston/pino) writes JSON. Error tracking SDK initialized
+          (Sentry or equivalent) gated by env flag. Migrations
+          documented + runnable. DB connection pool tuned. Graceful
+          shutdown handler.
+      - score: 0.7
+        description: >
+          Health endpoint present. Logging works but mostly console.log
+          (acceptable for low-volume). No formal error tracking but
+          unhandled-rejection handler logs. Migrations exist, runnable.
+      - score: 0.4
+        description: >
+          Health endpoint missing. Logging is bare console.log only.
+          No error tracking. Migrations exist but unclear how to run.
+          On-call would struggle to triage a problem.
+      - score: 0.1
+        description: >
+          No health endpoint, no migrations, no logging strategy. Errors
+          go to /dev/null. The first production incident would require
+          a code change to even diagnose.
+
+  rollback_readiness:
+    weight: 0.25
+    question: >
+      If this deploy breaks, can we roll back fast? Are migrations
+      reversible (or backwards-compatible)? Are feature flags used for
+      risky changes? Is there a way to roll a single user back to the
+      old version (or kill a feature) without redeploying?
+    anchors:
+      - score: 1.0
+        description: >
+          Every migration has a down/revert path or is purely additive
+          (no destructive ALTER without a feature flag). Risky features
+          gated by env-controlled flags. Old API routes kept alive
+          during transitions (backwards-compat windows). Rollback is a
+          single CLI command, not a code rewrite.
+      - score: 0.7
+        description: >
+          Most migrations safe. 1-2 destructive migrations exist but
+          documented + warned. Some feature flags. Backwards-compat
+          maintained for primary endpoints.
+      - score: 0.4
+        description: >
+          Several destructive migrations (DROP COLUMN, NOT NULL
+          retroactively) without flags or staging. No feature flag
+          system. Rolling back requires a code revert + redeploy.
+      - score: 0.1
+        description: >
+          Forward-only deploy. Drops columns mid-migration. No feature
+          flags. No backwards-compat. Production rollback would
+          require restoring a DB backup.
+
+output_format:
+  type: json
+  required_fields:
+    - overall_score
+    - weighted_breakdown
+    - blockers
+    - rationale
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    Used in VETO blend mode — overall_score < 0.7 OR any P0 blocker
+    flips ship_decision to NO_GO regardless of deterministic gate.
+    Be strict: P0 should fire on hardcoded localhost URLs, leaked
+    secrets, missing migrations, irreversible destructive operations.

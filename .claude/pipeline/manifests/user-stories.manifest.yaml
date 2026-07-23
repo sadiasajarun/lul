@@ -1,0 +1,91 @@
+name: user-stories
+display_name: "User Story Authorship (per-page)"
+phase_number: 3.5
+
+prerequisites:
+  phases: [design]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  html_pages:
+    - glob: "{TARGET_DIR}/.claude-project/design/html/*.html"
+      purpose: "Source of truth — one YAML per HTML page is required"
+  project_knowledge:
+    - glob: "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+      purpose: "Features + roles"
+  project_api:
+    - glob: "{TARGET_DIR}/.claude-project/docs/PROJECT_API.md"
+      purpose: "Endpoint map each page calls"
+  existing_stories:
+    - glob: "{TARGET_DIR}/.claude-project/user_stories/*.yaml"
+      optional: true
+      purpose: "Existing per-page YAMLs (skipped if parity + scenarios already satisfied)"
+  fixtures:
+    - glob: "{TARGET_DIR}/.claude-project/user_stories/_fixtures.yaml"
+      purpose: "Test credentials + seed data"
+  prd_chunks:
+    - glob: "{TARGET_DIR}/.claude-project/context/PRD_chunk_*.md"
+      optional: true
+      purpose: "Full PRD content in 400-line chunks — for Phase 0.3 failure case cross-reference"
+  existing_stories:
+    - glob: "{TARGET_DIR}/.claude-project/user_stories/*.yaml"
+      purpose: "Existing stories to analyze for coverage gaps"
+  routes_manifest:
+    - glob: "{TARGET_DIR}/.claude-project/routes.yaml"
+      purpose: "Route paths and auth classification"
+  html_prototypes:
+    - glob: "{TARGET_DIR}/.claude-project/design/variations/**/*.html"
+      sample: 5
+      optional: true
+      purpose: "HTML design prototypes — primary UI source when TSX not yet available (Phase 3.5 runs in parallel with Phase 6)"
+  page_components:
+    - glob: "{TARGET_DIR}/frontend/app/pages/**/*.tsx"
+      sample: 5
+      optional: true
+      purpose: "React page components — used when available (Phase 6+ complete). Preferred over HTML prototypes."
+  portal_components:
+    - glob: "{TARGET_DIR}/frontend-*/src/pages/**/*.tsx"
+      sample: 5
+      optional: true
+      purpose: "Admin portal UI components — used when available (Phase 6+ complete)"
+  fixtures:
+    - glob: "{TARGET_DIR}/.claude-project/user_stories/_fixtures.yaml"
+      optional: true
+      purpose: "Real test data from database seeders"
+  coverage_state:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/STORY_COVERAGE.md"
+      optional: true
+      purpose: "Previous iteration state for accumulation and convergence tracking"
+  bug_patterns_global:
+    - glob: "{FRAMEWORK_DIR}/skills/qa/learn-bugs/references/bug-patterns-global.yaml"
+      optional: true
+      purpose: "Cross-project bug pattern knowledge for Tier 14"
+  bug_patterns_project:
+    - glob: "{TARGET_DIR}/.claude-project/knowledge/bug-patterns.yaml"
+      optional: true
+      purpose: "Project-specific bug pattern overrides"
+
+skills:
+  primary: ".claude/skills/dev/generate-user-stories/SKILL.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  pass_threshold: 1.00
+  evaluation_criteria:
+    - name: page-parity
+      description: "yaml_count >= html_count * 0.95"
+    - name: naming-parity
+      description: "every design/html/<name>.html has user_stories/<name>.yaml"
+    - name: scenarios-per-story
+      description: "every YAML has >= 5 scenarios across 3+ buckets"
+    - name: bucket-coverage
+      description: "every YAML has >= 3 of 4 scenario buckets (acceptance_criteria / boundary_cases / error_scenarios / state_transitions)"
+    - name: no-duplicate-ids
+      description: "no duplicate story ids across files"

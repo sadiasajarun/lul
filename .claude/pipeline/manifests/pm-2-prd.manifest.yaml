@@ -1,0 +1,53 @@
+name: pm-2-prd
+display_name: "PM PRD Generation (canonical PRD only, no docs derivation)"
+phase_id: P2-prd
+track: pm
+
+prerequisites:
+  phases: [P1-spec]   # logical name from pm group
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/status/{project}/seed-*.yaml"
+  existing_prd:
+    - glob: "{TARGET_DIR}/.claude-project/prd/*.md"
+      optional: true
+    - glob: "{TARGET_DIR}/.claude-project/docs/PRD.md"
+      optional: true
+  prd_history:
+    - glob: "{TARGET_DIR}/.claude-project/prd/history/PRD_v*.{md,hash}"
+      optional: true
+      purpose: "Previous PRD snapshots for comparison"
+
+skills:
+  primary: ".claude/skills/dev/generate-prd/SKILL.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: prd_canonical_exists
+      description: ".claude-project/docs/PRD.md exists"
+    - name: prd_archive_exists
+      description: ".claude-project/prd/*.md exists"
+    - name: sections_complete
+      description: "Overview, Terminology, Modules, Pages, Tech Stack all present"
+    - name: no_ambiguity
+      description: "No vague 'should/might/optionally' terms"
+    - name: seed_aligned
+      description: "PRD features cover seed acceptance_criteria"
+    - name: version_snapshot
+      description: ".claude-project/prd/history/PRD_v*.{md,hash} recorded"
+
+ralph:
+  - workflow: prd-generate
+    trigger: "sections missing"
+    mode: incremental

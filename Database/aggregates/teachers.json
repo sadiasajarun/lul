@@ -1,0 +1,40 @@
+{
+  "generated_by": "scripts/aggregate.mjs",
+  "source": "Database/*.csv + summary_dataset.json",
+  "rows": 3397,
+  "gender": {
+    "Man": 202,
+    "Woman": 3194,
+    "Other": 1
+  },
+  "division": {
+    "Rangpur": 1,
+    "Sylhet": 709,
+    "Chattogram": 953,
+    "Dhaka": 1092,
+    "Mymensingh": 642
+  },
+  "education": {
+    "Primary Level": 1,
+    "H.S.C": 1813,
+    "Graduation": 439,
+    "Masters": 147,
+    "S.S.C": 586,
+    "No Education": 2,
+    "-": 402,
+    "Lower Secondary Level": 7
+  },
+  "experience": {
+    "Below 1 year": 1173,
+    "2 Years": 745,
+    "1 Year": 365,
+    "Above 10 Years": 165,
+    "-": 949
+  },
+  "employment": {
+    "Active": 2370,
+    "Resigned": 1011,
+    "Replaced": 12,
+    "-": 4
+  }
+}

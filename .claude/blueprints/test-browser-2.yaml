@@ -1,0 +1,933 @@
+name: test-browser-2
+description: |
+  Browser-based QA driven entirely by user story YAML files.
+
+  Each story in {PROJECT_DIR}/user_stories/*.yaml is executed against the
+  running app via playwright-cli, dispatched through the playwright-qa-agent
+  subagent (one agent per story, parallel sessions). Results — PASS / FAIL /
+  CRASH with screenshot evidence — feed a single bug-fix pass that closes
+  every failure before the gate runs.
+
+  No curl smoke tests, no static greppers, no Playwright spec-file generation.
+  If it can't be observed in a real browser, it isn't a test.
+version: 2
+manifest: test-browser
+
+nodes:
+  # ============================================================================
+  # PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: user-stories-check
+    type: deterministic
+    description: "Block phase if user-story YAMLs are missing"
+    command: |
+      STORIES_DIR=""
+      for candidate in \
+        "{TARGET_DIR}/{PROJECT_DIR}/user_stories" \
+        "{TARGET_DIR}/user_stories"; do
+        [ -d "$candidate" ] && STORIES_DIR="$candidate" && break
+      done
+      if [ -z "$STORIES_DIR" ]; then
+        echo "FAIL: no user_stories directory"
+        exit 1
+      fi
+      STORY_COUNT=$(find "$STORIES_DIR" -maxdepth 1 -name '*.yaml' \
+        ! -name '_fixtures.yaml' ! -name '_index.yaml' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$STORY_COUNT" -eq 0 ]; then
+        echo "FAIL: user_stories/ has no story YAMLs"
+        exit 1
+      fi
+      echo "stories=$STORY_COUNT in $STORIES_DIR"
+    on_failure: abort
+    abort_message: "user-stories phase must produce story YAMLs first"
+
+  # v128: sanitize story YAMLs BEFORE anything parses them. v128 evidence: the
+  # story-runner crashed ALL 28 stories with YAML-PARSE (P0) — 26/30 canonical
+  # YAMLs failed strict parse because a value starts with a quoted UI label
+  # (`expected: "No recent applications" message …`) or embeds a colon-space
+  # (`description: … counts: Today New`). The story-runner + scaffold-story-specs
+  # both read these, so it must run first. Re-quotes the offending values as
+  # single-quoted scalars (literal content preserved). Idempotent.
+  - id: scaffold-story-yaml-sanitizer
+    type: deterministic
+    description: "v128: re-quote story-YAML values that break a strict parse (leading quoted label / embedded colon) before story-runner + scaffold-story-specs"
+    command: |
+      for D in "{TARGET_DIR}/{PROJECT_DIR}/user_stories" "{TARGET_DIR}/user_stories"; do
+        [ -d "$D" ] && node {CLAUDE_DIR}/v2/scripts/scaffold-story-yaml-sanitizer.js --target "$D" --verbose
+      done
+      true
+    on_failure: ignore
+
+  - id: ensure-servers
+    type: deterministic
+    description: "Boot this run's own backend + frontend (killing any stale process holding the port) — never trust whatever happens to be listening"
+    command: |
+      # v46 evidence: the old node just curl'd the ports and accepted any
+      # HTTP-200 response. On the Mac mini, port 5173 was held by a v42
+      # frontend (left over from a prior run) and 3501 by a `woorim`
+      # backend (different project). All 14 stories ran against the WRONG
+      # app and reported P1 infrastructure failures. ensure-servers now
+      # actively kills stale processes and boots THIS run's servers.
+      # Model-agnostic: works for any cell/model that wrote backend/ and
+      # frontend/ in this run's target dir.
+      set +e
+      T="{TARGET_DIR}"
+      BP="{BACKEND_PORT}"
+      FP="{FRONTEND_PORT}"
+
+      kill_on_port() {
+        local port="$1"
+        local pids
+        pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+        if [ -n "$pids" ]; then
+          echo "  killing stale processes on :$port — pids: $pids"
+          kill $pids 2>/dev/null
+          sleep 1
+          # Force-kill anything still hanging on
+          pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+          [ -n "$pids" ] && kill -9 $pids 2>/dev/null
+          sleep 1
+        fi
+      }
+
+      wait_for() {
+        local url="$1" name="$2" max="${3:-60}"
+        for i in $(seq 1 "$max"); do
+          local code
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo 000)
+          # Accept 2xx/3xx/4xx (auth-protected endpoints return 401; that's OK
+          # — the server is up). Reject only 000 (no connection) and 5xx.
+          if [ "$code" != "000" ] && [ "${code:0:1}" != "5" ]; then
+            echo "  $name ready after ${i}s (HTTP $code)"
+            return 0
+          fi
+          sleep 1
+        done
+        echo "  FAIL: $name not reachable after ${max}s at $url"
+        return 1
+      }
+
+      echo "[ensure-servers] target=$T backend=:$BP frontend=:$FP"
+
+      # v106: parallel test-browser cells share ONE backend. Previous
+      # behavior killed port $BP first then restarted, which made
+      # earlier cells' backends die when later cells ran. v105 evidence:
+      # 1 of 3 cells lost backend mid-run → HTTP 0 on 7/7 login attempts.
+      #
+      # Fix: check if backend is already healthy. If yes, skip restart.
+      # If no (cold start case — test-api already runs ensure-servers
+      # FIRST so backend should always be up by the time test-browser
+      # cells run, but defensive): mkdir-based lock for cold-start race.
+      # macOS lacks `flock`; mkdir is POSIX atomic.
+      BACKEND_LOCK="$T/.ensure-servers-backend.lockdir"
+      BACKEND_PID_FILE="$T/backend/.ensure-servers-backend.pid"
+      check_backend_healthy() {
+        local code
+        code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$BP/api/health" 2>/dev/null || echo 000)
+        [ "$code" != "000" ] && [ "${code:0:1}" != "5" ]
+      }
+      # v128: a healthy port is NOT proof of OUR backend. The v106 fast-path
+      # accepted ANY responder on :$BP, so a transient fix-agent dev server (or
+      # a foreign app) latched it — ensure-servers "passed" in <200ms without
+      # booting OR writing a pid, and when that transient died login-proof got
+      # HTTP 0 on 7/7 logins (v127's whole story pass-rate INVALIDATED). Trust
+      # the port only when a pid WE — or an intra-cell sibling test-browser
+      # instance sharing this $T — spawned is still alive. Port responds but no
+      # owned live pid → foreign/transient → fall through and boot our own.
+      backend_owned_and_healthy() {
+        check_backend_healthy || return 1
+        [ -f "$BACKEND_PID_FILE" ] || return 1
+        local pid; pid=$(cat "$BACKEND_PID_FILE" 2>/dev/null)
+        [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+      }
+
+      # Per-cell frontend port — frontend dirs ARE per-cell so kill is safe.
+      kill_on_port "$FP"
+
+      # Backend: cooperative across parallel cells. Fast path: already healthy
+      # AND owned by us/a sibling (NOT a transient foreign responder — v128).
+      if backend_owned_and_healthy; then
+        echo "[ensure-servers] backend healthy + owned (pid $(cat "$BACKEND_PID_FILE" 2>/dev/null)) on :$BP — sharing it"
+      else
+        # Cold-start lock (mkdir atomic on POSIX; works on macOS without flock)
+        if mkdir "$BACKEND_LOCK" 2>/dev/null; then
+          trap 'rmdir "$BACKEND_LOCK" 2>/dev/null' EXIT
+          echo "[ensure-servers] backend not healthy on :$BP — killing + restarting (lock acquired)"
+          kill_on_port "$BP"
+          if [ -d "$T/backend" ] && [ -f "$T/backend/package.json" ]; then
+            echo "[ensure-servers] booting backend at $T/backend ..."
+            (
+              cd "$T/backend"
+              # PORT env wins over hard-coded constants in most NestJS setups.
+              PORT="$BP" nohup npm run start:dev >.ensure-servers-backend.log 2>&1 &
+              echo $! > .ensure-servers-backend.pid
+            )
+          else
+            echo "  WARN: no $T/backend or package.json — skipping backend boot"
+          fi
+        else
+          # Another cell holds the lock — wait up to 90s for them to bring up backend
+          echo "[ensure-servers] another cell is starting backend (lock held) — waiting up to 90s"
+          for i in $(seq 1 90); do
+            backend_owned_and_healthy && { echo "  backend ready + owned after ${i}s (started by sibling cell)"; break; }
+            sleep 1
+          done
+        fi
+      fi
+
+      # 3. Boot this run's frontend (RR7 dev / vite dev)
+      if [ -d "$T/frontend" ] && [ -f "$T/frontend/package.json" ]; then
+        echo "[ensure-servers] booting frontend at $T/frontend ..."
+        (
+          cd "$T/frontend"
+          PORT="$FP" nohup npm run dev >.ensure-servers-frontend.log 2>&1 &
+          echo $! > .ensure-servers-frontend.pid
+        )
+      else
+        echo "  WARN: no $T/frontend or package.json — skipping frontend boot"
+      fi
+
+      # 4. Wait for both to come up (90s each — backend cold start + tsc)
+      wait_for "http://localhost:$BP/api" backend 90 || \
+        wait_for "http://localhost:$BP" backend 30 || {
+          echo "FAIL: backend never reached on :$BP"
+          tail -30 "$T/backend/.ensure-servers-backend.log" 2>/dev/null
+          exit 1
+        }
+
+      # v128: record the ACTUAL listener pid, not the `npm run start:dev`
+      # WRAPPER captured by `$!`. The wrapper survives even after the NestJS
+      # child dies, so kill -0 on it stays true and backend_owned_and_healthy
+      # could report "owned" against a dead server. v128 evidence: pid file held
+      # the npm wrapper (alive) while nothing listened on :$BP → login-proof
+      # HTTP 0. Once healthy, point the pid file at the real port listener so
+      # ownership + verify_pid track the server that can actually die.
+      __listener=$(lsof -ti tcp:"$BP" -sTCP:LISTEN 2>/dev/null | head -1)
+      if [ -n "$__listener" ]; then
+        echo "$__listener" > "$BACKEND_PID_FILE"
+        echo "  backend listener pid: $__listener (replaced npm wrapper in pid file)"
+      fi
+      wait_for "http://localhost:$FP" frontend 60 || {
+        echo "FAIL: frontend never reached on :$FP"
+        tail -30 "$T/frontend/.ensure-servers-frontend.log" 2>/dev/null
+        exit 1
+      }
+
+      # v47 evidence: wait_for accepted 4xx as "up", but if the backend
+      # crashed on bootstrap (e.g. missing POSTGRES_PASSWORD), the port
+      # would either be silent (000, caught by wait_for) OR a stale
+      # process from a prior run was holding it (passed wait_for). Either
+      # way, smoke-test downstream then hit an unbootable backend and
+      # spun MAX_TURNS. After wait_for succeeds, verify the PID WE
+      # spawned is still alive — otherwise something else is on the port
+      # and we should fail loudly.
+      verify_pid() {
+        local pid_file="$1" name="$2"
+        # v128: a missing pid file means the fast-path skipped boot against a
+        # foreign/transient responder (see backend_owned_and_healthy). That is
+        # exactly the false-PASS that invalidated v127 — FAIL loudly, don't WARN.
+        [ -f "$pid_file" ] || { echo "  FAIL: $name pid file missing — ensure-servers never booted an OWNED $name (a foreign/transient process held :$BP/:$FP)"; return 1; }
+        local pid
+        pid=$(cat "$pid_file" 2>/dev/null)
+        if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+          echo "  FAIL: $name pid=$pid not alive — backend likely crashed on bootstrap"
+          return 1
+        fi
+        echo "  $name pid=$pid alive ✓"
+      }
+      verify_pid "$T/backend/.ensure-servers-backend.pid" backend || {
+        echo "FAIL: backend process died after port opened — common cause: missing .env vars (POSTGRES_PASSWORD, AUTH_JWT_SECRET)"
+        tail -30 "$T/backend/.ensure-servers-backend.log" 2>/dev/null
+        exit 1
+      }
+      verify_pid "$T/frontend/.ensure-servers-frontend.pid" frontend || {
+        echo "FAIL: frontend process died after port opened"
+        tail -30 "$T/frontend/.ensure-servers-frontend.log" 2>/dev/null
+        exit 1
+      }
+
+      echo "PASS: this run's servers booted (backend=:$BP, frontend=:$FP)"
+    on_failure: abort
+    abort_message: "Could not boot this run's backend+frontend. Check {TARGET_DIR}/backend/.ensure-servers-backend.log and {TARGET_DIR}/frontend/.ensure-servers-frontend.log"
+
+  - id: ensure-playwright-cli
+    type: deterministic
+    description: "playwright-cli must be on PATH for the QA agents"
+    command: |
+      if ! command -v playwright-cli >/dev/null 2>&1; then
+        echo "FAIL: playwright-cli not installed"
+        echo "Install with: brew install playwright-cli (or see agents/playwright-qa-agent.md)"
+        exit 1
+      fi
+      playwright-cli --help 2>&1 | head -1
+    on_failure: abort
+    abort_message: "playwright-cli is required to drive browser sessions"
+
+  # ============================================================================
+  # STORY EXECUTION
+  # ============================================================================
+  #
+  # v75: two-stage approach to fix v72's test-browser failure mode where
+  # the agentic story-runner exhausted MAX_TURNS=120 on 2 of 3 cells
+  # (one debugging port mappings instead of executing the QA runner,
+  # the other polling the runner via sleep+sleep instead of letting it
+  # finish async).
+  #
+  #   1. scaffold-story-specs — deterministically compile YAML user
+  #      stories to Playwright .spec.ts files.
+  #   2. run-story-specs — execute `playwright test` against the
+  #      running frontend. Parallel, flake-free, no LLM agent involved.
+  #   3. story-runner (still here) — agentic fallback for stories that
+  #      either failed to parse (LLM-imperfect YAML) or need richer
+  #      assertions than the scaffolded specs provide. Its prompt is
+  #      now updated to skip stories already passing.
+  #
+  # Reasonable expectation: v75 cells produce STORY_QA_REPORT for ALL
+  # frontends instead of just one.
+
+  - id: scaffold-story-specs
+    type: deterministic
+    description: "v75: compile YAML user stories → Playwright .spec.ts (+ global-setup + playwright.config)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-story-specs.js \
+        --stories-dir "{TARGET_DIR}/{PROJECT_DIR}/user_stories" \
+        --fixtures "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --base-url "http://localhost:{FRONTEND_PORT}" \
+        --verbose
+    on_failure: ignore
+
+  # v89: pin global-setup.ts API_URL/BASE_URL string-literal fallbacks to the
+  # actual backend/frontend ports declared in .env.example / vite.config.ts.
+  # v88 evidence: global-setup defaulted to :3601, backend listened on :3000
+  # → seed-login fetch failed → no storageState written → ALL 10 admin stories
+  # crashed at global-setup before any story executed (stories_total=10,
+  # passed/failed/crashed all = 0). This scaffold prevents that recurrence.
+  - id: scaffold-global-setup-baseurl
+    type: deterministic
+    description: "v89: pin global-setup.ts API_URL/BASE_URL fallbacks to actual backend/frontend ports"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-global-setup-baseurl.js \
+        --backend "{TARGET_DIR}/{BACKEND_DIR}" \
+        --frontend "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v109: fix TS1484 (FullConfig import type) + TS2345 (sameSite: string) in
+  # global-setup.ts. LLM-emitted global-setup often uses `import { FullConfig }`
+  # instead of `import type { FullConfig }`, and may annotate cookie sameSite
+  # as `string` instead of the Playwright literal union. Both cause tsc errors
+  # that prevent `npx playwright test --reporter=html` from compiling the setup.
+  - id: scaffold-global-setup-type-doctor
+    type: deterministic
+    description: "v109: fix TS1484 import-type + TS2345 sameSite literal in global-setup.ts"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-global-setup-type-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v112: fix useAppDispatch infinite-loop pattern. LLM emits:
+  #   export const useAppDispatch = () => useDispatch<AppDispatch>();
+  # which creates a new function reference on every render. Any useEffect
+  # that includes `dispatch` in its deps triggers on every render → infinite loop.
+  # Fix: export const useAppDispatch: () => AppDispatch = useDispatch;
+  - id: scaffold-dispatch-hook-doctor
+    type: deterministic
+    description: "v112: fix useAppDispatch infinite-loop pattern in hooks.ts"
+    command: |
+      for FRONTEND_D in {TARGET_DIR}/{FRONTEND_DIR} {TARGET_DIR}/{ADMIN_FRONTEND_DIR} {TARGET_DIR}/{COMPANY_FRONTEND_DIR}; do
+        if [ -d "$FRONTEND_D" ]; then
+          node {CLAUDE_DIR}/v2/scripts/scaffold-dispatch-hook-doctor.js \
+            --target "$FRONTEND_D" \
+            --verbose
+        fi
+      done
+    on_failure: ignore
+
+  # v90: hard-gate that backend /auth/login works for every fixture user
+  # BEFORE story-runner spawns. v76-v89 silent failure mode: global-setup
+  # tries to login each role, gets 401, accumulates failures[] silently,
+  # skips storageState writing → every story crashes at global-setup, but
+  # the agent's STORY_QA_REPORT.md still says `stories_total: 28, passed: 0`
+  # as if tests ran. This scaffold POSTs /auth/login for each fixture user
+  # and exits 1 with detailed diagnostics on first non-200.
+  # v108: seed DB before auth-verify. v107 evidence: scaffold-global-setup-
+  # verify hit HTTP 401 on ALL 7 fixture users in every cell — backend was
+  # running fine but the DB had no seeded users. Backend phase's verify-green
+  # seeds per-suite via createTestUser fixtures (live tests only), then
+  # test-api's pm2-restart cycles the backend. By the time test-browser
+  # cells run, DB is empty of fixture users. Run `npm run seed` (template-
+  # canonical script that reads _fixtures.yaml + bcrypts passwords) before
+  # the auth-verify gate. Idempotent (seed.ts uses upsert).
+  - id: seed-database
+    type: deterministic
+    description: "v108: seed test users from _fixtures.yaml so scaffold-global-setup-verify has accounts to authenticate"
+    command: |
+      cd "{TARGET_DIR}/{BACKEND_DIR}" && \
+      if grep -q '"seed"' package.json 2>/dev/null; then
+        npm run seed 2>&1 | tail -20
+      else
+        echo "no seed script in package.json — skipping"
+      fi
+    on_failure: ignore
+
+  - id: scaffold-global-setup-verify
+    type: deterministic
+    description: "v90: hard-gate auth/login proof before story-runner (catches seed/bcrypt/route drift)"
+    command: |
+      FIXTURES="{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml"
+      [ -f "$FIXTURES" ] || { echo "no _fixtures.yaml — skipping verify"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-global-setup-verify.js \
+        --fixtures "$FIXTURES" \
+        --backend "{TARGET_DIR}/{BACKEND_DIR}" \
+        --port "{BACKEND_PORT}" \
+        --verbose
+    # v128: ABORT, not ignore. This node calls itself a "hard-gate" and the
+    # orchestrator's nodeSeverity() classifies *global-setup-verify as HARD —
+    # but on_failure:ignore swallowed the failure BEFORE severity ever saw it,
+    # so v127 ran 84 stories against a dead backend (login-proof 7/7 HTTP 0)
+    # and produced a fabricated 28/28 "PASS" report. With the ensure-servers
+    # owned-pid fix booting a REAL backend first, a login-proof failure now
+    # genuinely means broken auth (seed/bcrypt/route drift) — running stories
+    # past it only manufactures meaningless PASSes. The diagnostic this scaffold
+    # prints IS the "what went wrong" payload; we don't need 84 dead-backend
+    # story runs to re-discover it.
+    on_failure: abort
+    abort_message: "Auth/login proof FAILED — fixture users cannot authenticate against the booted backend. Stories would run against broken auth and fabricate PASSes. Fix seed/bcrypt/route drift (see the per-user HTTP codes above) before test-browser can proceed."
+
+  - id: run-story-specs
+    type: deterministic
+    description: "v75: execute the scaffolded Playwright specs (parallel, ~5-10min vs 30-40min for agentic)"
+    command: |
+      cd "{TARGET_DIR}/{FRONTEND_DIR}"
+      if [ ! -f "playwright.config.ts" ]; then
+        echo "no playwright.config.ts (scaffold-story-specs did not run) — skipping"
+        exit 0
+      fi
+      # Install @playwright/test if not already (best-effort; safe to fail)
+      if ! [ -d "node_modules/@playwright/test" ]; then
+        npm install --legacy-peer-deps --no-save --no-audit --no-fund @playwright/test yaml 2>&1 | tail -3 || true
+      fi
+      # Run the suite. Soft-fail — the agentic story-runner below picks up
+      # whatever this misses or asserts more richly.
+      BASE_URL="http://localhost:{FRONTEND_PORT}" \
+      API_URL="http://localhost:{BACKEND_PORT}/api" \
+      npx playwright test --reporter=list 2>&1 | tail -50 || true
+      echo "run-story-specs done"
+    on_failure: ignore
+
+  # v80+ OPT-IN: browser-harness story runner via Claude Code backend.
+  # Default OFF — set HARNESS_ENABLED=1 in the launcher env to switch on.
+  # Use case: stories that scaffold-story-specs couldn't compile + chaos
+  # exploration. browser-harness ships its own `~/.local/bin/browser-harness`
+  # CLI that the Claude Code agent calls via heredoc.
+  #
+  # Prereqs (one-time per host):
+  #   1. uv tool install -e ~/Developer/browser-harness
+  #   2. @~/Developer/browser-harness/SKILL.md added to ~/.claude/CLAUDE.md
+  #   3. Chrome launched with --remote-debugging-port=9222 OR Way 1 (chrome://inspect)
+  #
+  # See `.claude/v2/lib/agent-factory.js` for backend dispatch. Setting
+  # `backend: claude` makes the orchestrator spawn `claude --print` instead
+  # of opencode-go/mimo.
+  - id: ensure-browser-harness
+    type: deterministic
+    condition: |
+      [ "${HARNESS_ENABLED:-0}" = "1" ]
+    description: "v80+: ensure browser-harness CLI on PATH (opt-in via HARNESS_ENABLED=1)"
+    command: |
+      if ! command -v browser-harness >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/browser-harness" ]; then
+        echo "FAIL: browser-harness not installed. Run:"
+        echo "  brew install uv"
+        echo "  git clone https://github.com/browser-use/browser-harness ~/Developer/browser-harness"
+        echo "  cd ~/Developer/browser-harness && uv tool install -e ."
+        echo "  echo '@~/Developer/browser-harness/SKILL.md' >> ~/.claude/CLAUDE.md"
+        exit 1
+      fi
+      export PATH="$HOME/.local/bin:$PATH"
+      browser-harness --doctor 2>&1 | head -8
+    on_failure: ignore
+
+  - id: harness-story-runner
+    type: agentic
+    # v91: model-agnostic. Was hardcoded `backend: claude` because the
+    # browser-harness skill is registered in ~/.claude/CLAUDE.md (Claude-
+    # specific tooling). Cells using a non-Claude backend can still route
+    # this node specifically via AGENT_BACKEND_verification=claude.
+    intent: verification
+    cost_class: heavy
+    max_turns: 250
+    timeout_ms: 3600000   # 60min — CDP-driven explorations are slower than playwright but more thorough
+    condition: |
+      [ "${HARNESS_ENABLED:-0}" = "1" ]
+    description: "v80+: run user stories via Claude Code + browser-harness CDP"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/STORY_QA_REPORT_HARNESS{FRONTEND_NAME_SUFFIX}.md"
+    verification_pattern: "stories_total:\\s*[0-9]+"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml"
+    prompt: |
+      You are running user-story QA against a live frontend using
+      browser-harness (the `browser-harness` CLI is on $PATH, and its
+      SKILL.md is loaded from ~/.claude/CLAUDE.md). Read that SKILL.md
+      first if you haven't.
+
+      === INPUT ===
+      - Stories dir:  {TARGET_DIR}/{PROJECT_DIR}/user_stories/*.yaml
+      - Skip files:   _fixtures.yaml, _index.yaml
+      - Frontend:     http://localhost:{FRONTEND_PORT}
+      - Backend API:  http://localhost:{BACKEND_PORT}/api
+      - Fixture users (email + password + role) in _fixtures.yaml
+      - Stories already covered by playwright (don't re-test): glob
+        {TARGET_DIR}/{FRONTEND_DIR}/tests/stories/*.spec.ts and skip those.
+
+      === BROWSER SETUP ===
+      Chrome must already be running with remote-debugging enabled
+      (either Way 1 or Way 2 per browser-harness install.md). If
+      `browser-harness --doctor` shows no daemon, the human launched
+      Chrome correctly — just call browser-harness, the daemon auto-starts.
+
+      Use a unique BU_NAME so this run's CDP namespace doesn't collide
+      with parallel cells:
+        export BU_NAME=fsp-{FRONTEND_NAME}-$$
+
+      === EXECUTION ===
+      For each user story YAML that isn't already covered by playwright:
+
+      1. Read YAML (id, role, feature, acceptance_criteria, boundary_cases).
+      2. If role != 'all', look up creds in _fixtures.yaml.
+      3. Invoke browser-harness via heredoc:
+         ```
+         BU_NAME=fsp-{FRONTEND_NAME}-$$ browser-harness <<'PY'
+         new_tab("http://localhost:{FRONTEND_PORT}")
+         wait_for_load()
+         # Log in via the API since cookies are httpOnly:
+         #   import requests; requests.post(API/auth/login, json={...})
+         # then reload so cookies attach.
+         # Then for each AC, drive the UI + assert via page_info() / dom queries.
+         PY
+         ```
+      4. Capture screenshot on every AC failure to
+         {TARGET_DIR}/{STATUS_DIR}/story-runs/<ts>/<story_id>/<ac_id>.png
+      5. Record per-story result: PASS | FAIL | CRASH and first_failure msg.
+
+      === REPORT ===
+      Write {TARGET_DIR}/{STATUS_DIR}/STORY_QA_REPORT_HARNESS{FRONTEND_NAME_SUFFIX}.md with:
+        stories_total: N
+        stories_passed: N
+        stories_failed: N
+        stories_crashed: N
+        pass_rate: 0.XX
+        bugs_p0: N
+        bugs_p1: N
+        bugs_p2: N
+
+      Followed by a markdown table of per-story results: story | role | status | priority | first_failure | screenshots.
+
+      Be terse — no narration, only the report.
+    tool_profile:
+      allow: ["Bash", "Read", "Glob", "Grep", "Write", "Edit"]
+    on_failure: ignore
+
+  - id: story-runner
+    type: agentic
+    # v91: model-agnostic + story-runner turn-budget fix.
+    # v88 evidence: mimo hit MAX_TURNS=120 on 2 of 3 cells. Worker (28 stories)
+    # completed in 110 turns ≈ 4 turns/story. Admin agent got stuck producing
+    # 0 stories before hitting cap. Company agent burned ~40 turns/story on
+    # hard stories and completed only 3/28. Per-story turn variance is high
+    # — the default 120 budget isn't enough.
+    # max_turns: 300 gives headroom for ~30 stories × 10 turns/story.
+    # intent: verification routes to AGENT_BACKEND_verification cell config
+    # (typically Claude — no per-call turn limit beyond timeout).
+    intent: verification
+    cost_class: heavy
+    max_turns: 300
+    # v108: bump 45min → 75min. v107 evidence: all 3 cells hit
+    # NODE_TIMEOUT_MS=2700000ms after 39-46 turns (still mid-conversation,
+    # not at MAX_TURNS). With ~28 stories per cell × ~1.5-2 min/story in
+    # the browser + agent overhead, 45min was insufficient and ALL 3 cells
+    # produced 0 STORY_QA reports. 75min gives ~2-3min/story budget.
+    timeout_ms: 4500000   # 75min (was 45min)
+    description: "Run every user story in a real browser via playwright-qa-agent"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_index.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml"
+    prompt: |
+      You are the story-runner. Your job is to execute EVERY user story
+      YAML against the running app and record a single consolidated report.
+
+      === INPUT ===
+      - Stories directory: {TARGET_DIR}/{PROJECT_DIR}/user_stories/
+      - Skip files: _fixtures.yaml, _index.yaml
+      - Each story file contains: id, role, feature, acceptance_criteria[],
+        boundary_cases[], error_scenarios[], and (optionally) fixture_refs[].
+      - Servers: backend http://localhost:{BACKEND_PORT}, frontend http://localhost:{FRONTEND_PORT}
+      - Fixture users (credentials) live in _fixtures.yaml under users:
+
+      === EXECUTION ===
+
+      STEP 1 — discover stories
+        Use Glob on '{TARGET_DIR}/{PROJECT_DIR}/user_stories/*.yaml'.
+        Exclude _fixtures.yaml and _index.yaml.
+
+      STEP 2 — build RUN_DIR
+        RUN_DIR='{TARGET_DIR}/{STATUS_DIR}/story-runs/<ISO timestamp>'
+        mkdir -p "$RUN_DIR"
+        Use one timestamp for the whole run so screenshots group correctly.
+
+      STEP 3 — dispatch QA agents in parallel
+        For each story, spawn one playwright-qa-agent via the Task tool.
+        Issue them in the SAME message (parallel tool calls) — max 4 at a time.
+        If there are more than 4 stories, batch: dispatch 4, wait for all,
+        dispatch the next 4, etc.
+
+        Prompt for each Task call — include ALL of the following:
+          - story_name: <story.feature>
+          - story_url: http://localhost:{FRONTEND_PORT}/ (or role-appropriate landing page)
+          - workflow: a numbered list built from the story YAML.
+            **PREFER `Assert` verbs over `Verify`** — Assert lines are checked
+            by shell exit code (deterministic), Verify lines are LLM-judged
+            (soft, PASS can be inflated). Apply these rewrites first:
+              UI / DOM rewrites:
+              - "user sees X" / "X is displayed" / "X appears"  → `Assert text "X" visible`
+              - "user does not see X" / "X is hidden"           → `Assert text "X" not visible`
+              - "button Y is disabled"                          → `Assert button "Y" disabled`
+              - "button Y is enabled"                           → `Assert button "Y" enabled`
+              - "field Z is empty / required"                   → `Assert textbox "Z" has value ""`
+              - "redirect to /x"                                → `Navigate to /x` then `Assert URL path is "/x"`
+              - "list has between N and M items"                → `Assert count of listitem matching ".*" between N and M`
+              - "no errors on page"                             → `Assert no console errors` and `Assert no ErrorBoundary`
+              Network/API rewrites (Patch B — verifies the actual HTTP
+              status, not just the page DOM. Emit AFTER the click/submit
+              that fires the request):
+              - "form submits successfully" / "saved" / "created" → `Assert request POST matching ".*" status 2xx` and `Assert no console errors`
+              - "login successfully"                              → `Assert request POST matching "(login\|signin\|auth)" status 2xx` then `Assert URL path is "<post-login route>"`
+              - "delete X"                                        → `Assert request DELETE matching ".*" status 2xx`
+              - "update X" / "edit X"                             → `Assert request (PUT\|PATCH) matching ".*" status 2xx`
+              - "submit invalid form" / "shows validation error"  → `Assert request POST matching ".*" status 4xx` (the API SHOULD reject; soft frontend-only validation passes if no request fires)
+              - "API returns 5xx" / "server error"                → `Assert request .* matching "<api>" status 5xx`
+              - "no failed requests during flow"                  → `Assert no failed requests` at end of workflow
+            Build steps from the YAML:
+              1. For each acceptance_criterion.description → one workflow step.
+                 Apply the rewrite table above. Only fall back to
+                 `Verify <description>` when no Assert form fits.
+              2. For each boundary_case → one step
+                 ("Attempt <case>" then `Assert text "<expected error>" visible`
+                  if the case names an expected error message; else `Verify`).
+              3. For each error_scenario → one step (same Assert-first rule).
+          - RUN_DIR: <RUN_DIR>/<story-kebab>
+          - FRONTEND_URL: http://localhost:{FRONTEND_PORT}
+          - viewport: 'desktop' unless the story mentions mobile/tablet
+
+        Use subagent_type='playwright-qa-agent' for every dispatch.
+        Do NOT invent workflow steps beyond what the YAML lists.
+        Do NOT hardcode credentials — instruct the agent to read
+          _fixtures.yaml via Read and use the fixture matching story.role.
+
+      STEP 4 — collect results AND write report INCREMENTALLY (critical: never batch the final write)
+
+        Each agent returns a block like:
+          STATUS: PASS|FAIL|CRASH
+          STORY: ...
+          | Step | Action | Result | Screenshot |
+          FAILURE_DETAILS: ...
+          SUGGESTED_STORIES: ...
+
+        Parse each. Classify:
+          - overall_status: PASS / FAIL / CRASH (from the STATUS line)
+          - failure: first failing step + FAILURE_DETAILS text
+          - priority:
+              CRASH                              → P0
+              FAIL on acceptance_criterion       → P1
+              FAIL on boundary_case or error_scenario → P2
+          - screenshot_dir: RUN_DIR/<story-kebab>
+
+        AFTER EACH BATCH OF 4 (or fewer on the last batch) completes —
+        BEFORE dispatching the next batch — write the FULL CURRENT STATE
+        of STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md using the format below, with:
+          - `story_runner_complete: false` while there are stories left to dispatch
+          - the per-story table containing every story processed so far
+          - running totals reflecting what's been processed (treat unstarted stories as not-yet-included)
+
+        WHY this matters: a watchdog SIGKILL at the wall-clock budget loses
+        ALL work that hasn't been persisted. v25-resume #3 evidence: 3 of 3
+        story-runner subprocesses watchdog'd before they wrote a single
+        report (cost: $0.000), discarding all partial results. Incremental
+        writes ensure that even on kill, STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md reflects the
+        stories that DID complete — far better than nothing.
+
+        AFTER THE FINAL BATCH completes, do one last write with
+        `story_runner_complete: true`. The verification gate checks that
+        marker — `false` partials count as a Failed node (correct), but
+        the data is preserved for downstream use (aggregate-story-results,
+        bug-fix-pass, manual review).
+
+      STEP 5 — final write (set complete: true)
+
+      REPORT FILE: {TARGET_DIR}/{STATUS_DIR}/STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md
+
+      Required format (the `stories_total/stories_passed/stories_failed/stories_crashed`
+      and `run_dir` lines are machine-parsed — keep them exact):
+      ```
+      # Story QA Report
+
+      timestamp: <ISO>
+      run_dir: <RUN_DIR>
+
+      stories_total: <N>
+      stories_passed: <N>
+      stories_failed: <N>
+      stories_crashed: <N>
+      stories_skipped: <N>
+      pass_rate: <0.00-1.00>
+
+      bugs_p0: <N>   # CRASH count
+      bugs_p1: <N>   # acceptance_criterion failures
+      bugs_p2: <N>   # boundary/error failures
+
+      ## Per-Story Results
+
+      | story | role | status | priority | first_failure | screenshots |
+      |-------|------|--------|----------|---------------|-------------|
+      | auth | all | PASS | - | - | story-runs/.../auth/ |
+      | payment-refund | admin | FAIL | P1 | AC-3 refund button missing | story-runs/.../payment-refund/ |
+      ...
+
+      ## Failures (one entry per non-PASS story)
+
+      ### <story> — <priority>
+      - failure: <step/AC id + details>
+      - screenshots: <path>
+      - suggested_stories: <list or "none">
+      ...
+
+      story_runner_complete: true
+      ```
+
+      === RULES ===
+      - Do NOT write Playwright .spec.ts files. The QA agents drive playwright-cli directly.
+      - Do NOT skip stories. Empty results = FAIL, not SKIP.
+      - If an agent crashes its session repeatedly, record priority=P0 and move on.
+      - Budget: 45 minutes wall-clock. Batch parallelism of 4 keeps total runtime low.
+      - WRITE STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md AFTER EACH BATCH (not just at the end). See STEP 4.
+        The watchdog is real and has killed every prior attempt. Writing
+        per-batch means partial results survive kill — far better than zero.
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md"
+    verification_pattern: "story_runner_complete: true"
+    on_failure: ignore
+    tool_profile:
+      allow: [Task, Read, Write, Glob, Grep, Bash]
+      deny: [WebSearch, WebFetch, Edit]
+
+  # ============================================================================
+  # STORY-RESULT SANITY (deterministic) — catch HTTP-error PASS fabrication
+  #
+  # v55 fix. v54 evidence: 88 step PASS→FAIL flips across 26 stories — every
+  # claimed PASS had "HTTP 404" / "HTTP 500" / "HTTP 0" in the detail field.
+  # test-browser-evaluator catches this at grading, but bug-fix-pass runs
+  # BEFORE the evaluator and was acting on the inflated PASS counts. Running
+  # this gate before bug-fix-pass means it fixes truthful bugs.
+  # ============================================================================
+
+  - id: story-result-sanity
+    type: deterministic
+    description: "Flip PASS→FAIL on steps whose detail contains HTTP 0/4xx/5xx (anti-fabrication)"
+    command: |
+      bash "{CLAUDE_DIR}/gates/story-result-sanity.sh" "{TARGET_DIR}"
+    on_failure: continue
+
+  # ============================================================================
+  # BUG-FIX PASS (agentic — fixes EVERY failing story before gate runs)
+  # ============================================================================
+
+  - id: bug-fix-pass
+    type: agentic
+    description: "Fix every P0/P1/P2 surfaced by story-runner, re-run the story to prove it"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{STATUS_DIR}/STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml"
+    prompt: |
+      You fix the bugs found by the story-runner, then re-run the affected
+      stories to prove the fixes work. There is no per-run fix cap — every
+      P0 and P1 must be fixed or explicitly documented as blocked with a
+      code-level reason, before this node exits.
+
+      === STEP 1 — triage ===
+      Read STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md. For every row where status != PASS:
+        - Note priority (P0 / P1 / P2)
+        - Note first_failure (step or acceptance_criterion id)
+        - Open the relevant screenshot(s) in RUN_DIR/<story-kebab>/ if needed to
+          disambiguate ("button missing" vs "button wired but throws").
+
+      Order: P0 first, then P1, then P2. Within a priority, fix whatever
+      touches the fewest files first (cheap wins unblock other stories).
+
+      === STEP 2 — fix ===
+      For each bug:
+        a) Read the relevant source file(s).
+        b) Make the minimal fix. Never add features; never delete tests;
+           never add .skip(); never weaken assertions.
+        c) Run tsc:
+             cd backend  && npx tsc --noEmit 2>&1 | tail -20
+             cd frontend && npx tsc --noEmit 2>&1 | tail -20
+           If tsc regresses, fix before moving on.
+
+      === STEP 3 — re-verify via playwright-qa-agent ===
+      For each fixed bug, re-dispatch the story that was failing via the
+      Task tool (subagent_type='playwright-qa-agent'). Pass the SAME workflow
+      the story-runner used, plus this context line:
+        "Re-run after fix attempt. Story should now PASS."
+
+      Capture the new STATUS from the agent's report. If still FAIL, try ONE
+      more fix attempt. If it still fails after two tries, record as "stuck"
+      and move on — don't burn the budget on a single story.
+
+      === STEP 4 — write report INCREMENTALLY ===
+      Write BUG_FIX_REPORT{FRONTEND_NAME_SUFFIX}.md after EACH bug-fix cycle (not at the end).
+      Same reasoning as story-runner: watchdog kill at the wall-clock budget
+      otherwise loses every fix you made. Write `fix_pass_complete: false`
+      while bugs remain; flip to `true` only after the final fix attempt.
+
+      REPORT FILE: {TARGET_DIR}/{STATUS_DIR}/BUG_FIX_REPORT{FRONTEND_NAME_SUFFIX}.md
+
+      Required format:
+      ```
+      # Bug Fix Report
+
+      timestamp: <ISO>
+      bugs_found: <N>
+      bugs_fixed: <N>
+      bugs_stuck: <N>
+      bugs_remaining_p0: <N>   # MUST be 0 for the gate to pass
+      bugs_remaining_p1: <N>   # MUST be 0 for the gate to pass
+      bugs_remaining_p2: <N>
+
+      ## Fixes Applied
+
+      | priority | story | file(s) | fix | re-run status |
+      |----------|-------|---------|-----|----------------|
+      | P0 | payment-refund | {FRONTEND_DIR}/<SRC>/pages/admin/Refund.tsx | wire refund button to useMutation | PASS |
+
+      ## Stuck (retries exhausted — code-level blocker)
+
+      | priority | story | blocker |
+      |----------|-------|---------|
+      | P1 | company-dashboard | depends on seed data not present |
+
+      fix_pass_complete: true
+      ```
+
+      === RULES ===
+      - tsc --noEmit must return 0 for both backend and frontend before you
+        write fix_pass_complete: true.
+      - LAYOUT DETECTION (FIRST): if {FRONTEND_DIR}/app/pages exists, edit
+        under app/ (RR7 framework mode); else under src/. Do NOT create
+        files under both — duplication breaks verify-page-coverage and
+        triggers a typecheck cascade (v25 evidence).
+      - You may modify code under {BACKEND_DIR}/src/ and the detected frontend
+        layout ({FRONTEND_DIR}/app/ or {FRONTEND_DIR}/src/).
+      - You may NOT modify .claude/, {PROJECT_DIR}/user_stories/ (except to
+        log suggested_stories as follow-ups — NOT during this pass), or test infra.
+      - Budget: 60 minutes. If you're not done, STOP and write the report
+        with bugs_remaining_* reflecting reality. Do not lie.
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/BUG_FIX_REPORT{FRONTEND_NAME_SUFFIX}.md"
+    verification_pattern: "fix_pass_complete: true"
+    tool_profile:
+      allow: [Task, Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+
+  # v129: bug-fix-pass is the LAST node that edits frontend routes/pages — and it
+  # can re-introduce an RR7 duplicate route id (v129: a 2nd `pages/admin/
+  # application-detail.tsx` route → build abort), AFTER the frontend phase's
+  # scaffold-routes-dedupe already ran (doctor-ordering: a repair must run after
+  # the last mutation). Re-dedupe here so the post-fix tree still builds.
+  - id: scaffold-routes-dedupe-final
+    type: deterministic
+    description: "v129: re-dedupe RR7 route ids after bug-fix-pass (last route mutator)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-routes-dedupe.js --target "{TARGET_DIR}/{FRONTEND_DIR}" --verbose || true
+    on_failure: ignore
+
+  # ============================================================================
+  # EVIDENCE VERIFICATION (deterministic)
+  # ============================================================================
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify story + bug-fix reports exist with real numbers"
+    command: |
+      STATUS_DIR="{TARGET_DIR}/{STATUS_DIR}"
+      STORY_REPORT="$STATUS_DIR/STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md"
+      BUG_REPORT="$STATUS_DIR/BUG_FIX_REPORT{FRONTEND_NAME_SUFFIX}.md"
+      MISSING=0
+      for f in "$STORY_REPORT" "$BUG_REPORT"; do
+        if [ ! -f "$f" ]; then
+          echo "MISSING: $f"
+          MISSING=$((MISSING+1))
+        elif grep -q '<ISO>\|YYYY-MM-DD\|{PROJECT_NAME}\|<N>' "$f"; then
+          echo "TEMPLATE_PLACEHOLDER: $f"
+          MISSING=$((MISSING+1))
+        fi
+      done
+      if [ $MISSING -gt 0 ]; then
+        echo "FAIL: $MISSING report(s) missing or templated"
+        exit 1
+      fi
+      TOTAL=$(grep -m1 '^stories_total:' "$STORY_REPORT" | sed 's/[^0-9]//g')
+      TOTAL=${TOTAL:-0}
+      if [ "$TOTAL" -eq 0 ]; then
+        echo "FAIL: STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md says stories_total=0"
+        exit 1
+      fi
+      echo "PASS: stories_total=$TOTAL, both reports present"
+    on_failure: abort
+    abort_message: "story-runner or bug-fix-pass did not produce real evidence"
+
+  # ============================================================================
+  # FINAL TIER: LLM EVALUATOR — REAL-BROWSER-WORKS ONLY (no UX heuristics)
+  # ============================================================================
+  #
+  # Per project owner: this evaluator grades ONLY whether the running app
+  # works in a real browser — page loads, primary flows complete, clicks
+  # respond, errors don't crash. Visual design / UX heuristic / accessibility
+  # checks are explicitly out of scope here.
+  #
+  # The evaluator reads the existing STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md and BUG_FIX_REPORT{FRONTEND_NAME_SUFFIX}.md
+  # outputs and confirms they reflect actual walkable flows, not just zero-
+  # error boilerplate.
+
+  - id: test-browser-evaluator
+    type: evaluator
+    description: "Grade page loads / flow completion / interactivity / error resilience (no UX heuristics)"
+    rubric_file: ".claude/blueprints/evaluators/test-browser-rubric.yaml"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/test-browser-evaluation.json"
+    verification_pattern: '"overall_score"\s*:\s*[0-9.]+'
+    tool_profile:
+      allow: [Read, Grep, Glob, Bash, Write]
+      deny: [Edit, NotebookEdit, WebFetch, WebSearch]
+    inputs:
+      artifacts:
+        - "{TARGET_DIR}/{STATUS_DIR}/STORY_QA_REPORT{FRONTEND_NAME_SUFFIX}.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/BUG_FIX_REPORT{FRONTEND_NAME_SUFFIX}.md"
+      references:
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/*.yaml"
+        # routes.ts lives at the layout root: app/routes.ts (RR7) or src/routes.ts (legacy).
+        # Glob walker handles missing paths gracefully.
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/routes.ts"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/src/routes.ts"
+      max_files: 20
+      max_chars_per_file: 10000
+    blend:
+      strategy: soft_score
+      deterministic_weight: 0.6
+      weight: 0.4
+      min_evaluator_score: 0.5
+    calibration:
+      examples_file: ".claude/blueprints/evaluators/test-browser-examples.yaml"
+    on_failure: ignore

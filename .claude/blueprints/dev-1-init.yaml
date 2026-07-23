@@ -1,0 +1,170 @@
+name: dev-1-init
+description: Dev-track init — project scaffolding (CLAUDE.md, .claude-rules, backend/, frontend/) + design-intent extraction
+version: 1
+manifest: dev-1-init
+
+nodes:
+  # --- AGENTIC: D1.A — Legacy scaffolding (delegates to 01-init.md logic) ---
+  - id: scaffold-project
+    type: agentic
+    depends_on: []
+    context:
+      additional_read:
+        - ".claude/pipeline/phases/01-init.md"
+        - ".claude/templates/PIPELINE_STATUS.template.md"
+        - ".claude/templates/claude.template.md"
+        - ".claude/templates/rules/common.claude-rules.template"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/seed-*.yaml"
+    prompt: |
+      Execute dev-1-init.md Step D1.A — Legacy Scaffolding.
+
+      Follow 01-init.md sub-steps exactly:
+        D1.A.1 Resolve TARGET_DIR (--path handling)
+        D1.A.2 Bootstrap .claude/ submodule if missing
+        D1.A.3 Generate .claude-rules (root, backend, frontend) from stack templates
+        D1.A.4 Create PIPELINE_STATUS.md if absent
+        D1.A.5 Resolve tech stack ($BACKEND, $FRONTEND)
+        D1.A.6 Generate CLAUDE.md from templates/claude.template.md
+               - PRD exists — populate roles/colors/domain from PRD (not "TODO" placeholders)
+        D1.A.7 Create directory structure (.claude-project/{docs,memory,status,agents,hooks,skills,customization}/, backend/src/, frontend/app/)
+        D1.A.8 Copy memory templates to {PROJECT_DIR}/memory/{DECISIONS,LEARNINGS,PREFERENCES}.md
+
+      IMPORTANT:
+      - {PROJECT_DIR}/docs/PRD.md already exists from PM. DO NOT overwrite.
+      - Do NOT invoke pm-track phase files (pm-*.md, 00-spec.md).
+
+  # --- DETERMINISTIC: Compute current HTML bundle hash and decide if re-extraction needed ---
+  - id: check-intent-freshness
+    type: deterministic
+    depends_on: [scaffold-project]
+    description: "Compute current HTML bundle hash, compare to existing intent.yaml if any"
+    command: |
+      INTENT_FILE="{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+      HTML_ROOT="{TARGET_DIR}/{PROJECT_DIR}/design/html"
+      mkdir -p "$(dirname "$INTENT_FILE")"
+
+      if [ ! -d "$HTML_ROOT" ] || [ -z "$(find "$HTML_ROOT" -name '*.html' -type f 2>/dev/null | head -1)" ]; then
+        echo "FAIL: No HTML files in $HTML_ROOT — cannot extract intent"
+        exit 1
+      fi
+
+      CURRENT_HASH=$(find "$HTML_ROOT" -name '*.html' -type f | sort | xargs -I {} sh -c 'echo "{}"; cat "{}"' | sha256sum | awk '{print $1}')
+
+      PREV_HASH=""
+      if [ -f "$INTENT_FILE" ]; then
+        PREV_HASH=$(grep -E "^\s*html_bundle_hash:" "$INTENT_FILE" | head -1 | sed 's/.*"\([a-f0-9]\{64\}\)".*/\1/')
+      fi
+
+      if [ "$CURRENT_HASH" = "$PREV_HASH" ] && [ -n "$PREV_HASH" ]; then
+        echo "INTENT_UP_TO_DATE current=$CURRENT_HASH"
+        echo "SKIP_EXTRACT=1"
+      else
+        echo "INTENT_STALE prev=$PREV_HASH current=$CURRENT_HASH"
+        echo "SKIP_EXTRACT=0"
+      fi
+    on_failure: fail
+
+  # --- AGENTIC: D1.B — Extract design intent from approved HTML ---
+  - id: extract-design-intent
+    type: agentic
+    skill: ".claude/skills/dev/design-intent-extractor/SKILL.md"
+    depends_on: [check-intent-freshness]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/html/**/*.html"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md"
+    prompt: |
+      Execute Step D1.B from dev-1-init.md.
+
+      Check the previous deterministic node's output (check-intent-freshness):
+      - If SKIP_EXTRACT=1 → design-intent.yaml is up to date, do nothing
+      - If SKIP_EXTRACT=0 → run extraction following design-intent-extractor SKILL.md
+
+      Apply heuristics per the skill:
+      - Endpoints: <a href>, <form action>, <button data-api>, JS fetch/axios literals
+      - Forms: <input>, <select>, <textarea> with name/type/required/pattern
+      - Realtime: data-sse, data-ws, EventSource, WebSocket literals
+      - Role: folder under design/html/, fallback 'app'
+
+      Output: {TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml
+
+      MUST include top-level:
+        generated_at (ISO8601)
+        source.prd_hash (sha256 of normalized PRD)
+        source.html_bundle_hash (matches check-intent-freshness CURRENT_HASH)
+        source.html_files[] (each with path + sha256)
+        screens[] (one per HTML, with endpoints_inferred, forms_inferred, realtime_hints, tbd)
+        roles_summary
+
+      Do NOT write anywhere outside {PROJECT_DIR}/design/design-intent.yaml.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+
+  # --- DETERMINISTIC: Validate intent output ---
+  - id: validate-intent
+    type: deterministic
+    depends_on: [extract-design-intent]
+    description: "Validate design-intent.yaml is well-formed and matches current HTML hash"
+    command: |
+      INTENT_FILE="{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+      HTML_ROOT="{TARGET_DIR}/{PROJECT_DIR}/design/html"
+
+      [ -f "$INTENT_FILE" ] || { echo "FAIL: intent.yaml missing"; exit 1; }
+
+      # Parse YAML
+      if command -v python3 &>/dev/null; then
+        python3 -c "import yaml; yaml.safe_load(open('$INTENT_FILE'))" 2>/dev/null || { echo "FAIL: intent.yaml not valid YAML"; exit 1; }
+      fi
+
+      # Has at least one screen
+      SCREEN_COUNT=$(grep -cE "^\s*- file:" "$INTENT_FILE")
+      [ "$SCREEN_COUNT" -ge 1 ] || { echo "FAIL: intent.yaml has no screens"; exit 1; }
+
+      # Bundle hash matches current
+      CURRENT_HASH=$(find "$HTML_ROOT" -name '*.html' -type f | sort | xargs -I {} sh -c 'echo "{}"; cat "{}"' | sha256sum | awk '{print $1}')
+      INTENT_HASH=$(grep -E "^\s*html_bundle_hash:" "$INTENT_FILE" | head -1 | sed 's/.*"\([a-f0-9]\{64\}\)".*/\1/')
+
+      if [ "$CURRENT_HASH" != "$INTENT_HASH" ]; then
+        echo "FAIL: intent bundle hash mismatch — intent=$INTENT_HASH current=$CURRENT_HASH"
+        exit 1
+      fi
+
+      echo "intent validated: $SCREEN_COUNT screens, bundle_hash=$CURRENT_HASH"
+    on_failure: fail
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    depends_on: [validate-intent]
+    command: "bash {CLAUDE_DIR}/gates/dev-1-init-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.9"
+
+  # --- AGENTIC: Update PIPELINE_STATUS.md with row key D1-init ---
+  - id: update-pipeline-status
+    type: agentic
+    depends_on: [gate]
+    prompt: |
+      Update {TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md for phase D1-init.
+
+      IMPORTANT: Use row key "D1-init" (not "init" or "1-init"). Dev-track logical name.
+
+      Progress Table row (D1-init):
+        Status: Complete
+        Score: (from gate proof)
+        Output: "scaffold + CLAUDE.md + design-intent.yaml (N screens)"
+
+      Execution Log: append with ISO8601 timestamp.
+      Config: update last_run.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{STATUS_DIR}/**"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

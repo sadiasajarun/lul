@@ -1,0 +1,317 @@
+# Phase Evaluation Criteria
+# Used by the orchestrator to score each phase after execution
+
+scoring:
+  phase_score: "checks_passed / total_checks (0.0 to 1.0)"
+  pipeline_score: "average(all_phase_scores)"
+
+phases:
+  spec:
+    checks:
+      - name: goal_defined
+        description: "Is there a clear, measurable goal?"
+      - name: constraints_listed
+        description: "Are constraints explicit?"
+      - name: acceptance_criteria
+        description: "Are ACs specific and testable?"
+      - name: ontology_stable
+        description: "Are key terms defined?"
+    gate: "ambiguity_score <= 0.2"
+    method: "Read seed YAML, score each field 0-1, average"
+
+  prd:
+    sub_phases:
+      - name: generate
+        description: "If no PRD exists, generate from seed using .claude/skills/dev/generate-prd/SKILL.md"
+      - name: convert
+        description: "Convert PRD to PROJECT_KNOWLEDGE.md using $BACKEND/guides/workflow-convert-prd-to-knowledge.md"
+      - name: user_stories
+        description: "Generate YAML user story files from PRD + routes for Phase 9 acceptance testing"
+    checks:
+      - name: prd_exists
+        description: "PRD file exists with all sections (Overview, Terminology, Modules, Pages, Tech Stack)?"
+      - name: sections_complete
+        description: "Overview, Terminology, User Types, Pages, Features all present in KNOWLEDGE.md?"
+      - name: features_mapped
+        description: "Every feature has corresponding AC?"
+      - name: no_ambiguity
+        description: "No vague terms like 'should', 'might', 'optionally'?"
+      - name: seed_aligned
+        description: "PRD features match seed acceptance criteria (if seed exists)?"
+      - name: user_stories_exist
+        description: "YAML user story files generated in .claude-project/user_stories/?"
+      - name: route_coverage
+        description: "Every route in routes.yaml covered by at least 1 user story?"
+      - name: ac_coverage
+        description: "Every seed acceptance_criterion mapped to at least 1 user story?"
+    gate: "prd_exists AND all_sections_present AND feature_coverage >= 90% AND user_stories_exist"
+    method: "Check PRD file, parse PROJECT_KNOWLEDGE.md sections, count feature coverage, compare to seed ACs, validate user story route coverage"
+
+  user-stories:
+    checks:
+      - name: page-parity
+        description: "yaml_count >= html_count * 0.95 (one YAML per HTML page)"
+      - name: naming-parity
+        description: "Every design/html/<name>.html has user_stories/<name>.yaml"
+      - name: scenarios-per-story
+        description: "Every YAML has >= 5 scenarios total"
+      - name: bucket-coverage
+        description: "Every YAML has >= 3 of 4 scenario buckets (acceptance_criteria / boundary_cases / error_scenarios / state_transitions)"
+      - name: no-duplicate-ids
+        description: "No duplicate story ids across all YAML files"
+    gate: "page-parity AND naming-parity AND scenarios-per-story AND bucket-coverage AND no-duplicate-ids"
+    method: "Iterate design/html/*.html and user_stories/*.yaml; diff basenames; count scenarios + populated buckets per YAML"
+
+  design:
+    sub_phases:
+      - name: design_system_variations
+        description: "Generate 3 DESIGN_SYSTEM variants (A/B/C) with different Differentiator combos"
+      - name: representative_preview
+        description: "Generate 3 representative pages × 3 styles = 9 HTML preview files"
+      - name: client_confirmation
+        description: "Share variations via chatbot file attachment, client selects A/B/C/Mix"
+      - name: full_html_generation
+        description: "Generate all HTML pages using confirmed DESIGN_SYSTEM"
+      - name: design_qa
+        description: "Validate routing, consistency, compliance"
+    checks:
+      - name: design_approved
+        description: "Client selected a variation and approved: true in DESIGN_STATUS.md?"
+      - name: design_system_exists
+        description: "DESIGN_SYSTEM.md (confirmed) has colors, typography, spacing, components?"
+      - name: prompts_match_prd
+        description: "Every PRD page has a design prompt?"
+      - name: html_generated
+        description: "Every design prompt has corresponding HTML file?"
+      - name: routing_valid
+        description: "Inter-page navigation works (no broken links)?"
+      - name: shared_consistency
+        description: "Navbar/footer identical across all pages?"
+      - name: design_compliance
+        description: "HTML follows design system specs?"
+    gate: "design_approved AND all_html_generated AND routing_score >= 95% AND shared_consistency == 100%"
+    method: "Check DESIGN_STATUS.md approved flag, count HTML files vs PRD pages, static link analysis, diff shared components, spot-check CSS"
+    scoring:
+      design_approved: 0.10
+      page_coverage: 0.25
+      routing_validity: 0.25
+      shared_consistency: 0.20
+      design_compliance: 0.20
+
+  database:
+    checks:
+      - name: schema_compiles
+        description: "TypeORM/Prisma schema has no errors?"
+      - name: no_orphans
+        description: "All entities used in at least one relationship?"
+      - name: naming_consistent
+        description: "camelCase DTOs, snake_case columns?"
+      - name: indexes_present
+        description: "Lookup fields have indexes?"
+      - name: migrations_run
+        description: "Migrations apply cleanly?"
+      - name: uuid_primary_keys
+        description: "All entities use UUID primary keys?"
+      - name: soft_delete_support
+        description: "Entities have soft delete (deletedAt) column?"
+      - name: prefer_enum_over_string
+        description: "Status fields use enum instead of free string? (WARN)"
+    gate: "schema_compiles AND no_orphans AND uuid_primary_keys"
+    method: "Run build, check entity files, verify migration, check UUID PKs, soft delete, enum usage"
+
+  backend:
+    checks:
+      - name: all_endpoints_exist
+        description: "Every PRD endpoint has a controller route?"
+      - name: dtos_match_spec
+        description: "Request/response DTOs match PRD?"
+      - name: error_handling
+        description: "404, 400, 401, 403 handled?"
+      - name: tests_generated
+        description: "At least one e2e test per endpoint? (generated in Phase 5b)"
+      - name: tests_compile
+        description: "All backend test files compile without errors?"
+      - name: crud_coverage
+        description: "Full CRUD cycle tested for each entity?"
+      - name: no_unsafe_cast
+        description: "No excessive `as unknown as` type casting? (threshold: 3)"
+      - name: class_validator_usage
+        description: "DTOs use class-validator decorators?"
+      - name: swagger_all_controllers
+        description: "All controllers have Swagger decorators?"
+      - name: nestjs_error_handling
+        description: "NestJS exception classes used for error responses?"
+    gate: "endpoint_coverage >= 90% AND tests_generated AND class_validator_usage"
+    method: "Compare PRD endpoints vs controller routes, check test/e2e/ for each module, validate DTO decorators, Swagger coverage, error handling"
+
+  frontend:
+    checks:
+      - name: all_screens_built
+        description: "Every HTML page has a React component?"
+      - name: design_fidelity
+        description: "Visual match to HTML source >= 85%?"
+      - name: responsive
+        description: "Works at mobile/tablet/desktop?"
+      - name: components_extracted
+        description: "Shared components (navbar, footer) extracted as React layout?"
+      - name: no_dead_buttons
+        description: "All <button> elements have onClick or type=submit?"
+      - name: layout_role_coverage
+        description: "Layout variants match PRD role count?"
+      - name: prd_nfr_compliance
+        description: "PRD non-functional requirements (i18n, a11y) implemented?"
+      - name: basic_ux_patterns
+        description: "Logo links to home, 404 page exists, empty/loading states present?"
+      - name: ts_strict_mode
+        description: "TypeScript strict mode enabled in tsconfig.json?"
+      - name: role_based_ui
+        description: "Role-based UI visibility checks in pages? (WARN)"
+    gate: "screen_coverage >= 90% AND fidelity >= 85% AND no_dead_buttons AND basic_ux_patterns"
+    method: "Count React components vs HTML pages, run design QA fidelity scoring, check dead buttons, validate PRD NFR, check basic UX patterns"
+
+  integrate:
+    checks:
+      - name: all_apis_connected
+        description: "Every screen's data comes from real API?"
+      - name: error_boundaries
+        description: "API failures show error states?"
+      - name: loading_states
+        description: "Async operations show loading?"
+      - name: type_safety
+        description: "No 'any' types in API responses?"
+      - name: api_route_matching
+        description: "All frontend API paths exist in backend controllers?"
+      - name: cors_port_consistency
+        description: "Backend CORS, Playwright, and Vite ports aligned?"
+      - name: interceptor_retry_limit
+        description: "Axios interceptor has retry limit to prevent infinite 401 loop?"
+      - name: no_settimeout_navigate
+        description: "No setTimeout + navigate pattern?"
+      - name: no_hardcoded_error_messages
+        description: "Error messages use server response or i18n, not hardcoded strings?"
+    gate: "api_connection_rate >= 95% AND api_route_matching AND interceptor_retry_limit"
+    method: "Grep for API calls per component, check error handling, extract backend routes and match against frontend calls, validate error message patterns"
+
+  test-api:
+    sub_phases:
+      - name: smoke_test
+        description: "Smoke test all routes via Playwright CLI (Step 1)"
+      - name: execute_backend
+        description: "Run backend API tests — Jest + Supertest (Step 2)"
+      - name: fix_failures
+        description: "Fix failing backend tests iteratively (Step 3)"
+    checks:
+      - name: smoke_test_pass
+        description: "All routes load without runtime errors?"
+      - name: backend_tests_pass
+        description: "All backend API e2e tests pass? (generated in Phase 5b)"
+      - name: no_flaky
+        description: "Tests pass 3/3 consecutive runs?"
+    gate: "smoke_pass AND backend_tests_pass AND no_flaky"
+    method: "Run smoke test (Playwright CLI), run backend tests (Jest+Supertest), check 3/3 stability"
+
+  # NOTE: user-stories criteria defined above (after prd section, lines 50-61)
+
+  test-browser:
+    checks:
+      # Tier 1: Pre-flight
+      - name: preflight_pass
+        description: "All pre-flight checks pass (tsc, eslint, build, unit, api, audit)?"
+      # Tier 2: Browser Testing
+      - name: design_qa_score
+        description: "HTML fidelity >= 85%?"
+      - name: smoke_test_pass
+        description: "All routes load without runtime errors?"
+      - name: acceptance_pass_rate
+        description: "User story PASS rate >= 80%?"
+      - name: chaos_resilience
+        description: "All 7 chaos scenarios pass on all routes? (P0 crashes = 0)"
+      - name: no_critical_bugs
+        description: "No P0/P1 from autonomous exploration?"
+      - name: fuzz_clean
+        description: "No XSS reflection, no crashes from boundary values?"
+      - name: monkey_clean
+        description: "No critical errors from gremlin testing?"
+      - name: bug_prediction_covered
+        description: "High-risk files explored with DEEP mode?"
+      - name: e2e_regression
+        description: "E2E tests still pass after QA fixes?"
+      - name: story_depth_score
+        description: "Story depth tier coverage >= 0.75?"
+      - name: no_or_in_smoke_tests
+        description: "Smoke tests assert success states only (no .or(error) mixing)?"
+      - name: no_silent_pass_pattern
+        description: "No .catch(() => false) patterns that hide test failures?"
+      - name: no_hardcoded_baseurl
+        description: "Playwright config uses env var for baseURL, not hardcoded localhost?"
+      - name: test_cleanup_exists
+        description: "E2E specs have afterAll/afterEach cleanup hooks? (WARN)"
+      - name: ux_scanner_health
+        description: "UX heuristic scan health score >= 0.7? (P0 count must be 0)"
+      # Tier 3: Production Layers
+      - name: security_clean
+        description: "No HIGH/CRITICAL security findings?"
+      - name: performance_meets_slo
+        description: "Performance meets PRD NFR thresholds?"
+      - name: accessibility_compliant
+        description: "axe-core critical violations = 0?"
+      - name: viewport_pass
+        description: "Cross-viewport stories pass on tablet + mobile?"
+      - name: data_integrity_pass
+        description: "Seed complete, FK clean, cascades work?"
+      - name: ship_gate_pass
+        description: "Production config validation pass?"
+    gate: "production_score >= 0.97 AND preflight_pass AND chaos_p0 == 0 AND security_p0 == 0 AND axe_critical == 0 AND ship_gate_pass"
+    method: "Run /production-test (Tier 1 pre-flight → Tier 2 browser testing with chaos/fuzz/monkey → Tier 3 production layers)"
+    scoring:
+      # production_score = browser_score × 0.45 + chaos × 0.15 + security × 0.10 + performance × 0.10 + accessibility × 0.08 + viewport × 0.07 + data_integrity × 0.05
+      browser_weight: 0.45
+      chaos_weight: 0.15
+      security_weight: 0.10
+      performance_weight: 0.10
+      accessibility_weight: 0.08
+      viewport_weight: 0.07
+      data_integrity_weight: 0.05
+      # browser_score internal weights (unchanged):
+      browser_design_weight: 0.20
+      browser_acceptance_weight: 0.30
+      browser_exploration_weight: 0.15
+      browser_regression_weight: 0.10
+      browser_story_depth_weight: 0.10
+      browser_ux_scanner_weight: 0.15
+
+  ship:
+    checks:
+      - name: build_succeeds
+        description: "Production build completes?"
+      - name: env_configured
+        description: "All env vars set?"
+      - name: drift_acceptable
+        description: "Spec drift <= 0.2?"
+      - name: no_weak_secrets
+        description: "No dev/example secrets in docker-compose or .env files?"
+      - name: env_example_complete
+        description: "All code-referenced env vars present in .env.example?"
+    gate: "build_ok AND drift <= 0.2 AND no_weak_secrets AND env_example_complete"
+    method: "Run build, check env, calculate drift from seed, validate secrets and env completeness"
+
+# -------------------------------------------------------------------
+# RL Reward System Configuration Reference
+# -------------------------------------------------------------------
+# Full reward function definition: .claude/pipeline/loop/reward.yaml
+# State vector schema: .claude/pipeline/loop/state-log.yaml
+# Policy memory docs: .claude/pipeline/loop/policy-memory.md
+# Global policy memory: .claude/pipeline/loop/policy-memory-global.yaml
+#
+# Shift-left multipliers (per reward.yaml):
+#   Bugs caught earlier earn higher reward. Production escapes are catastrophic.
+#
+#   spec:       5.0x  |  database:     3.5x  |  integrate:    2.0x
+#   prd:        4.0x  |  backend:      3.0x  |  test-api:     1.5x
+#   design:     2.5x  |  frontend:     2.5x  |  test-browser: 1.0x (baseline)
+#                                              |  production:  -50.0x (escape)
+#
+# Phase reward is calculated after each gate evaluation.
+# Generation reward is calculated after each loop iteration.
+# Terminal reward is calculated on loop exit (converge/stagnate/max).
+# See infinite-loop.md for the full RL-enhanced loop algorithm.

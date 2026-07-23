@@ -1,0 +1,120 @@
+{
+  "version": "demo-mru7iaot",
+  "programs": [
+    "abal",
+    "catchup",
+    "innovation"
+  ],
+  "tables": {
+    "students": {
+      "key": "student_id",
+      "columns": [
+        "student_id",
+        "name",
+        "program",
+        "gender",
+        "grade",
+        "division",
+        "district",
+        "center_id",
+        "status",
+        "disability",
+        "ethnicity",
+        "religion",
+        "nutrition",
+        "income_band",
+        "enrollment_date",
+        "mainstreamed",
+        "dropout_reason",
+        "attendance_pct",
+        "baseline_avg_score",
+        "latest_avg_score",
+        "risk_score",
+        "risk_band"
+      ]
+    },
+    "attendance": {
+      "key": "student_id",
+      "columns": [
+        "student_id",
+        "name",
+        "program",
+        "month",
+        "days_present",
+        "days_total",
+        "attendance_pct"
+      ]
+    },
+    "assessments": {
+      "key": "student_id",
+      "columns": [
+        "student_id",
+        "name",
+        "program",
+        "subject",
+        "baseline",
+        "cycle1",
+        "cycle2",
+        "cycle3",
+        "cycle4",
+        "cycle5",
+        "latest",
+        "band"
+      ]
+    },
+    "centers": {
+      "key": "center_id",
+      "columns": [
+        "center_id",
+        "center_name",
+        "program",
+        "division",
+        "pedagogy",
+        "assessments",
+        "documentation",
+        "learning_environment",
+        "engagement",
+        "score",
+        "days_since_visit"
+      ]
+    },
+    "teachers": {
+      "key": "teacher_id",
+      "columns": [
+        "teacher_id",
+        "name",
+        "gender",
+        "education",
+        "experience",
+        "center_id",
+        "division"
+      ]
+    }
+  },
+  "relations": [
+    {
+      "from": "attendance.student_id",
+      "to": "students.student_id",
+      "type": "many-to-one",
+      "strength": "strong"
+    },
+    {
+      "from": "assessments.student_id",
+      "to": "students.student_id",
+      "type": "many-to-one",
+      "strength": "strong"
+    },
+    {
+      "from": "students.center_id",
+      "to": "centers.center_id",
+      "type": "many-to-one",
+      "strength": "strong"
+    },
+    {
+      "from": "teachers.center_id",
+      "to": "centers.center_id",
+      "type": "many-to-one",
+      "strength": "strong"
+    }
+  ]
+}

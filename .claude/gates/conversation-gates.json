@@ -1,0 +1,20 @@
+{
+  "description": "Conversation-level gates that prevent tools from being called out of order during buyer conversations",
+  "gates": [
+    {
+      "id": "prd-before-packages",
+      "description": "PRD must be generated and shared before presenting package options",
+      "blocked_tools": ["ask_user", "request_payment"],
+      "condition": {
+        "type": "pipeline_phase_not_completed",
+        "phase": "prd"
+      },
+      "detection": {
+        "keywords": ["package", "enterprise", "professional", "starter", "$999", "$1,799", "$2,499", "$1799", "$2499"],
+        "applies_to": "question_or_description"
+      },
+      "error_message": "Cannot present packages before PRD is generated. Call run_pipeline with stop_after='prd' first, share the PRD with the buyer, and wait for their response before discussing pricing.",
+      "instruction": "Tell the buyer: 'Before I put together pricing, let me map out exactly what your app will include so we're on the same page.' Then call run_pipeline."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+[submodule "nestjs"]
+	path = nestjs
+	url = https://github.com/potentialInc/claude-nestjs.git
+	branch = dev
+[submodule "react"]
+	path = react
+	url = https://github.com/potentialInc/claude-react.git
+	branch = dev
+[submodule "operations"]
+	path = operations
+	url = https://github.com/potentialInc/claude-operations.git
+	branch = dev
+[submodule "django"]
+	path = django
+	url = https://github.com/potentialInc/claude-django.git
+	branch = dev
+[submodule "flutter"]
+	path = flutter
+	url = https://github.com/potentialInc/claude-flutter.git
+[submodule "design"]
+	path = design
+	url = https://github.com/potentialInc/claude-design.git
+	branch = dev

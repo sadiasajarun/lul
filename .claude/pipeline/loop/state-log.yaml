@@ -1,0 +1,151 @@
+# State Vector Schema
+# Captures the full RL state at each generation within a loop episode.
+# Written to: {TARGET_DIR}/.claude-project/status/{project}/STATE_LOG.yaml
+# Read by: infinite-loop.md (reward calculation), policy-memory system (cross-episode learning)
+
+---
+
+# Schema for each generation entry in the state log
+generation_entry:
+  # Identity
+  generation: int               # Generation number (1-based)
+  timestamp: ISO8601            # When this generation completed
+  episode_id: string            # Unique ID for this --loop run (UUID)
+
+  # Phase scores vector (0.0 to 1.0 each)
+  phase_scores:
+    spec: float
+    prd: float
+    user_stories: float
+    design: float
+    database: float
+    backend: float
+    frontend: float
+    integrate: float
+    test_api: float
+    test_browser: float
+    ship: float                 # 0.0 until Phase 10
+
+  # Aggregate scores
+  pipeline_score: float         # average(phase_scores) — only completed phases
+  pipeline_score_delta: float   # pipeline_score - previous_generation.pipeline_score
+
+  # Bug state
+  bugs:
+    total: int                  # Total bugs found across all phases this generation
+    by_severity:
+      P0: int
+      P1: int
+      P2: int
+      P3: int
+    by_category:
+      prd_gap: int
+      route_gap: int
+      component_analysis_gap: int
+      pattern_gap: int
+      tier_coverage_gap: int
+      test_data_gap: int
+      edge_case: int
+      cross_component_gap: int
+    by_detection_phase:         # Where bugs were actually found
+      spec: int
+      prd: int
+      database: int
+      backend: int
+      frontend: int
+      integrate: int
+      test_api: int
+      test_browser: int
+    by_origin_phase:            # Where bugs were introduced (via RCA)
+      spec: int
+      prd: int
+      database: int
+      backend: int
+      frontend: int
+      integrate: int
+    bugs_fixed_this_generation: int
+    bugs_remaining: int
+    escaped_to_production: int  # Post-ship bugs attributed to this episode
+
+  # Coverage metrics
+  coverage:
+    story_depth_score: float    # From STORY_COVERAGE.md (0.0 to 1.0)
+    route_coverage: float       # Routes with at least 1 user story
+    ac_coverage: float          # Acceptance criteria with at least 1 story
+    tier_distribution:          # How many stories per tier (tiers 1-14)
+      tier_1: int
+      tier_2: int
+      tier_3: int
+      tier_4: int
+      tier_5: int
+      tier_6: int
+      tier_7: int
+      tier_8: int
+      tier_9: int
+      tier_10: int
+      tier_11: int
+      tier_12: int
+      tier_13: int
+      tier_14: int
+
+  # Learning metrics
+  learning:
+    gap_patterns_total: int      # Total accumulated gap patterns
+    gap_patterns_new: int        # New patterns discovered this generation
+    gap_patterns_reused: int     # Existing patterns that prevented bugs this generation
+    pattern_reuse_ratio: float   # reused / total (learning efficiency)
+    agent_learnings_updated: int # Number of agent learning files modified
+
+  # Loop health
+  loop_health:
+    stagnation_count: int        # Consecutive generations with no score improvement
+    phases_run: int              # How many phases were executed this generation
+    phases_improved: list        # Phase names that improved score
+    phases_stagnant: list        # Phase names stuck at same score
+    phases_invalidated: list     # Phases invalidated by artifact tracking
+
+  # Reward breakdown (calculated per reward.yaml)
+  reward:
+    phase_rewards: dict          # { phase_name: R_phase }
+    generation_reward: float     # R_generation
+    terminal_reward: float       # R_terminal (0.0 unless this is final generation)
+    cumulative_reward: float     # Sum of all rewards up to this generation
+    normalized_reward: float     # Normalized to [-1.0, 1.0]
+
+---
+
+# How to write state log entries
+#
+# After each generation in the loop:
+# 1. Collect all metrics from PIPELINE_STATUS.md, bug reports, coverage reports
+# 2. Calculate rewards per reward.yaml
+# 3. Append entry to STATE_LOG.yaml under `generations:` list
+# 4. Update `summary:` section with running totals
+#
+# File structure:
+#
+# ```yaml
+# episode:
+#   id: "uuid-here"
+#   project: "my-project"
+#   started: "2026-04-09T10:00:00Z"
+#   quality_target: 0.95
+#   max_generations: 50
+#   status: "running" | "converged" | "stagnated" | "max_reached" | "user_stopped"
+#
+# summary:
+#   generations_completed: 5
+#   final_score: 0.96
+#   total_bugs_found: 23
+#   total_bugs_fixed: 22
+#   bugs_escaped: 0
+#   total_reward: 187.4
+#   normalized_reward: 0.72
+#   convergence_generation: 5
+#
+# generations:
+#   - generation: 1
+#     ...full entry per schema above...
+#   - generation: 2
+#     ...
+# ```

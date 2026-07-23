@@ -1,0 +1,98 @@
+name: test-browser
+display_name: "Design QA + Acceptance + Exploration"
+phase_number: 9
+
+prerequisites:
+  phases: [test-api]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/test-browser.rules.md"
+  - ".claude/rules/stacks/{$FRONTEND}.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+  phase_docs:
+    - glob: ".claude/{$FRONTEND}/docs/*.md"
+      purpose: "Frontend patterns for bug fixing"
+  design_context:
+    - "{TARGET_DIR}/.claude-project/design/DESIGN_SYSTEM.md"
+  user_stories:
+    - glob: "{TARGET_DIR}/.claude-project/user_stories/*.yaml"
+      purpose: "YAML user stories for acceptance testing"
+  current_state:
+    - glob: "{TARGET_DIR}/.claude-project/status/frontend/SCREEN_IMPLEMENTATION_STATUS.md"
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/QA_REPORT.md"
+      optional: true
+  story_coverage:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/STORY_COVERAGE.md"
+      optional: true
+      purpose: "Gap analysis state from previous deepen iterations"
+
+skills:
+  primary: ".claude/{$FRONTEND}/skills/qa/design-qa-html.md"
+  pre_step:
+    - ".claude/{$BACKEND}/skills/database-seeding/SKILL.md"
+    - ".claude/skills/dev/ensure-servers/SKILL.md"
+  secondary:
+    - ".claude/skills/qa/test-smoke/SKILL.md"
+    - ".claude/skills/dev/deepen-user-stories/SKILL.md"
+    - ".claude/skills/qa/test-acceptance/SKILL.md"
+    - ".claude/skills/qa/review-ui/SKILL.md"
+    - ".claude/{$FRONTEND}/skills/e2e-testing/SKILL.md"
+  agents:
+    - ".claude/agents/playwright-qa-agent.md"
+    - ".claude/{$FRONTEND}/agents/design-qa-agent.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: []
+  mcp: [sequential-thinking, playwright]
+
+gate:
+  pass_threshold: 0.97
+  hard_gates:
+    - name: preflight_pass
+      description: "Tier 1 pre-flight all checks pass"
+    - name: chaos_resilient
+      description: "No P0 crashes in chaos scenarios"
+    - name: security_clean
+      description: "No HIGH/CRITICAL security findings"
+    - name: accessibility_clean
+      description: "No critical axe-core violations"
+    - name: ship_gate_pass
+      description: "Production config validation pass"
+  evaluation_criteria:
+    - name: design_qa_score
+      description: "HTML fidelity >= 85%"
+    - name: smoke_test_pass
+      description: "All routes load without runtime errors"
+    - name: acceptance_pass_rate
+      description: "User story PASS rate >= 80%"
+    - name: no_critical_bugs
+      description: "No P0/P1 from autonomous exploration"
+    - name: story_depth_score
+      description: "Story depth tier coverage >= 0.75"
+    - name: chaos_score
+      description: "Chaos scenario pass rate"
+    - name: security_score
+      description: "Security scan clean"
+    - name: performance_score
+      description: "Performance meets PRD NFR SLOs"
+    - name: accessibility_score
+      description: "Accessibility meets WCAG 2.1 AA"
+    - name: viewport_score
+      description: "Cross-viewport pass rate (tablet + mobile)"
+    - name: data_integrity_score
+      description: "Data integrity checks pass"
+
+loop:
+  - skill: design-qa
+    trigger: "fidelity < 85%"
+  - skill: acceptance-test
+    trigger: "user story pass rate < 95%"
+  - skill: chaos-test
+    trigger: "chaos_score < 1.0"
+  - skill: production-layers
+    trigger: "production_score < 0.97"

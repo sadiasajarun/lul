@@ -1,0 +1,624 @@
+name: integrate-2
+description: |
+  Wire frontend to backend APIs.
+  v2 blueprint with strict artifact contracts.
+version: 2
+manifest: integrate
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: pre-check
+    type: deterministic
+    description: "Verify backend controllers + frontend pages exist"
+    command: |
+      CTRL=$(find {TARGET_DIR}/{BACKEND_DIR}/src -name '*.controller.ts' 2>/dev/null | wc -l | tr -d ' ')
+      [ "$CTRL" -gt 0 ] || { echo "FAIL: no backend controllers"; exit 1; }
+      FE="{TARGET_DIR}/{FRONTEND_DIR}"
+      [ -d "$FE" ] || { echo "FAIL: frontend dir {FRONTEND_DIR} not found"; exit 1; }
+      # Check both modern app/ (RR7 framework mode — what scaffold-frontend-shell
+      # produces) and legacy src/ (pre-template runs). Either layout counts.
+      PAGES_APP=$(find "$FE/app" -path '*/pages/*' -name '*.tsx' 2>/dev/null | wc -l | tr -d ' ')
+      PAGES_SRC=$(find "$FE/src" -path '*/pages/*' -name '*.tsx' 2>/dev/null | wc -l | tr -d ' ')
+      PAGES=$((PAGES_APP + PAGES_SRC))
+      [ "$PAGES" -gt 0 ] || { echo "FAIL: no frontend pages (checked $FE/app/pages and $FE/src/pages)"; exit 1; }
+      echo "Backend: $CTRL controllers, Frontend: $PAGES pages (app=$PAGES_APP src=$PAGES_SRC)"
+    on_failure: abort
+    abort_message: "Phases 5 (backend) + 6 (frontend) must complete first"
+
+  - id: extract-api-routes
+    type: deterministic
+    description: "Generate PROJECT_API_ROUTES.md from @Controller decorators"
+    command: |
+      OUT="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API_ROUTES.md"
+      mkdir -p "$(dirname "$OUT")"
+      {
+        echo "# Backend API Routes (Auto-generated)"
+        echo ""
+        echo "> Frontend API calls MUST use these exact paths."
+        echo ""
+        echo "| Controller | Decorator | Full Path |"
+        echo "|---|---|---|"
+      } > "$OUT"
+      ROUTE_COUNT=0
+      for f in $(find {TARGET_DIR}/{BACKEND_DIR}/src -name '*.controller.ts' 2>/dev/null); do
+        CTRL=$(basename "$f" .controller.ts)
+        PREFIX=$(grep -o "@Controller('[^']*')" "$f" 2>/dev/null | head -1 | sed "s/@Controller('\(.*\)')/\1/")
+        [ -z "$PREFIX" ] && continue
+        echo "| $CTRL | @Controller | /$PREFIX |" >> "$OUT"
+        ROUTE_COUNT=$((ROUTE_COUNT + 1))
+        grep -nE "@(Get|Post|Put|Patch|Delete)" "$f" 2>/dev/null | while IFS= read -r line; do
+          METHOD=$(echo "$line" | grep -oE '@[A-Za-z]*' | head -1)
+          SUB=$(echo "$line" | sed -n "s/.*@[A-Za-z]*('\([^']*\)').*/\1/p")
+          if [ -n "$SUB" ]; then
+            FULL="/$PREFIX/$SUB"
+          else
+            FULL="/$PREFIX"
+          fi
+          FULL=$(echo "$FULL" | sed 's|//|/|g; s|/$||')
+          echo "| $CTRL | $METHOD | $FULL |" >> "$OUT"
+        done
+      done
+      echo "" >> "$OUT"
+      echo "Total routes: $ROUTE_COUNT" >> "$OUT"
+      echo "Wrote $ROUTE_COUNT routes to $OUT"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 2: AGENTIC NODE WITH ARTIFACT CONTRACT
+  # ============================================================================
+
+  - id: integrate
+    type: agentic
+    timeout_ms: 2700000   # 45min — wires ~17 pages × API services + auth + state per frontend; v25 watchdog'd at 25min mid-page
+    # v91: model-agnostic. Was hardcoded `backend: claude` due to 3 mimo
+    # 429 hits — one-shot heavy synthesis touching many pages. Cell config
+    # routes via AGENT_BACKEND_synthesis or _heavy.
+    intent: synthesis
+    cost_class: heavy
+    max_turns: 150
+    description: "Wire frontend pages to backend via Redux async thunks + httpService methods (per react.rules.md)"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/INTEGRATION_REPORT.md"
+    verification_pattern: "endpoints_wired:\\s*[0-9]+"
+    scope_guard:
+      allow: ["{FRONTEND_DIR}/app/**"]
+      deny: ["{BACKEND_DIR}/**"]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API_INTEGRATION.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API_ROUTES.md"
+        - ".claude/{FRONTEND}/guides/api-integration.md"
+        - ".claude/{FRONTEND}/guides/data-fetching.md"
+        - ".claude/{FRONTEND}/guides/authentication.md"
+        - ".claude/{FRONTEND}/skills/api-integration/SKILL.md"
+    tool_profile:
+      allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Wire every frontend page to its backend API. Use EXACT paths from PROJECT_API_ROUTES.md.
+
+      STACK (per react.rules.md — MANDATORY, do NOT use TanStack Query):
+      - READ operations: `createAsyncThunk` defined in `services/httpServices/*.ts`,
+        consumed by Redux slices via `extraReducers` + `useAppSelector`/`useAppDispatch`
+      - MUTATION operations: direct service calls in components (NO `createAsyncThunk`),
+        use local `useState` for loading, then `dispatch(fetchThunk())` to refresh
+
+      REQUIREMENTS:
+      1. Every API call has loading + error + empty states (Redux slice state)
+      2. httpService.ts is the Axios orchestrator (do NOT modify)
+         httpMethods/ contains factory functions (get/post/put/delete/patch) — do NOT modify
+         httpServices/ contains per-domain services that USE httpMethods (do NOT use raw axios)
+      3. Auth via httpOnly cookies — httpMethods/requestInterceptor.ts handles tokens
+         responseInterceptor.ts has `_isRetry` flag to prevent infinite refresh loops (RULE-I1)
+      4. Never `setTimeout(() => navigate(...))` after API response (RULE-I2)
+      5. API paths must match @Controller decorators exactly (RULE-I3)
+      6. CORS origin + Playwright baseURL + Vite port must be consistent (RULE-I4)
+      7. No `any` types in response DTOs
+      8. Error messages use server response (`err.response?.data?.message`) — NOT hardcoded strings
+
+      FILE LAYOUT (RR7 framework mode — `app/` is the source root):
+      - app/services/httpService.ts                 (Axios orchestrator, pre-existing)
+      - app/services/httpMethods/{get,post,put,delete,patch}.ts  (pre-existing, do NOT modify)
+      - app/services/httpServices/<domain>Service.ts    (NEW — per-domain services
+                                                         with createAsyncThunk for reads)
+      - app/redux/features/<domain>Slice.ts             (NEW or extend — extraReducers
+                                                         consuming the thunks above)
+      - app/pages/**/*.tsx                              (replace mock data with
+                                                         useAppSelector + dispatch)
+      - Do NOT create files under {FRONTEND_DIR}/src/ — RR7 uses app/ only. Duplicating
+        breaks verify-page-coverage and the typecheck cascade (v25 evidence).
+      - Do NOT create app/hooks/api/ TanStack-style files — that path is from an
+        earlier RR6+TanStack revision of this blueprint that no longer applies.
+
+      COVERAGE TARGET: wire >= 50% of pages on first pass. Prioritize:
+        - All list pages (anything ending in List.tsx, ShowAll.tsx, or with a table)
+        - All dashboards (Home.tsx, Dashboard.tsx)
+        - All form pages (Apply.tsx, Create.tsx, Edit.tsx)
+        - Auth pages
+      Pages without an obvious matching hook: leave them untouched but log them
+      under "## Skipped (no matching hook)" in the report — those are signals
+      that the backend is missing an endpoint and will self-heal next generation.
+
+      REPORT FILE: {STATUS_DIR}/INTEGRATION_REPORT.md
+
+      CRITICAL — write the report in EXACTLY the format below. Do NOT
+      rephrase, do NOT use markdown bold for the metric lines, do NOT
+      embed metrics in narrative paragraphs. The artifact-verification
+      regex looks for `endpoints_wired:\s*[0-9]+` as a literal line —
+      `**endpoints_wired:** 53` or "we wired 53 endpoints" will FAIL.
+
+      Copy-paste this template and fill in the numbers:
+
+      ```
+      # INTEGRATION_REPORT
+
+      phase: integrate
+      endpoints_wired: <int>
+      services_created: <int>
+      hooks_created: <int>
+      pages_updated: <int>
+      pages_total: <int>
+      pages_with_hooks: <int>
+      coverage_pct: <int>
+      rule_i1_interceptor_retry_flag: <true|false>
+      rule_i3_route_matching: <true|false>
+
+      ## Skipped (no matching hook)
+      - <page-path>: <reason / which endpoint is missing>
+      - ...
+
+      ## Notes
+      <free-form narrative goes HERE, after the metrics — not before>
+      ```
+
+      v93 evidence: agent wrote a beautifully-formatted markdown report
+      with all the right numbers but as `**Phase:** integrate` (bold) and
+      embedded metrics in `## Summary` prose. Regex failed → route_to_agent
+      had to be invoked to rewrite, costing extra turns.
+
+      === SECOND MANDATORY ARTIFACT: MISSING_ENDPOINTS.yaml ===
+
+      You MUST also write {STATUS_DIR}/MISSING_ENDPOINTS.yaml
+      — a STRUCTURED, machine-readable list of the backend endpoints that would
+      have let you wire the skipped pages. The next generation's backend phase
+      reads this file and generates those controllers automatically (self-heal
+      across generations).
+
+      If every page was wired, write the file with an empty missing_endpoints list.
+
+      Schema (emit in this exact shape — keys are parsed by the orchestrator):
+
+      ```yaml
+      generated_at: <ISO timestamp>
+      gen: <integer, read from PIPELINE_STATUS.md `generation:` field; default 1>
+      total_pages: <int>
+      wired_pages: <int>
+      skipped_pages: <int>
+      missing_endpoints:
+        - resource: notices              # kebab-case, used as NestJS module name
+          module_name: notices           # matches {BACKEND_DIR}/src/modules/{module_name}
+          reason: <1-line why>
+          suggested_routes:
+            - method: GET
+              path: /notices
+              description: List notices for the current worker
+              scope: worker              # one of: public | worker | company | admin
+              response_shape: { items: NoticeDto[] }
+            - method: GET
+              path: /notices/:id
+              description: Notice detail
+              scope: worker
+              response_shape: NoticeDto
+            - method: POST
+              path: /admin/notices
+              description: Create notice (admin)
+              scope: admin
+              request_shape: CreateNoticeDto
+              response_shape: NoticeDto
+          consuming_pages:
+            # Use whichever layout exists: app/pages (RR7) or src/pages (Vite).
+            - {FRONTEND_DIR}/<SRC>/pages/worker/Notices.tsx
+            - {FRONTEND_DIR}/<SRC>/pages/worker/NoticeDetail.tsx
+            - {FRONTEND_DIR}/<SRC>/pages/admin/Notices.tsx
+            - {FRONTEND_DIR}/<SRC>/pages/admin/NoticeCreate.tsx
+        - resource: faq
+          ...
+      ```
+
+      GROUP by `resource` — one entry per missing backend module, not one per page.
+      Infer the `resource` name from the unwired page filenames (Notices.tsx → notices).
+      Suggest routes conservatively: GET /resource, GET /resource/:id, POST /resource,
+      PATCH /resource/:id, DELETE /resource/:id (only the subset the page actually needs).
+
+  # ============================================================================
+  # TIER 3: POST-CHECKS (deterministic)
+  # ============================================================================
+
+  - id: verify-page-coverage
+    type: deterministic
+    description: "Enforce >= X% of data-pages are wired to real data via Redux thunks or service calls (static pages exempt; progressive gen1 50%, gen2 70%, gen3+ 90%)"
+    command: |
+      #!/usr/bin/env bash
+      set -e
+      FRONTEND_ROOT="{TARGET_DIR}/{FRONTEND_DIR}"
+      if [ -d "$FRONTEND_ROOT/app/pages" ]; then
+        PAGES_DIR="$FRONTEND_ROOT/app/pages"
+      elif [ -d "$FRONTEND_ROOT/src/pages" ]; then
+        PAGES_DIR="$FRONTEND_ROOT/src/pages"
+      else
+        echo "FAIL: no pages dir at $FRONTEND_ROOT/app/pages or $FRONTEND_ROOT/src/pages"; exit 1
+      fi
+
+      ALL_TMP=$(mktemp); WIRED_TMP=$(mktemp); ELIGIBLE_TMP=$(mktemp); UNWIRED_TMP=$(mktemp)
+      trap 'rm -f "$ALL_TMP" "$WIRED_TMP" "$ELIGIBLE_TMP" "$UNWIRED_TMP"' EXIT
+
+      find "$PAGES_DIR" -name '*.tsx' 2>/dev/null | sort > "$ALL_TMP"
+      TOTAL_ALL=$(wc -l < "$ALL_TMP" | tr -d ' ')
+      [ "$TOTAL_ALL" -gt 0 ] || { echo "FAIL: 0 pages found under $PAGES_DIR"; exit 1; }
+
+      # --- Exempt static pages from the denominator (filename-based only) ---
+      # These pages never need an API call by design. A content heuristic was
+      # tried earlier but over-exempted wired pages using non-obvious markup
+      # (dashboards with custom charts, detail pages with cards, etc.).
+      # Filename allow-list is conservative and reliable. v42 evidence: auth
+      # forms (login/register) and marketing pages (about/contact/terms) were
+      # being scored as unwired even though they correctly have no API
+      # fetches — they submit data via mutations, not consume it via reads.
+      EXEMPT_NAMES='landing|not-found|forbidden|offline|maintenance|splash|more|unauthorized|layout|login|register|signup|sign-in|sign-up|reset-password|forgot-password|verify-email|verify|otp|logout|signout|sign-out|about|contact|terms|privacy|home'
+
+      while IFS= read -r page; do
+        bn=$(basename "$page" .tsx)
+        if echo "$bn" | grep -qE "^(${EXEMPT_NAMES})$"; then
+          continue
+        fi
+        echo "$page" >> "$ELIGIBLE_TMP"
+      done < "$ALL_TMP"
+      ELIGIBLE=$(wc -l < "$ELIGIBLE_TMP" | tr -d ' ')
+
+      # "wired" = eligible page that consumes real data. Per react.rules.md
+      # the stack uses Redux async thunks (createAsyncThunk in service files)
+      # consumed via Redux state hooks — NOT TanStack Query. v42 evidence:
+      # the old "from hooks/api" check counted zero wired pages because the
+      # stack never produces such files; the gate forced fix-agents to invent
+      # TanStack hooks that violate the project rules.
+      #
+      # A page counts as wired if it does ANY of:
+      #   - imports from ~/redux/ or ../redux/        (consumes Redux state)
+      #   - imports from ~/services/ or ../services/  (calls a service for
+      #                                                mutations / direct fetch)
+      #   - calls useAppSelector / useAppDispatch     (Redux hooks via store)
+      #   - calls useDispatch / useSelector           (raw react-redux)
+      #   - imports from ~/hooks/api or ../hooks/api  (legacy TanStack path —
+      #                                                still accept it for
+      #                                                back-compat with older
+      #                                                runs that produced it)
+      find "$PAGES_DIR" -name '*.tsx' -exec grep -lE "from ['\"](\\.\./)+redux|from ['\"]~/redux|from ['\"](\\.\./)+services|from ['\"]~/services|useAppSelector|useAppDispatch|\\buseDispatch\\b|\\buseSelector\\b|from ['\"](\\.\./)+hooks/api|from ['\"]~/hooks/api" {} + 2>/dev/null | sort > "$WIRED_TMP"
+      # Wired ∩ Eligible
+      WIRED=$(comm -12 "$ELIGIBLE_TMP" "$WIRED_TMP" | wc -l | tr -d ' ')
+
+      # Denominator: eligible pages only. If somehow 0 eligible, fall back to all.
+      DENOM=$ELIGIBLE
+      [ "$DENOM" -gt 0 ] || DENOM=$TOTAL_ALL
+      PCT=$(( WIRED * 100 / DENOM ))
+
+      # Progressive threshold based on generation
+      GEN=1
+      STATUS_FILE="{TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md"
+      if [ -f "$STATUS_FILE" ]; then
+        PARSED=$(grep -m1 '^generation:' "$STATUS_FILE" | sed 's/[^0-9]//g')
+        GEN=${PARSED:-1}
+      fi
+      if [ "$GEN" -ge 3 ]; then MIN=90
+      elif [ "$GEN" -eq 2 ]; then MIN=70
+      else MIN=50; fi
+
+      EXEMPTED=$(( TOTAL_ALL - ELIGIBLE ))
+      if [ "$PCT" -lt "$MIN" ]; then
+        echo "FAIL: $WIRED/$DENOM data-pages wired = ${PCT}% < ${MIN}% (gen $GEN; $EXEMPTED static/no-data pages exempted)"
+        echo "Unwired eligible pages (sample):"
+        comm -23 "$ELIGIBLE_TMP" "$WIRED_TMP" | head -10
+        exit 1
+      fi
+      echo "PASS: $WIRED/$DENOM data-pages wired (${PCT}% >= ${MIN}% gen $GEN; $EXEMPTED static/no-data pages exempted from $TOTAL_ALL total)"
+    on_failure: route_to_agent
+    route_to_agent_attempts: 2
+    fix_context: |
+      Many pages still display hardcoded mock data instead of consuming real
+      data via the project's Redux async-thunk pattern. The stack is Redux
+      thunks + axios services — NOT TanStack Query. Do NOT introduce
+      TanStack Query / useQuery hooks; that violates the stack rules.
+
+      LAYOUT DETECTION (do this FIRST before editing anything):
+      - If {FRONTEND_DIR}/app/pages exists, the project uses RR7 framework mode → edit under app/
+      - Else if {FRONTEND_DIR}/src/pages exists → edit under src/
+      - DO NOT create files under both — duplication breaks verify-page-coverage
+        and triggers a cascade of typecheck failures (v25 evidence). The script
+        that scored you uses the same auto-detect; match it.
+
+      For each unwired page (identified by the failure output above):
+      1. Identify the data it displays (read the page, find inline arrays/objects)
+      2. Find the matching slice + thunk under <SRC>/redux/features/{resource}/
+         and the service under <SRC>/services/httpServices/{resource}Service.ts
+      3. Replace the inline data with:
+           const dispatch = useAppDispatch();
+           const { items, loading, error } = useAppSelector(s => s.{resource});
+           useEffect(() => { dispatch(fetch{Resource}()); }, [dispatch]);
+      4. Add loading + error + empty states (use existing wired pages as reference)
+      5. If no slice/thunk exists for the data, that's a backend gap — note it,
+         skip the page, do NOT invent a TanStack hook to "satisfy" the gate.
+
+      Prioritize: list pages (Applications, Workers, Companies, Notices), dashboards,
+      detail pages, then edit/create forms.
+
+      Do NOT delete pages or remove features. Do NOT add `any` types.
+      Re-run `cd frontend && npx tsc --noEmit` after each batch to catch regressions.
+
+      The orchestrator will re-run the coverage check after your fixes.
+
+  # v97: doctor runs BEFORE verify so the file is always present + valid.
+  # Replaces the route_to_agent on the verify node (which fired fix-agent
+  # 5-25 min to write a file that takes ~1 sec deterministically). Per the
+  # [[feedback_doctors_over_route_to_agent]] rule.
+  # REALTIME capability (FE half, RULE-I5) — conditional: only emits when the
+  # backend has a @WebSocketGateway. Produces socketService + SocketContext +
+  # useSocket (withCredentials so the gateway's cookie-JWT handshake authenticates)
+  # + adds socket.io-client to package.json. Satisfies the integrate-gate
+  # socket-client-integration + socket-cleanup-exists checks. Pairs with the
+  # backend scaffold-realtime-gateway capability.
+  - id: scaffold-socket-client
+    type: deterministic
+    description: "REALTIME FE: socket.io-client integration (socketService/SocketContext/useSocket) when backend has a gateway"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-socket-client.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --backend-dir "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: scaffold-missing-endpoints-doctor
+    type: deterministic
+    description: "v97 doctor: emit MISSING_ENDPOINTS.yaml deterministically (replaces LLM fix-agent)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-missing-endpoints-doctor.js \
+        --status-dir "{TARGET_DIR}/{STATUS_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: verify-missing-endpoints-yaml
+    type: deterministic
+    description: "Verify integrate agent produced MISSING_ENDPOINTS.yaml (cross-gen signal for backend self-heal)"
+    command: |
+      #!/usr/bin/env bash
+      F="{TARGET_DIR}/{STATUS_DIR}/MISSING_ENDPOINTS.yaml"
+      if [ ! -f "$F" ]; then
+        echo "FAIL: $F not written by integrate agent"
+        exit 1
+      fi
+      # Must have the top-level keys we expect
+      for key in generated_at missing_endpoints; do
+        grep -qE "^${key}:" "$F" || { echo "FAIL: missing key '${key}:' in $F"; exit 1; }
+      done
+      # If there are any entries, each must have resource + consuming_pages
+      if grep -q '^  - resource:' "$F"; then
+        RESOURCES=$(grep -c '^  - resource:' "$F")
+        PAGES=$(grep -c '^      - ' "$F" || echo 0)
+        echo "PASS: $RESOURCES missing-endpoint resources listed across $PAGES consuming pages"
+      else
+        echo "PASS: empty missing_endpoints list (all pages wired)"
+      fi
+    # v97: doctor above ensures file always exists + valid. If verify still
+    # fails, the doctor itself failed → log + continue (no LLM fix-agent).
+    on_failure: ignore
+
+  - id: contract-validation
+    type: agentic
+    description: "Verify frontend form payloads match backend DTO contracts (RULE-I3)"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/CONTRACT_VALIDATION.md"
+    verification_pattern: "mismatches_found: [0-9]+"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+    tool_profile:
+      allow: [Read, Write, Grep, Glob, Bash]
+      deny: [WebSearch, WebFetch, Edit]
+    prompt: |
+      Validate that frontend form submissions match backend DTO contracts exactly.
+
+      STEPS:
+      1. Find all backend DTOs: `find {BACKEND_DIR}/src -name '*.dto.ts'`
+      2. For each DTO with form fields (Create*, Update*), extract:
+         - Field names, types, validation decorators (@IsArray, @IsIn, @IsString, etc.)
+         - Enum constraints (@IsIn values)
+      3. Find the corresponding frontend form component:
+         - Search for mutation hooks that POST/PATCH to the same endpoint
+         - Read the form state and the payload passed to mutateAsync()
+      4. Compare: does the frontend send the EXACT fields the backend expects?
+         - Field name mismatches (passengerCount vs passengers)
+         - Type mismatches (number vs array)
+         - Enum value mismatches (ROUNDTRIP vs round_trip)
+         - Missing required fields
+         - Extra fields the backend doesn't expect
+
+      REPORT FILE: {STATUS_DIR}/CONTRACT_VALIDATION.md
+      Required format:
+        phase: integrate-contract-validation
+        dtos_checked: <N>
+        forms_checked: <N>
+        mismatches_found: <N>
+
+        ## Mismatches
+        | DTO | Field | Backend Expects | Frontend Sends | Severity |
+        |-----|-------|-----------------|----------------|----------|
+        ...
+
+        ## Matched Contracts
+        | DTO | Fields | Status |
+        |-----|--------|--------|
+        ...
+
+      If mismatches_found > 0, list each one with the exact file paths and line numbers.
+      This is a READ-ONLY audit — do NOT fix the code, only report mismatches.
+
+  - id: fix-contracts
+    type: deterministic
+    description: "Abort if contract mismatches found — route to agent to fix"
+    command: |
+      REPORT="{TARGET_DIR}/{STATUS_DIR}/CONTRACT_VALIDATION.md"
+      [ -f "$REPORT" ] || { echo "FAIL: contract validation report missing"; exit 1; }
+      # v89: regex anchor accepts indented variants. v88 evidence: company cell
+      # emitted "  mismatches_found: 14" (indented) and `^mismatches` missed it
+      # → gate silently passed with 14 unfixed violations. Now uses ^\s* to
+      # match both indented and unindented variants.
+      MISMATCHES=$(grep -E '^\s*mismatches_found:' "$REPORT" | sed 's/[^0-9]//g')
+      [ "${MISMATCHES:-0}" -eq 0 ] && echo "PASS: 0 contract mismatches" && exit 0
+      echo "FAIL: $MISMATCHES contract mismatch(es) found"
+      grep -A50 '## Mismatches' "$REPORT" | head -30
+      exit 1
+    on_failure: route_to_agent
+    route_to_agent_attempts: 2
+    fix_context: |
+      Frontend form payloads don't match backend DTOs. Read the CONTRACT_VALIDATION.md
+      report at {STATUS_DIR}/CONTRACT_VALIDATION.md to see the exact mismatches.
+      Fix the FRONTEND to match the backend DTO contracts. Do NOT change backend DTOs.
+      Common fixes:
+        - Rename form fields to match DTO field names
+        - Change data types (number → array of objects)
+        - Fix enum values (ROUNDTRIP → round_trip)
+        - Add missing required fields to the form
+
+  - id: ensure-rr7-types
+    type: deterministic
+    description: "Run react-router typegen; on failure, write stub +types/root.ts (v67)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/ensure-rr7-types.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: typecheck
+    type: deterministic
+    description: "Verify frontend compiles after integration"
+    # v65: route_to_agent so fix-agent patches the cross-file inconsistencies
+    # introduced by integrate's API-wiring agent (renamed hooks vs page imports).
+    command: |
+      cd "{TARGET_DIR}/{FRONTEND_DIR}" && npx tsc --noEmit 2>&1
+    on_failure: route_to_agent
+
+  # v128: stray sweep in INTEGRATE too — the integrate agent + fix-agent can
+  # anchor Write paths to the {PROJECT_DIR} absolute prefix (same hazard as
+  # convert-pages, v127 evidence) and drop pages into a tree nothing builds.
+  # Relocate before enforcing the scope-lock so honest-but-misplaced work counts.
+  - id: scaffold-stray-output-relocate
+    type: deterministic
+    description: "v128: relocate LLM pages written under {PROJECT_DIR}/{FRONTEND_DIR}/ into the real frontend tree"
+    on_failure: ignore
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-stray-output-doctor.js \
+        --target "{TARGET_DIR}" \
+        --frontend-dir "{FRONTEND_DIR}" \
+        --verbose
+
+  # v128: scope-lock enforcement in INTEGRATE too. The integrate agent + the
+  # typecheck fix-agent both edit app/pages/**; if either breaks a deterministic
+  # page's contract (story-spec data-testids / default export), restore the
+  # snapshot taken in the frontend phase. Integrate's legit work (mock→thunk
+  # rewiring) keeps testids, so honest wiring survives; only contract breaks
+  # revert. Restored pages compile by construction (fetch-based, react-only
+  # imports) — safe after typecheck. No-op when no snapshot exists.
+  - id: scaffold-scope-lock-enforce
+    type: deterministic
+    description: "v128: restore deterministic pages whose contract was broken by integrate/fix-agent edits"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-scope-lock-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --enforce \
+        --verbose
+    on_failure: ignore
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify API hook/service files were created"
+    command: |
+      FE="{TARGET_DIR}/{FRONTEND_DIR}"
+      # v55 fix: check both modern app/ (RR7) and legacy src/ — same dual-path
+      # treatment as pre-check at line ~24. v54 evidence: integrate produced
+      # 6-10 hook/service files in $FE/app/{hooks,services}/ for all 3 frontends
+      # but this gate looked only at $FE/src and failed all 3. Same defect class
+      # as v53 backendModulesResolver legacy path + v42 htmlPagesResolver.
+      API_APP=$(find "$FE/app" \( -path '*/api/*' -o -path '*/services/*' -o -path '*/hooks/*' \) \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null | wc -l | tr -d ' ')
+      API_SRC=$(find "$FE/src" \( -path '*/api/*' -o -path '*/services/*' -o -path '*/hooks/*' \) \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null | wc -l | tr -d ' ')
+      API=$((API_APP + API_SRC))
+      [ "$API" -gt 0 ] || { echo "FAIL: no API hook/service files in {FRONTEND_DIR} (checked app/ and src/)"; exit 1; }
+      echo "PASS: $API API files (app=$API_APP src=$API_SRC)"
+    on_failure: abort
+
+  - id: cross-reference-consistency
+    type: deterministic
+    description: "End-of-integrate drift check — frontend services vs backend routes (advisory)"
+    command: |
+      bash "{CLAUDE_DIR}/gates/cross-reference-consistency.sh" "{TARGET_DIR}" "{project}" \
+        | tee "{TARGET_DIR}/{STATUS_DIR}/CONSISTENCY_REPORT_INTEGRATE.json"
+      # Advisory until we have real scores to set a meaningful threshold.
+      # Promote to abort by changing on_failure once a baseline exists.
+      exit 0
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 4: LLM EVALUATOR (article §2 — separate generator from evaluator)
+  # ============================================================================
+  #
+  # Independent grading of the wired output. Crucial because contract-validation
+  # above is itself an LLM that can drift into self-eval bias on its own work,
+  # and verify-page-coverage only counts hook imports — not whether mutations
+  # actually persist, error UX is meaningful, or flows are walkable end-to-end.
+  # The evaluator runs in a fresh subprocess with read-only tools.
+  #
+  # on_failure: ignore — a broken evaluator must not prevent shipping.
+
+  - id: integrate-evaluator
+    type: evaluator
+    description: "Grade integration on coverage / error-UX / flow-walkability / state-handling"
+    rubric_file: ".claude/blueprints/evaluators/integrate-rubric.yaml"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/integrate-evaluation.json"
+    verification_pattern: '"overall_score"\s*:\s*[0-9.]+'
+    tool_profile:
+      allow: [Read, Grep, Glob, Bash, Write]
+      # Edit / NotebookEdit / WebFetch / WebSearch are force-denied by
+      # lib/evaluator.js even if listed here. Redeclaring for clarity.
+      deny: [Edit, NotebookEdit, WebFetch, WebSearch]
+    inputs:
+      artifacts:
+        # Evaluator's glob walker handles missing dirs gracefully — listing
+        # both layouts captures whichever exists (RR7 app/ or legacy src/).
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/pages/**/*.tsx"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/hooks/api/*.ts"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/services/api/*.ts"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/services/**/*.ts"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/src/pages/**/*.tsx"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/src/hooks/api/*.ts"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/src/services/api/*.ts"
+        # axios instance + interceptors live somewhere in services/.
+        # Filename varies: client.ts / axios.ts / interceptor*.ts
+        - "{TARGET_DIR}/{FRONTEND_DIR}/src/services/**/*.ts"
+      references:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API_ROUTES.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/CONTRACT_VALIDATION.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/MISSING_ENDPOINTS.yaml"
+      max_files: 30
+      max_chars_per_file: 8000
+    # v118: hard_gate — integrate quality is deterministic (FE API paths match BE
+    # controller routes, no `any`, error handling + loading states present, axios
+    # retry-limit, no setTimeout-navigate, CORS port consistency, socket cleanup —
+    # all grep-checkable). The soft_score 0.6/0.4 blend injected non-reproducible
+    # LLM variance. Score = det (reproducible); evaluator advisory + P0 veto.
+    blend:
+      strategy: hard_gate
+    calibration:
+      examples_file: ".claude/blueprints/evaluators/integrate-examples.yaml"
+    on_failure: ignore
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]

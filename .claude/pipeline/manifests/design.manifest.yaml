@@ -1,0 +1,61 @@
+name: design
+display_name: "Design Guide + HTML Generation"
+phase_number: 3
+
+prerequisites:
+  phases: [prd]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/design.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+    - "{TARGET_DIR}/.claude-project/prd/*.md"
+  current_state:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/DESIGN_STATUS.md"
+      optional: true
+  design_guide:
+    - glob: "{TARGET_DIR}/.claude-project/design/*_DesignGuide.md"
+      optional: true
+      purpose: "Existing Design Guide to resume from"
+  design_system:
+    - glob: "{TARGET_DIR}/.claude-project/design/DESIGN_SYSTEM.md"
+      optional: true
+      purpose: "Existing design system (extracted from Design Guide)"
+
+skills:
+  primary: ".claude/skills/design/prd-to-design-guide/SKILL.md"
+  secondary:
+    - ".claude/skills/design/design-guide-to-prompts/SKILL.md"
+    - ".claude/skills/design/generate-html/SKILL.md"
+    - ".claude/skills/design/generate-html-gemini/SKILL.md"
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: []
+  mcp: [sequential-thinking, playwright]
+
+gate:
+  script: ".claude/gates/design-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: design_guide_exists
+      description: "Design Guide with philosophy, design system, page briefs, component patterns"
+    - name: design_system_exists
+      description: "DESIGN_SYSTEM.md extracted with colors, typography, spacing"
+    - name: prompts_match_guide
+      description: "Every Design Guide page has a design prompt"
+    - name: html_generated
+      description: "Every design prompt has HTML file"
+    - name: routing_valid
+      description: "Inter-page navigation works"
+    - name: shared_consistency
+      description: "Navbar/footer identical across pages"
+    - name: design_compliance
+      description: "HTML follows design system specs"
+
+ralph:
+  - workflow: design-gen
+    trigger: "pages missing or QA fails"

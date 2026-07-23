@@ -1,0 +1,59 @@
+name: dev-2-tech-spec
+display_name: "Dev Tech Spec (PRD + design-intent → PROJECT_*.md)"
+phase_id: D2-tech-spec
+track: dev
+
+prerequisites:
+  phases: [D1-init]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  prd_chunks:
+    - glob: "{TARGET_DIR}/.claude-project/context/PRD_chunk_*.md"
+      optional: true
+      purpose: "PRD split into 400-line chunks (A-02 prevention)"
+  prd_source:
+    - "{TARGET_DIR}/.claude-project/docs/PRD.md"
+  design_intent:
+    - "{TARGET_DIR}/.claude-project/design/design-intent.yaml"
+  existing_docs:
+    - glob: "{TARGET_DIR}/.claude-project/docs/PROJECT_*.md"
+      optional: true
+      purpose: "Read existing doc frontmatter hashes to decide regen"
+
+skills:
+  primary: ".claude/$BACKEND/guides/workflow-convert-prd-to-knowledge.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  script: ".claude/gates/dev-2-tech-spec-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: docs_exist
+      description: "PROJECT_KNOWLEDGE.md, PROJECT_API.md, PROJECT_DATABASE.md all present"
+    - name: frontmatter_prd_hash
+      description: "Each doc frontmatter.prd_hash matches current PRD SHA256"
+    - name: frontmatter_intent_hash
+      description: "Each doc frontmatter.intent_hash matches current intent.yaml SHA256"
+    - name: knowledge_depth
+      description: "PROJECT_KNOWLEDGE.md >= 50 lines"
+    - name: api_endpoints_count
+      description: "PROJECT_API.md has >= 5 HTTP verb mentions"
+    - name: api_sections_present
+      description: "PROJECT_API.md has Screen↔Endpoints + Endpoint→Screens + Role×Endpoint sections"
+    - name: db_entities_count
+      description: "PROJECT_DATABASE.md has >= 3 entities"
+    - name: no_placeholders
+      description: "No {PROJECT_NAME}, YYYY-MM-DD, <TODO> literals (except in TBD section)"
+
+ralph:
+  - workflow: regenerate-docs
+    trigger: "PRD or intent hash changed"
+    mode: incremental

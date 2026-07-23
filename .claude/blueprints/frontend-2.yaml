@@ -1,0 +1,1898 @@
+name: frontend-2
+description: |
+  Convert HTML designs to React components.
+  v2 blueprint with strict artifact contracts on every agentic node.
+version: 2
+manifest: frontend
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: design-approval-check
+    type: deterministic
+    description: "Block frontend if design not approved + fully complete"
+    command: |
+      STATUS_FILE=""
+      for c in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$c" ] && STATUS_FILE="$c" && break
+      done
+      [ -n "$STATUS_FILE" ] || { echo "FAIL: DESIGN_STATUS.md missing"; exit 1; }
+      grep -q 'approved: true' "$STATUS_FILE" || { echo "FAIL: design not approved"; exit 1; }
+      grep -q 'phase_complete: true' "$STATUS_FILE" || { echo "FAIL: design phase_complete missing"; exit 1; }
+      VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" | sed 's/.*: *//' | tr -d ' "')
+      echo "Design approved: variation ${VARIATION}"
+    on_failure: abort
+    abort_message: "Phase 3 (design) must be approved AND phase_complete before frontend"
+
+  - id: html-inventory
+    type: deterministic
+    description: "List HTML prototypes to convert"
+    command: |
+      HTML_DIR=""
+      for d in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html; do
+        if [ -d "{TARGET_DIR}/$d" ] && [ "$(find "{TARGET_DIR}/$d" -name '*.html' 2>/dev/null | wc -l)" -gt 0 ]; then
+          HTML_DIR="{TARGET_DIR}/$d"
+          break
+        fi
+      done
+      [ -n "$HTML_DIR" ] || { echo "FAIL: no HTML prototypes"; exit 1; }
+      COUNT=$(find "$HTML_DIR" -name '*.html' | wc -l | tr -d ' ')
+      echo "HTML_DIR=$HTML_DIR"
+      echo "HTML_COUNT=$COUNT"
+    on_failure: abort
+
+  - id: extract-prd-roles
+    type: deterministic
+    description: "Extract PRD role/layout references into PROJECT_PRD_ROLES.md"
+    command: |
+      PRD="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+      OUT="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+      [ -f "$PRD" ] || { echo "PROJECT_KNOWLEDGE.md missing — skipping"; exit 0; }
+      mkdir -p "$(dirname "$OUT")"
+      {
+        echo "# PRD Role & Layout Requirements (Auto-generated)"
+        echo ""
+        echo "## User Roles"
+        grep -iE 'admin|user|client|manager|super.admin|owner|viewer|editor|moderator|staff|role' "$PRD" | \
+          grep -iv 'database\|column\|entity\|migration\|typeorm\|prisma' | head -30
+        echo ""
+        echo "## Layout Requirements"
+        grep -iE 'layout|sidebar|navbar|header|footer|navigation' "$PRD" | head -20
+        echo ""
+        echo "## Route Guards"
+        grep -iE 'guard|protect|auth.*route|role.*based|access.*control|permission' "$PRD" | head -20
+      } > "$OUT"
+      echo "Extracted to $OUT"
+    on_failure: ignore
+
+  - id: scaffold-frontend-shell
+    type: deterministic
+    description: "Copy canonical React framework templates (app/, configs) from {CLAUDE_DIR}/{FRONTEND}/templates/ — single source of truth, no LLM invention"
+    command: |
+      set -e
+      SRC_DIR="{CLAUDE_DIR}/{FRONTEND}/templates"
+      DST_DIR="{TARGET_DIR}/{FRONTEND_DIR}"
+
+      [ -d "$SRC_DIR/app" ] || { echo "FAIL: template app/ missing: $SRC_DIR/app"; exit 1; }
+      mkdir -p "$DST_DIR"
+
+      # Copy app/ tree recursively (idempotent — never overwrite existing files)
+      copy_tree() {
+        local src="$1" dst="$2"
+        [ -d "$src" ] || return 0
+        mkdir -p "$dst"
+        local copied=0 skipped=0
+        for entry in "$src"/* "$src"/.[!.]*; do
+          [ -e "$entry" ] || continue
+          local name=$(basename "$entry")
+          local target="$dst/$name"
+          if [ -d "$entry" ]; then
+            copy_tree "$entry" "$target"
+          elif [ -f "$entry" ]; then
+            if [ -f "$target" ]; then
+              skipped=$((skipped+1))
+            else
+              cp "$entry" "$target"
+              copied=$((copied+1))
+            fi
+          fi
+        done
+        [ $((copied+skipped)) -gt 0 ] && echo "  $(basename "$src"): copied=$copied skipped=$skipped"
+        return 0
+      }
+
+      echo "Scaffolding frontend from $SRC_DIR"
+      copy_tree "$SRC_DIR/app" "$DST_DIR/app"
+
+      # Root configs (only if absent)
+      for f in components.json react-router.config.ts tsconfig.json vite.config.ts package.json Dockerfile .dockerignore .gitignore .env.example; do
+        if [ -f "$SRC_DIR/$f" ] && [ ! -f "$DST_DIR/$f" ]; then
+          cp "$SRC_DIR/$f" "$DST_DIR/$f"
+          echo "  copied $f"
+        fi
+      done
+
+      # Sanity: critical primitives must exist after this node
+      for f in app/lib/utils.ts app/services/httpService.ts app/redux/store/store.ts app/redux/store/hooks.ts app/root.tsx app/routes.ts; do
+        [ -f "$DST_DIR/$f" ] || { echo "FAIL: $f missing after scaffold"; exit 1; }
+      done
+
+      # Ensure node_modules has the RR7 deps that the templates require.
+      # v25-resume evidence: init-2.yaml's package.json template is RR6-shaped,
+      # but scaffold-frontend-shell copies an RR7 vite.config.ts that imports
+      # `@react-router/dev/vite`. If convert-shell (which updates package.json)
+      # times out or fails, the resulting node_modules is stale and typecheck
+      # / build later in the phase ABORTs with "tsc not installed" or
+      # "Cannot find package '@react-router/dev'". Running npm install here
+      # is idempotent: fast no-op when up-to-date, populates missing deps
+      # otherwise. Always runs because npm install itself is the cache check.
+      if [ -f "$DST_DIR/package.json" ]; then
+        cd "$DST_DIR"
+        if [ ! -d node_modules ] || [ ! -d node_modules/@react-router/dev ]; then
+          echo "Installing $DST_DIR deps (idempotent)"
+          npm install --legacy-peer-deps --no-audit --no-fund --silent 2>&1 | tail -5
+        else
+          echo "$DST_DIR/node_modules looks current — skip install"
+        fi
+      fi
+
+      echo "PASS: Frontend shell scaffolded from templates"
+    on_failure: abort
+    abort_message: "Failed to scaffold frontend from {CLAUDE_DIR}/{FRONTEND}/templates — verify templates exist (PR #56 in claude-react)"
+
+  # v78: derive frontend/.env.example from `import.meta.env.VITE_*` greps.
+  - id: scaffold-environment
+    type: deterministic
+    description: "v78: derive frontend .env.example from import.meta.env.* references"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-environment.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --side frontend
+    on_failure: ignore
+
+  # v78: write canonical AdminLayout / UserLayout / GuestLayout (RULE-F3).
+  - id: scaffold-layouts
+    type: deterministic
+    description: "v78: write canonical Admin/User/Guest layouts (RULE-F3 role coverage)"
+    command: |
+      ARGS="--target {TARGET_DIR}/{FRONTEND_DIR} --templates {CLAUDE_DIR}/{FRONTEND}/templates/components/layouts"
+      PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      [ -f "$PLAN" ] && ARGS="$ARGS --pages-plan $PLAN"
+      node {CLAUDE_DIR}/v2/scripts/scaffold-layouts.js $ARGS
+    on_failure: ignore
+
+  # v78: ship a reusable DataTable component every list page can consume
+  # instead of reinventing sort/pagination/empty/loading.
+  - id: scaffold-data-table
+    type: deterministic
+    description: "v78: write reusable DataTable.tsx with sort/pagination/empty/loading/error"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-data-table.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --templates "{CLAUDE_DIR}/{FRONTEND}/templates/components/data-table"
+    on_failure: ignore
+
+  # v78: write vitest config + RTL + MSW setup files + add 7 devDeps + 2
+  # npm scripts. Prerequisite for scaffold-component-tests + scaffold-store-tests.
+  - id: scaffold-frontend-test-config
+    type: deterministic
+    description: "v78: write vitest config + RTL/MSW setup, register devDeps + npm scripts"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-frontend-test-config.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --templates "{CLAUDE_DIR}/{FRONTEND}/templates/tests"
+    on_failure: ignore
+
+  # v78 Tier 2 — common app primitives the LLM keeps reinventing badly.
+  # Each is project-agnostic and idempotent (marker-based skip on
+  # hand-authored files). Pull-through cost = ~50ms per node.
+
+  - id: scaffold-toast-system
+    type: deterministic
+    description: "v78 Tier 2: ship Sonner toaster + typed lib/toast.ts facade + register sonner dep"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-toast-system.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-modal-manager
+    type: deterministic
+    description: "v78 Tier 2: ship useDisclosure + programmatic useConfirm + ConfirmProvider + ConfirmModal"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-modal-manager.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-protected-route-guard
+    type: deterministic
+    description: "v78 Tier 2: ship AuthGuard / GuestGuard / RoleGuard / ProtectedLayout (canonical RR7 + Redux auth)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-protected-route-guard.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-language-toggle
+    type: deterministic
+    description: "v78 Tier 2: ship LanguageToggle dropdown (detects available i18n locales)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-language-toggle.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-search-filter-bar
+    type: deterministic
+    description: "v78 Tier 2: ship useDebouncedValue + useUrlState + SearchInput + FilterChips"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-search-filter-bar.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v78 Tier 4 — heavy single-file components LLM keeps reinventing. Each
+  # ships one wrapper around a popular library and registers its dep.
+
+  - id: scaffold-rich-text-editor
+    type: deterministic
+    description: "v78 Tier 4: RichTextEditor (Tiptap + StarterKit + toolbar)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-rich-text-editor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-file-upload-dropzone
+    type: deterministic
+    description: "v78 Tier 4: FileDropzone (react-dropzone)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-file-upload-dropzone.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-date-picker
+    type: deterministic
+    description: "v78 Tier 4: DatePicker (react-day-picker + date-fns + Popover)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-date-picker.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-charts-library
+    type: deterministic
+    description: "v78 Tier 4: BarChart / LineChart / PieChart (Recharts wrappers)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-charts-library.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-pwa-manifest
+    type: deterministic
+    description: "v78 Tier 4: manifest.webmanifest + sw.js + patch <head> link in root.tsx"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-pwa-manifest.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --knowledge "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 2: AGENTIC NODES WITH ARTIFACT CONTRACTS
+  # ============================================================================
+
+  - id: convert-shell
+    type: agentic
+    # v91: model-agnostic routing via intent + cost_class.
+    # Was hardcoded `backend: claude` — top 429 offender on mimo (5 hits
+    # across v76-v85b) because it's a one-shot heavy synthesis node.
+    # Now: declares the WORK shape; cell config maps shape → backend via
+    #   AGENT_BACKEND_synthesis=<model>  or
+    #   AGENT_BACKEND_heavy=<model>
+    intent: synthesis
+    cost_class: heavy
+    # v90: bumped 80 → 150. v89 evidence: convert-shell hit MAX_TURNS=80
+    # (node-declared: 80) — synthesis of full React shell (i18n + routes
+    # + ProtectedRoute + layouts + deps) needs more turns than initially
+    # estimated. 150 gives headroom without burning whole budget.
+    max_turns: 150
+    description: "Cross-cutting React scaffolding — i18n, ProtectedRoute, routes.ts, layouts, deps, tsconfig"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/FRONTEND_SHELL_REPORT.md"
+    verification_pattern: "shell_status:\\s*ready"
+    scope_guard:
+      allow: ["{FRONTEND_DIR}/app/**", "{FRONTEND_DIR}/public/**", "{FRONTEND_DIR}/package.json", "{FRONTEND_DIR}/tsconfig.json"]
+      deny: ["{BACKEND_DIR}/**", "{PROJECT_DIR}/design/**", "{FRONTEND_DIR}/app/pages/**"]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/html/{FRONTEND_DIR}/*.html"
+        - ".claude/{FRONTEND}/guides/best-practices.md"
+        - ".claude/{FRONTEND}/guides/routing-guide.md"
+        - ".claude/{FRONTEND}/guides/styling-guide.md"
+    tool_profile:
+      allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    # v83: changed from default-abort to ignore. v80-v82 evidence: when
+    # convert-shell fails (mimo MAX_TURNS, missing artifact, etc.), the
+    # frontend phase ABORTED — taking ALL 38 downstream scaffolds with it
+    # (routes-prune, routes-dedupe, page-imports-doctor, form-from-entity,
+    # service-from-controller, api-client-types, etc.). Result: every fix
+    # I committed to those scaffolds did NOT execute on the worker cell,
+    # which is exactly why "duplicate route id" + ENOENT crashes recurred
+    # across 3 runs despite the fixes being in place.
+    # Downstream scaffolds are mostly deterministic + idempotent — they
+    # can recover from partial convert-shell output. The worst case is
+    # missing FRONTEND_SHELL_REPORT.md, which downstream nodes handle
+    # gracefully via existsSync checks.
+    on_failure: ignore
+    prompt: |
+      Build the project-specific React scaffolding on top of the canonical
+      framework templates that scaffold-frontend-shell already copied in.
+
+      PRE-INSTALLED FRAMEWORK FILES (READ-ONLY — DO NOT MODIFY OR RECREATE):
+      The scaffold-frontend-shell node has already copied these from
+      {CLAUDE_DIR}/{FRONTEND}/templates/. They are the single source of truth —
+      import from them, do not redefine them:
+        - {FRONTEND_DIR}/package.json + tsconfig.json + vite.config.ts +
+          react-router.config.ts + components.json + Dockerfile + .env.example
+        - {FRONTEND_DIR}/app/root.tsx (RR7 root layout + ErrorBoundary)
+        - {FRONTEND_DIR}/app/routes.ts (top-level route aggregator)
+        - {FRONTEND_DIR}/app/lib/utils.ts (cn helper)
+        - {FRONTEND_DIR}/app/services/httpService.ts (axios orchestrator)
+        - {FRONTEND_DIR}/app/redux/store/{store,hooks,rootReducer}.ts
+        - {FRONTEND_DIR}/app/components/ui/* (shadcn primitives — button, card, form, input, label)
+        - {FRONTEND_DIR}/app/hooks/providers/providers.tsx (Redux Provider wrapper)
+        - {FRONTEND_DIR}/app/styles/{app,typography}.css
+        - {FRONTEND_DIR}/app/utils/{errorHandler.ts, validations/, actions/}
+      Treat all of the above as immutable. If a primitive looks "wrong" — it is
+      not. Adapt your code to it. To evolve a primitive, send a PR to
+      potentialInc/claude-react templates/.
+
+      DELIVERABLES (this node ONLY — these are the gaps the templates do not fill):
+      1. {FRONTEND_DIR}/app/i18n/index.ts — calls `i18next.use(initReactI18next).init({...})`.
+      2. {FRONTEND_DIR}/public/locales/en/common.json AND ko/common.json (plus any
+         additional locales declared in PROJECT_KNOWLEDGE.md / PRD).
+      3. {FRONTEND_DIR}/app/components/guards/{AuthGuard,GuestGuard,RoleGuard}.tsx —
+         role-aware route guards (see .claude/{FRONTEND}/guides/auth-guards.md).
+      4. {FRONTEND_DIR}/app/components/layouts/*.tsx — one Layout per role declared in
+         PROJECT_PRD_ROLES.md (e.g. AdminLayout, ClientLayout, MinimalLayout).
+         Each Layout's logo/brand element MUST be wrapped in a `<Link to="/...">` and
+         contain the word "Brand", "Logo", or "Name" so the gate grep detects it.
+         The starter template already provides {FRONTEND_DIR}/app/pages/layout.tsx
+         and {FRONTEND_DIR}/app/pages/auth/layout.tsx — extend those patterns; do
+         not delete the starter layouts.
+      5. Update {FRONTEND_DIR}/app/routes.ts to register guards + role layouts,
+         add a `route('*', 'pages/not-found.tsx')` catch-all, and import any
+         additional `*.routes.ts` files you create under app/routes/.
+      6. A language toggle (EN/KO etc.) in the shared header
+         ({FRONTEND_DIR}/app/components/layout/header.tsx already exists; modify
+         it to add the toggle — it is project-specific UI, not a framework primitive).
+      7. If main.tsx is needed (RR7 framework mode usually does not require one),
+         create it minimally and import the i18n init.
+
+      DO NOT:
+      - Re-create or edit ANY pre-installed framework file listed above.
+      - Create per-page components under {FRONTEND_DIR}/app/pages/ — that is the
+        exclusive domain of convert-pages cells.
+      - Reinvent httpService, redux store, cn(), ui/ primitives — they exist.
+
+      RULE-F8 reminder for any inline markup you write (Layouts especially):
+        - Extract EXACT CSS values from referenced HTML — `padding: 40px 36px → px-[36px] py-[40px]`
+        - Preserve box-shadow, backdrop-filter
+
+      REPORT FILE: {STATUS_DIR}/FRONTEND_SHELL_REPORT.md
+      Required fields (regex-verifiable):
+        phase: frontend-shell
+        shell_status: ready
+        layouts_created: <int>
+        locales_configured: <int>
+        protected_route_added: true
+        catchall_404_added: true
+        ts_strict: true
+        deps_installed: <int>
+
+  # ============================================================================
+  # v62 — CRUD PAGE SCAFFOLDING (deterministic, replaces LLM CRUD page work)
+  # ============================================================================
+  #
+  # Flow:
+  #   1. emit-pages-plan (agentic) reads PROJECT_API.md + PROJECT_KNOWLEDGE.md
+  #      + design HTML and emits PAGES_PLAN.yaml listing every CRUD page-set.
+  #   2. scaffold-crud-pages (deterministic) expands the _crud/ template tree
+  #      per CRUD entry — List + Detail + Create + Edit + service + slice +
+  #      types + route shim.
+  #   3. convert-pages (existing agentic, below) now writes ONLY:
+  #      - Non-CRUD pages (dashboards, wizards, file upload, custom flows)
+  #      - Per-page customization on top of CRUD scaffolds (extra filters, etc.)
+  #
+  # If PAGES_PLAN.yaml is missing/empty, scaffold-crud-pages no-ops; convert
+  # writes everything as before.
+
+  - id: emit-pages-plan
+    type: agentic
+    timeout_ms: 1200000   # 20min — structured emit
+    # v91: model-agnostic. Was hardcoded `backend: claude` due to 2 mimo
+    # 429 hits — one-shot structured emission. Declares intent/cost so
+    # cell config can route to any backend.
+    intent: structured_emit
+    cost_class: heavy
+    # v90: bumped 60 → 120. Was too tight in v89 (hit ~80 turns analyzing pages).
+    max_turns: 120
+    description: "Emit PAGES_PLAN.yaml listing per-frontend CRUD page-sets"
+    # v83: prevent cascade-abort. ensure-pages-plan (deterministic) is the
+    # fallback that fills PAGES_PLAN from MODULE_PLAN if emit-pages-plan
+    # fails. Without on_failure: ignore, every downstream scaffold dies
+    # if emit-pages-plan hits MAX_TURNS.
+    on_failure: ignore
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+    verification_pattern: "modules:"
+    scope_guard:
+      allow: ["{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"]
+      deny: ["{FRONTEND_DIR}/**"]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/MODULE_PLAN.yaml"
+        - ".claude/{FRONTEND}/templates/modules/_crud/PAGES_PLAN.example.yaml"
+    tool_profile:
+      allow: [Read, Write, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch, Edit, MultiEdit]
+    prompt: |
+      Emit `{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml` — the input
+      `scaffold-crud-pages` consumes to generate CRUD page-sets for the
+      current frontend ({FRONTEND_DIR}).
+
+      EXAMPLE: Read `.claude/{FRONTEND}/templates/modules/_crud/PAGES_PLAN.example.yaml`
+      first. Strict schema, kebab-case names.
+
+      EXTRACTION RULES:
+      1. The backend MODULE_PLAN.yaml is the AUTHORITATIVE source of fields.
+         For each CRUD module belonging to THIS frontend, COPY the field
+         list verbatim from MODULE_PLAN (same `name`, same `type`, same
+         enum values). The only allowed modifications:
+           - REMOVE sensitive fields (password, internal tokens) entirely
+             from `fields:` (don't keep them with `form: false`)
+           - ADD `list:` / `form:` per-field flags to control table column
+             and form inclusion
+           - ADD `label:` for display strings
+         The PAGES_PLAN field SHAPE must be a SUBSET of MODULE_PLAN. Skipping
+         a non-nullable field from MODULE_PLAN will cause typecheck failures
+         downstream because the backend's Create DTO will require it
+         (v62-att2 evidence: Notice.body was in MODULE_PLAN but missing
+         from PAGES_PLAN → TS2345 "Property 'body' is missing").
+      2. emit a PAGES_PLAN entry only for CRUD modules whose pages belong to
+         THIS frontend. Each frontend (worker / admin-dashboard /
+         company-dashboard) sees different subsets — match by:
+           - HTML pages under {TARGET_DIR}/{PROJECT_DIR}/design/html/{FRONTEND_DIR}/
+           - The `role_required` value the user-facing portal serves
+      3. Field `type` values must match MODULE_PLAN's TS types. For enum
+         fields, copy `enumValues: [...]` from MODULE_PLAN (the generator
+         renders these as a Select dropdown, not a text Input).
+      4. Per field: `list: true/false` decides table column inclusion,
+         `form: true/false` decides if it's in Create/Edit forms.
+         (v70) Add `sortable: true|false` to mark a column as sort-clickable
+         (defaults to true). Enums + ID fields typically `sortable: false`.
+
+      4b. VALIDATORS (v70) — per field `validators:` accepts these tokens.
+          IMPORTANT: when a token contains `:` or `/`, WRAP IT IN DOUBLE
+          QUOTES so YAML doesn't parse it as a key or break on slashes.
+          Examples: `"minLength:8"`, `"pattern:^010-\\d{4}-\\d{4}$"`.
+          Plain tokens (`required`, `email`, `optional`) need no quoting.
+          Each emits a zod method + user-facing error message in the form:
+            required               (default for non-optional strings)
+            optional               → field becomes optional
+            email                  → .email('Please enter a valid email')
+            url, uuid              → corresponding zod methods
+            minLength:N            → .min(N, 'Must be at least N characters')
+            maxLength:N            → .max(N, 'Must be at most N characters')
+            min:N  (number fields) → .min(N, 'Must be ≥ N')
+            max:N  (number fields) → .max(N, 'Must be ≤ N')
+            pattern:/regex/flags   → .regex(/.../, 'Field has invalid format')
+          Extract from PRD constraint text ("1-100 characters" → minLength:1, maxLength:100;
+          "must be Korean phone format" → pattern:/^010-\d{4}-\d{4}$/).
+          Missing validators = forms still work but lose user-friendly errors.
+
+      5. `detail_relations:` lists joined data shown on the Detail page.
+         (v70) Two relation types are scaffolded; declare them via `type:`:
+           - type: ref       → belongs-to. Renders inline as a single
+                                <dt>/<dd>. Optional `displayField: name`
+                                shows that property of the related entity.
+           - type: has_many  → one-to-many. Renders a separate section
+                                BELOW the <dl> with a nested <table> per
+                                relation. Declare `columns: [a, b, c]` to
+                                pick which related properties to show.
+                                Defaults to [id] when omitted.
+         Example:
+           detail_relations:
+             - field: organization
+               type: ref
+               displayField: name
+             - field: applications
+               type: has_many
+               columns: [id, serviceType, status, createdAt]
+         Use has_many for any "this entity owns N of those" view — common
+         on user-detail (their applications), application-detail (its
+         documents), etc.
+      6. `role_required:` must match the frontend's allowed role (extract
+         from PROJECT_KNOWLEDGE.md user types section).
+
+      6b. LIST_FEATURES (v70+) — opt-in dashboard-management controls on the
+          List page. Pick from [search, sort, pagination] per module:
+            list_features: [search, sort, pagination]
+          - `search`     → adds an `<Input type="search">` bound to ?search=
+                           in the URL; backend is expected to accept the
+                           param (BaseController already supports it).
+          - `sort`       → makes column headers per `sortable: true` field
+                           clickable, toggles asc ↔ desc on ?sort=.
+          - `pagination` → adds Prev/Next nav bound to ?page=.
+          Omit `list_features:` (or set `[]`) for legacy plain-table pages.
+          ADD this to modules whose list pages have a noticeable row count
+          (>20 typical) or where the HTML prototype shows search/filter
+          controls. Skip for short lookup tables.
+
+      7. AUTH_PAGES (v67+) — if this frontend handles login/signup, add:
+           auth_pages:
+             login: true
+             signup: true|false
+             forgot_password: true|false
+             verify_email: true|false
+         Cross-references MODULE_PLAN.auth.identifier_field + signup_fields.
+         OMIT auth_pages: entirely for frontends that don't authenticate
+         (e.g. anonymous public site).
+
+      8. WORKFLOW_PAGES (v67+) — for each MODULE_PLAN.workflows[] entry whose
+         entity has pages on this frontend, add:
+           workflow_pages:
+             - workflow: <matches MODULE_PLAN.workflows[].name>
+               list_columns: [id, ..., currentState, updatedAt]
+               transition_buttons: [<all transition.action names>]
+               role_required: <role>
+         Generator builds list-grouped-by-state + detail-with-buttons.
+
+      9. UPLOAD_PAGES (v67+) — for each MODULE_PLAN.uploads[] entry, add:
+           upload_pages:
+             - upload: <matches MODULE_PLAN.uploads[].name>
+               list: true|false
+               upload_form: true|false
+               role_required: <role>
+         Backend mime/size limits are inherited from MODULE_PLAN.
+
+      10. DASHBOARDS (v67+) — if the design HTML or PRD specifies a stats/
+         summary page, add dashboards: with cards + charts using the DSL:
+           dashboards:
+             - name: <kebab>
+               route: '/admin'
+               role_required: admin
+               cards:
+                 - title: "..."
+                   query: 'count:<entity-plural>,where:<field><op><val>'
+               charts:
+                 - title: "..."
+                   type: pie|line|bar
+                   query: 'count:<entity>,group:<field>[,window:Nd]'
+         DSL operators: =, !=, >, <, >=, <=, LIKE, IN. Time tokens: today().
+
+      DO NOT:
+      - Include pages for modules whose role doesn't match this frontend
+      - Use snake_case for `name`
+      - Emit pages for non-CRUD modules (those stay in convert-pages)
+      - Drop a non-nullable field from MODULE_PLAN (Create DTO will reject)
+      - Duplicate auth/workflow/upload modules under both modules: AND
+        the dedicated section — pick ONE (the dedicated section if the
+        scaffolder exists for it).
+
+  # v72: derive PAGES_PLAN from MODULE_PLAN as a fallback if emit-pages-plan
+  # failed (mimo 429, watchdog timeout, etc.). v71 evidence: admin-dashboard
+  # cell's emit-pages-plan failed → all scaffolds skipped → 0/10 stories
+  # passed. With this fallback the same failure mode produces a working
+  # scaffold output instead.
+  #
+  # If PAGES_PLAN already exists AND has real content (a modules: block or
+  # non_crud_modules: or dashboards: section), the script keeps the LLM's
+  # output untouched. Only fires when the LLM phase legitimately failed.
+  - id: ensure-pages-plan
+    type: deterministic
+    description: "v72: derive PAGES_PLAN from MODULE_PLAN if emit-pages-plan failed (fallback for 429/watchdog)"
+    command: |
+      MODULE_PLAN="{TARGET_DIR}/{STATUS_DIR}/MODULE_PLAN.yaml"
+      PAGES_PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      [ -f "$MODULE_PLAN" ] || { echo "no MODULE_PLAN — skipping fallback"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/ensure-pages-plan.js \
+        --module-plan "$MODULE_PLAN" \
+        --pages-plan-out "$PAGES_PLAN" \
+        --verbose
+    on_failure: ignore
+
+  - id: scaffold-crud-pages
+    type: deterministic
+    description: "Expand React _crud/ template tree per PAGES_PLAN.yaml entry (List+Detail+Create+Edit + service + slice + types + routes)"
+    command: |
+      PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      if [ ! -f "$PLAN" ]; then
+        echo "no PAGES_PLAN — skipping CRUD page scaffold"
+        exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-crud-pages.js \
+        --plan "$PLAN" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --templates "{CLAUDE_DIR}/{FRONTEND}/templates/modules/_crud"
+    on_failure: ignore
+
+  # v67: scaffold auth pages (login/signup/forgot/verify) deterministically
+  # from PAGES_PLAN.yaml auth_pages: section. Cross-references the backend
+  # MODULE_PLAN.yaml's auth: section for identifier_field + signup_fields
+  # so frontend and backend signup shapes match. No-ops when neither
+  # section is present.
+  - id: scaffold-auth-pages
+    type: deterministic
+    description: "Expand _auth/ React template (login/signup/forgot/verify) from PAGES_PLAN.yaml auth_pages:"
+    command: |
+      PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      MPLAN="{TARGET_DIR}/{STATUS_DIR}/MODULE_PLAN.yaml"
+      [ -f "$PLAN" ] || { echo "no PAGES_PLAN — skipping auth pages scaffold"; exit 0; }
+      ARGS="--plan $PLAN --target {TARGET_DIR}/{FRONTEND_DIR} --templates {CLAUDE_DIR}/{FRONTEND}/templates/modules/_auth"
+      [ -f "$MPLAN" ] && ARGS="$ARGS --module-plan $MPLAN"
+      node {CLAUDE_DIR}/v2/scripts/scaffold-auth-pages.js $ARGS
+    on_failure: ignore
+
+  # v67: scaffold workflow list + detail pages from PAGES_PLAN.workflow_pages.
+  # Cross-references MODULE_PLAN.workflows[] for state_field + entity name.
+  - id: scaffold-workflow-pages
+    type: deterministic
+    description: "Expand _workflow/ React template (list-by-state + detail with transition buttons) from PAGES_PLAN.workflow_pages:"
+    command: |
+      PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      MPLAN="{TARGET_DIR}/{STATUS_DIR}/MODULE_PLAN.yaml"
+      [ -f "$PLAN" ] || { echo "no PAGES_PLAN — skipping workflow pages scaffold"; exit 0; }
+      ARGS="--plan $PLAN --target {TARGET_DIR}/{FRONTEND_DIR} --templates {CLAUDE_DIR}/{FRONTEND}/templates/modules/_workflow"
+      [ -f "$MPLAN" ] && ARGS="$ARGS --module-plan $MPLAN"
+      node {CLAUDE_DIR}/v2/scripts/scaffold-workflow-pages.js $ARGS
+    on_failure: ignore
+
+  # v67: scaffold upload list + form pages from PAGES_PLAN.upload_pages.
+  # Cross-references MODULE_PLAN.uploads[] for mime + max_size + metadata.
+  - id: scaffold-upload-pages
+    type: deterministic
+    description: "Expand _upload/ React template (list + multipart form) from PAGES_PLAN.upload_pages:"
+    command: |
+      PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      MPLAN="{TARGET_DIR}/{STATUS_DIR}/MODULE_PLAN.yaml"
+      [ -f "$PLAN" ] || { echo "no PAGES_PLAN — skipping upload pages scaffold"; exit 0; }
+      ARGS="--plan $PLAN --target {TARGET_DIR}/{FRONTEND_DIR} --templates {CLAUDE_DIR}/{FRONTEND}/templates/modules/_upload"
+      [ -f "$MPLAN" ] && ARGS="$ARGS --module-plan $MPLAN"
+      node {CLAUDE_DIR}/v2/scripts/scaffold-upload-pages.js $ARGS
+    on_failure: ignore
+
+  # v67: scaffold dashboard pages (KPI cards + charts) from PAGES_PLAN.dashboards.
+  # Each card/chart is a query-DSL string parsed client-side and POSTed to the
+  # backend /dashboard/query endpoint (provided by core-templates dashboard module).
+  - id: scaffold-dashboard-pages
+    type: deterministic
+    description: "Expand _dashboard/ React template (KPIs + charts) from PAGES_PLAN.dashboards:"
+    command: |
+      PLAN="{TARGET_DIR}/{STATUS_DIR}/PAGES_PLAN{FRONTEND_NAME_SUFFIX}.yaml"
+      [ -f "$PLAN" ] || { echo "no PAGES_PLAN — skipping dashboard pages scaffold"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-dashboard-pages.js \
+        --plan "$PLAN" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --templates "{CLAUDE_DIR}/{FRONTEND}/templates/modules/_dashboard"
+    on_failure: ignore
+
+  # v70: write the canonical 404 + ErrorBoundary pages every project needs
+  # (RULE-F4). Project-agnostic; no MODULE_PLAN/PAGES_PLAN required. Adds
+  # missing notFound.* keys to common.json so the page never renders raw
+  # i18n keys (v54 regression). Skips files that already exist (LLM-author
+  # or prior scaffold takes precedence).
+  - id: scaffold-error-pages
+    type: deterministic
+    description: "Write canonical pages/not-found.tsx + components/error-boundary.tsx + i18n notFound.* keys"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-error-pages.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --templates "{CLAUDE_DIR}/{FRONTEND}/templates/pages/_error" \
+        --default-locale "${DEFAULT_LOCALE:-ko}"
+    on_failure: ignore
+
+  # v78: copy backend enums to `app/enums/<name>.enum.ts`. Restores FE
+  # enum type safety (otherwise scaffold-api-client-types normalizes enum
+  # fields to `string`). Runs BEFORE scaffold-api-client-types + zod-schema.
+  - id: scaffold-enum-sync
+    type: deterministic
+    description: "v78: copy backend enum .ts files to frontend app/enums/"
+    command: |
+      BACKEND_SRC="{TARGET_DIR}/{BACKEND_DIR}"
+      if [ ! -d "$BACKEND_SRC/src" ]; then
+        echo "no backend src dir — skipping enum-sync"; exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-enum-sync.js \
+        --backend-dir "$BACKEND_SRC" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --force
+    on_failure: ignore
+
+  # v77: derive frontend TS types (`~/types/<module>.d.ts`) from backend
+  # DTOs. Emits both `CreateXDto` (matching backend) and alias forms LLM
+  # pages reach for: `CreateX`, `CreateXRequest`, `UserResponse`, `User`,
+  # `LoginRequest`, etc. Kills the v76 `Module has no exported member
+  # 'UpdateUserRequest'` / `LoginResponse` cascade. Runs once backend DTOs
+  # exist (backend phase has completed before this fanout).
+  - id: scaffold-api-client-types
+    type: deterministic
+    description: "v77: derive ~/types/<module>.d.ts from backend DTOs (with FE alias exports)"
+    command: |
+      BACKEND_SRC="{TARGET_DIR}/{BACKEND_DIR}"
+      if [ ! -d "$BACKEND_SRC/src/modules" ]; then
+        echo "no backend modules dir — skipping api-client-types scaffold"
+        exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-api-client-types.js \
+        --backend-dir "$BACKEND_SRC" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --force
+    on_failure: ignore
+
+  # v78: walk backend controllers → emit FE httpServices with matching
+  # route + method names + LLM-friendly aliases (fetchUserList = fetchUsers,
+  # removeUser = deleteUser). KILLS THE v76 P0 "missing endpoint" crashes
+  # (FE called a path BE didn't expose) and the fetchUserList vs fetchUsers
+  # name drift. One service file per controller (1:1 by filename to avoid
+  # `admin/payment` + `admin/user` prefixes collapsing to one file).
+  - id: scaffold-service-from-controller
+    type: deterministic
+    description: "v78: derive app/services/httpServices/<entity>Service.ts from backend controllers"
+    command: |
+      BACKEND_SRC="{TARGET_DIR}/{BACKEND_DIR}"
+      if [ ! -d "$BACKEND_SRC/src/modules" ]; then
+        echo "no backend modules dir — skipping service-from-controller"; exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-service-from-controller.js \
+        --backend-dir "$BACKEND_SRC" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --force
+    on_failure: ignore
+
+  # v78: derive zod form schemas from backend DTOs (parses class-validator
+  # decorators). One source of truth for both BE runtime validation +
+  # FE form validation. Emits `createUserSchema`, `updateUserSchema`, etc.
+  - id: scaffold-zod-schema-from-dto
+    type: deterministic
+    description: "v78: derive app/schemas/<module>.schema.ts (zod) from backend DTOs"
+    command: |
+      BACKEND_SRC="{TARGET_DIR}/{BACKEND_DIR}"
+      if [ ! -d "$BACKEND_SRC/src/modules" ]; then
+        echo "no backend modules dir — skipping zod-schema scaffold"; exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-zod-schema-from-dto.js \
+        --backend-dir "$BACKEND_SRC" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --force
+    on_failure: ignore
+
+  # v78 Tier 2: per entity, emit DataTable column config from @Column
+  # declarations. Skips id/createdAt/etc + sensitive fields (password,
+  # token). Date columns format with toLocaleDateString, booleans render
+  # as ✓/—. Pairs with scaffold-data-table.
+  - id: scaffold-table-columns-from-entity
+    type: deterministic
+    description: "v78 Tier 2: derive DataTable column config from each entity's @Column declarations"
+    command: |
+      BACKEND_SRC="{TARGET_DIR}/{BACKEND_DIR}"
+      if [ ! -d "$BACKEND_SRC/src/modules" ]; then
+        echo "no backend modules dir — skipping table-columns scaffold"; exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-table-columns-from-entity.js \
+        --backend-dir "$BACKEND_SRC" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --force
+    on_failure: ignore
+
+  # v78: fill scaffold-crud-pages' Create/Edit marker comments with
+  # entity-aware form fields. KILLS THE v76 ROOT CAUSE: scaffold-crud-pages'
+  # EditPage template ships WITHOUT the Input import (only CreatePage has
+  # it). When LLM convert-pages added Input fields, it had to also add the
+  # import — and didn't (17 occurrences of `Cannot find name 'Input'` in
+  # UserEditPage). This scaffold injects all needed UI/enum/schema imports
+  # AND emits FormField blocks per entity column (Select for enums,
+  # Checkbox for booleans, type=email/number/date Input for typed strings).
+  # Runs AFTER zod-schema (which produces ~/schemas/<module>.schema.ts).
+  - id: scaffold-form-from-entity
+    type: deterministic
+    description: "v78: fill Create/Edit page markers with entity-driven FormField + imports"
+    command: |
+      BACKEND_SRC="{TARGET_DIR}/{BACKEND_DIR}"
+      if [ ! -d "$BACKEND_SRC/src/modules" ]; then
+        echo "no backend modules dir — skipping form-from-entity"; exit 0
+      fi
+      node {CLAUDE_DIR}/v2/scripts/scaffold-form-from-entity.js \
+        --backend-dir "$BACKEND_SRC" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v78: derive MSW handlers from PROJECT_API.md routes — one per route,
+  # default success responses. Pairs with scaffold-frontend-test-config.
+  - id: scaffold-msw-handlers
+    type: deterministic
+    description: "v78: derive MSW mock handlers from PROJECT_API.md (per-route success defaults)"
+    command: |
+      API="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+      [ -f "$API" ] || { echo "no PROJECT_API.md — skipping msw handlers scaffold"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-msw-handlers.js \
+        --api "$API" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v127 (option A): standardize convert-pages' CONTRACT layer. Enumerate every importable
+  # module + named export the upstream contract scaffolds actually produced, into
+  # IMPORT_MANIFEST.md. convert-pages is then told to import ONLY from it — killing the
+  # dominant build-break class (LLM invents ~/services/~/types/~/enums imports that don't
+  # exist → TS2307 / "not exported by"). Runs after ALL contract scaffolds, before convert.
+  - id: scaffold-import-manifest
+    type: deterministic
+    description: "v127: enumerate importable modules+exports → IMPORT_MANIFEST.md (pins convert-pages' import contract to reality)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-import-manifest.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --out "{TARGET_DIR}/{FRONTEND_DIR}/IMPORT_MANIFEST.md"
+    on_failure: ignore
+
+  # ============================================================================
+  # v128: DETERMINISTIC-PRIMARY page generation ([[feedback_template_wins_llm]]).
+  # v123-v127 evidence: the main frontend builds every run but each secondary
+  # breaks differently — an unbounded tail of convert-pages (LLM) defects that
+  # no amount of doctors can enumerate. Inversion: scaffold-page-from-story
+  # (the v86 safety net) is PROMOTED to the primary path — every story gets a
+  # deterministic page BEFORE convert-pages runs (compiles by construction,
+  # story-spec data-testids, right API calls). convert-pages is DEMOTED to
+  # visual enhancement in place, scope-locked: scaffold-scope-lock-doctor
+  # snapshots the deterministic pages here and restores any page whose contract
+  # (testids / default export) an LLM node breaks (enforce node before build).
+  # LLM timeout/garbage now costs visuals, never the build or the story floor.
+  # ============================================================================
+  - id: scaffold-page-from-story-primary
+    type: deterministic
+    description: "v128: PRIMARY deterministic pages for every story BEFORE convert-pages (LLM demoted to visual enhancement)"
+    command: |
+      STORIES_DIR="{TARGET_DIR}/{PROJECT_DIR}/user_stories"
+      [ -d "$STORIES_DIR" ] || { echo "no user_stories dir — skipping primary page generation"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-page-from-story.js \
+        --stories-dir "$STORIES_DIR" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --primary \
+        --verbose
+    on_failure: ignore
+
+  - id: scaffold-scope-lock-snapshot
+    type: deterministic
+    description: "v128: snapshot scaffold-generated pages + contract (testids, default export) before any LLM touches them"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-scope-lock-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --snapshot
+    on_failure: ignore
+
+  - id: convert-pages
+    type: agentic
+    timeout_ms: 2100000   # 35min — complex pages (dashboards, multi-step forms) need more than 25min on mimo
+    description: "Convert ONE HTML prototype page to a React component (per-page fanout)"
+    # on_failure: ignore — partial page conversion is still useful. v22: 5/6
+    # pages converted, 1 failed → frontend phase Failed → downstream
+    # merge-convert-reports + design-fidelity-check never ran → ship had no
+    # frontend baseline. With ignore, downstream nodes run on whatever pages
+    # were produced; partial frontend > no frontend.
+    on_failure: ignore
+    fanout:
+      source: html_pages
+      subject_var: page
+      # v70: bumped 6 → 8. v69 admin-dashboard cell took 2h04m for convert-pages
+      # because admin has 22+ pages (4 waves of 30min at conc=6). Bumping to 8
+      # gives 3 waves ≈ 1h30m. Body-level 429 retry absorbs the extra burst load.
+      concurrency: 8
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/FRONTEND_CONVERT_{page}.md"
+    verification_pattern: "page:\\s*{page}"
+    scope_guard:
+      allow: ["{FRONTEND_DIR}/app/pages/**"]
+      deny:
+        - "{BACKEND_DIR}/**"
+        - "{PROJECT_DIR}/design/**"
+        # v93: RR7 framework mode — root.tsx + routes.ts are the canonical
+        # entry points (no App.tsx, no main.tsx). LLM convert-pages must not
+        # touch these or the route definitions in app/routes/.
+        - "{FRONTEND_DIR}/app/root.tsx"
+        - "{FRONTEND_DIR}/app/routes.ts"
+        - "{FRONTEND_DIR}/app/routes/**"
+        - "{FRONTEND_DIR}/app/i18n/**"
+        - "{FRONTEND_DIR}/app/layouts/**"
+        - "{FRONTEND_DIR}/package.json"
+        # v67: lock RR7 config files. v66 evidence: typegen crashed on
+        # LLM-mangled vite.config.ts → `./+types/root` never generated →
+        # tsc TS2307 across 3 cells. Templates ship the correct RR7
+        # vite.config.ts; LLM has no business touching it.
+        - "{FRONTEND_DIR}/vite.config.ts"
+        - "{FRONTEND_DIR}/tsconfig.json"
+        - "{FRONTEND_DIR}/react-router.config.ts"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/html/{FRONTEND_DIR}/{page}.html"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/IMPORT_MANIFEST.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/FRONTEND_SHELL_REPORT.md"
+        - ".claude/{FRONTEND}/guides/component-patterns.md"
+        - ".claude/{FRONTEND}/guides/styling-guide.md"
+        - ".claude/{FRONTEND}/skills/converters/html-to-react-converter.md"
+    tool_profile:
+      allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Convert ONE HTML prototype page to a React component. The page is `{page}.html`.
+      Sibling cells own the other pages — DO NOT touch them.
+
+      PATH ANCHOR (v128 — read carefully): your working directory is the RUN ROOT.
+      The frontend you are editing is `{FRONTEND_DIR}/` directly under the run root
+      — i.e. write to `{FRONTEND_DIR}/app/pages/...` relative to cwd. The context
+      files above live under `{PROJECT_DIR}/` (the docs tree); NEVER write any
+      `.tsx` under `{PROJECT_DIR}/{FRONTEND_DIR}/` or any other `{PROJECT_DIR}`
+      path — files there are not part of the build and will be discarded.
+
+      INPUT FILE: {PROJECT_DIR}/design/html/{FRONTEND_DIR}/{page}.html
+
+      DETERMINISTIC PAGE — ENHANCE IN PLACE (v128, check FIRST):
+        A deterministic page for this screen may ALREADY EXIST under
+        {FRONTEND_DIR}/app/pages/ (generated from the user story; its filename
+        derives from the {page} slug with the numeric prefix stripped, e.g.
+        "03-admin-dashboard" → pages/admin/admin-dashboard.tsx). Search app/pages/
+        by slug BEFORE creating anything.
+        - If it EXISTS: RESTYLE THAT FILE IN PLACE to mirror the HTML prototype.
+          SCOPE-LOCK (deterministically enforced after this node — a violation
+          reverts your ENTIRE file to the unstyled deterministic version):
+            * KEEP every existing data-testid attribute verbatim (story specs target them)
+            * KEEP the default export (same component name)
+            * KEEP the data wiring (fetch/dispatch calls + loading/error/empty branches);
+              you may relocate them within the file, never delete them
+          You own the JSX presentation: layout, Tailwind classes, headings, visual
+          structure — make it pixel-perfect around the locked parts.
+        - If it does NOT exist: create a single new .tsx file under
+          {FRONTEND_DIR}/app/pages/ that mirrors the HTML pixel-for-pixel. Pick a
+          sensible component name from the {page} slug (e.g. "01-login" →
+          LoginPage.tsx, "15-application-detail" → ApplicationDetailPage.tsx).
+
+      FIDELITY (RULE-F7 + RULE-F8 — gate fails if violated):
+        - Read {page}.html FULLY before writing the component
+        - Every visible text, form field, button, icon, divider in the HTML must
+          appear in the React component (character-for-character match for text)
+        - Extract EXACT CSS values from <style>:
+            padding: 40px 36px → px-[36px] py-[40px]   (NOT p-8)
+            border-radius: 24px → rounded-[24px]
+            font-size: 28px → text-[28px]
+        - Preserve box-shadow, backdrop-filter
+
+      IMPORTS — STRICT CONTRACT (this is the #1 cause of build failures — obey it exactly):
+        - FIRST read IMPORT_MANIFEST.md. It lists EVERY module + named export available in
+          this frontend (services/thunks, redux actions, types, enums, hooks, ui, lib).
+        - You may import ONLY module paths and symbols that appear in the manifest.
+          For API data, dispatch a listed thunk from ~/services/httpServices/* (use the EXACT
+          export name shown, e.g. `findAll`, `fetchMeThunk` — do not guess `getApplications`).
+          For types/enums, import only listed names from ~/types/* and ~/enums/*.
+        - NEVER invent an import. If the data/type/enum you want is not in the manifest, use
+          the closest listed item or render a static placeholder. An import of a module or
+          symbol not in the manifest breaks the production build (TS2307 / "not exported by")
+          and fails the whole frontend. When unsure, import LESS.
+
+      INTEGRATION:
+        - Wrap interactive elements with handlers (`onClick={() => { /* TODO */ }}`)
+          — no dead buttons (RULE-F2)
+        - For role-restricted pages, reference one of: role, isOwner, isAdmin,
+          ProtectedRoute, RequireRole, useRole, usePermission (RULE-F5)
+        - Use `useTranslation()` and `t('key')` for all display strings (RULE-T6)
+          — i18n is already initialized by the convert-shell node
+        - Add `data-testid="{page}-..."` to every interactive element (RULE-F10)
+
+      DO NOT:
+        - Modify ANY pre-installed framework file (root.tsx, routes.ts, lib/utils.ts,
+          services/httpService.ts, redux/store/**, components/ui/**, hooks/providers/**,
+          styles/**, utils/errorHandler.ts, package.json, tsconfig.json, vite.config.ts).
+          These were copied from canonical templates and are immutable.
+        - Modify layouts/*, i18n/*, components/guards/* — convert-shell owns those.
+        - Create files outside {FRONTEND_DIR}/app/pages/
+
+      ROUTING NOTE: do not add the route to {FRONTEND_DIR}/app/routes.ts yourself —
+      record the suggested route path in your report and a downstream node will wire
+      it. (Multiple cells writing to routes.ts in parallel would conflict.)
+
+      REPORT FILE: {STATUS_DIR}/FRONTEND_CONVERT_{page}.md
+      Required fields (regex-verifiable):
+        page: {page}
+        component_name: <PascalCase>
+        component_path: <relative path>
+        suggested_route: <path string, e.g. /login>
+        text_elements_matched: <int>
+        form_fields_matched: <int>
+        buttons_matched: <int>
+        css_arbitrary_values_used: <int>
+        testids_added: <int>
+        fidelity_estimate: <float 0.0-1.0>
+
+  # v128: convert-pages cells sometimes anchor their Write paths to the absolute
+  # `.claude-project/fsp/` prefix they see on every context file and emit pages
+  # into `<run>/.claude-project/fsp/{FRONTEND_DIR}/app/pages/` — a tree nothing
+  # builds (v127: admin-dashboard 128 stray vs 67 real; company-dashboard 58
+  # stray vs 40 real, 19 of which were safety-net stubs covering for the lost
+  # work). scope_guard is documentation-only, so the writes succeed silently.
+  # This doctor relocates stray app/pages/** into the real frontend (real
+  # missing → move; real is a scaffold stub → adopt LLM page, scope-lock
+  # enforce downstream still guards the contract) and deletes the stray root.
+  - id: scaffold-stray-output-relocate
+    type: deterministic
+    description: "v128: relocate LLM pages written under {PROJECT_DIR}/{FRONTEND_DIR}/ into the real frontend tree"
+    on_failure: ignore
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-stray-output-doctor.js \
+        --target "{TARGET_DIR}" \
+        --frontend-dir "{FRONTEND_DIR}" \
+        --verbose
+
+  - id: convert-wire-routes
+    type: agentic
+    description: "Wire converted pages into app/routes.ts + app/routes/*.routes.ts per RR7 framework mode"
+    # v83: prevent cascade-abort. scaffold-convert-wire-routes (deterministic,
+    # below) is the fallback that regenerates routes.ts from app/routes/*.routes.ts
+    # files. Without this, a convert-wire-routes failure would abort the phase
+    # before scaffold-routes-dedupe / scaffold-routes-prune / page-imports-doctor
+    # could run.
+    on_failure: ignore
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/FRONTEND_ROUTES_WIRED.md"
+    verification_pattern: "routes_wired:\\s*[0-9]+"
+    scope_guard:
+      # v93: RR7 uses app/routes.ts (the main aggregator) + app/routes/*.routes.ts
+      # (per-domain modules). No App.tsx exists in framework mode.
+      allow: ["{FRONTEND_DIR}/app/routes.ts", "{FRONTEND_DIR}/app/routes/**"]
+      deny: ["{FRONTEND_DIR}/app/pages/**", "{BACKEND_DIR}/**"]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{STATUS_DIR}/FRONTEND_CONVERT_*.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+        - ".claude/{FRONTEND}/guides/routing-guide.md"
+    tool_profile:
+      allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Wire every converted page into the RR7 framework-mode route table using
+      the `suggested_route` recorded in each FRONTEND_CONVERT_*.md report.
+
+      FILE LAYOUT (RR7 framework mode — NO App.tsx):
+        app/routes.ts            — central RouteConfig export; imports from app/routes/*.routes.ts
+        app/routes/*.routes.ts   — per-domain route modules (auth, admin, worker, company, public)
+
+      PROCESS:
+      1. Read every FRONTEND_CONVERT_*.md file. Each lists:
+           component_name, component_path, suggested_route
+      2. Group routes by role (auth/guest/admin/etc.) per PROJECT_PRD_ROLES.md
+      3. Wire each into the matching app/routes/<role>.routes.ts using the
+         existing layout()/route()/index() helpers from @react-router/dev/routes
+         that convert-shell already set up.
+      4. Ensure app/routes.ts imports every *.routes.ts and merges them.
+      5. Preserve the existing `route('*', 'pages/not-found.tsx')` 404 catch-all.
+      6. Add necessary route entries; do NOT modify the page components themselves.
+
+      REPORT FILE: {STATUS_DIR}/FRONTEND_ROUTES_WIRED.md
+      Required fields (regex-verifiable):
+        phase: frontend-wire-routes
+        routes_wired: <int>
+        roles_covered: <int>
+        unmatched_pages: <int>   # pages whose suggested_route could not be placed
+
+  # v63: rootReducer + routes registration. Scans on-disk slice + routes
+  # files and emits canonical aggregators. Without these, scaffold-crud-pages
+  # writes 12 slice files but rootReducer.ts only has the LLM-written
+  # auth/user slices → typecheck cliff with `Property 'notice' does not exist
+  # on type {auth, user}` across pages (v62-att2 evidence). Same for routes:
+  # scaffold-crud-pages writes per-entity *.routes.ts; top-level routes.ts
+  # never imports them → scaffolded pages unreachable.
+  - id: normalize-redux-and-routes
+    type: deterministic
+    description: "Regenerate rootReducer.ts + register per-entity routes in routes.ts"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/normalize-root-reducer.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+      node {CLAUDE_DIR}/v2/scripts/normalize-routes.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v86 Lever 1: SAFETY-NET deterministic page generator from user_story
+  # YAMLs. For every story that has no corresponding page (because LLM
+  # convert-pages failed/skipped/timed-out), emit a minimal-but-testable
+  # stub: fetch on mount, render section per AC with data-testid matching
+  # story spec selectors, action buttons for mutation endpoints, loading/
+  # error/empty states. Also emits routes/safety-net.routes.ts so
+  # scaffold-convert-wire-routes (below) picks the stubs up.
+  #
+  # WHY: v76-v85 evidence — worker cell repeatedly produced 0 story PASSes
+  # because convert-pages crashed/timed-out → no pages → routes-prune
+  # collapsed everything to 404 stubs → story tests couldn't find target
+  # pages → 0/28 cascade. With this scaffold every story has a target page
+  # that boots + makes the right API calls + has the right data-testids.
+  # admin cell often passes because its pages are simpler; this scaffold
+  # narrows the gap so worker/company can hit the same floor.
+  #
+  # Runs AFTER convert-pages + convert-wire-routes (so LLM gets first
+  # crack), BEFORE scaffold-convert-wire-routes (so its emitted routes
+  # v93: Parse every .tsx in app/pages/ with the project's local TypeScript
+  # compiler API. Files with parse errors (unclosed JSX, unterminated string,
+  # unbalanced braces, etc — all common LLM convert-pages output failures)
+  # are DELETED so scaffold-page-from-story (below) can re-emit a clean
+  # stub from the matching user_story YAML. v93 evidence: SignupPage.tsx
+  # had a `<select>` whose attribute value embedded a string with single
+  # quotes that broke JSX parsing → 'JSX element form has no corresponding
+  # closing tag' cascade. notifications.tsx had unterminated string literal.
+  # Both wiped entire frontend typecheck.
+  - id: scaffold-jsx-balance-doctor
+    type: deterministic
+    description: "v93: delete pages with unparseable JSX/TSX so scaffold-page-from-story can replace them with stubs"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-jsx-balance-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # file is aggregated into top-level routes.ts).
+  - id: scaffold-page-from-story
+    type: deterministic
+    description: "v86 safety net (post-convert slot): refill pages deleted by jsx-balance-doctor; primary generation now runs pre-convert (v128)"
+    command: |
+      STORIES_DIR="{TARGET_DIR}/{PROJECT_DIR}/user_stories"
+      [ -d "$STORIES_DIR" ] || { echo "no user_stories dir — skipping page-from-story scaffold"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-page-from-story.js \
+        --stories-dir "$STORIES_DIR" \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v75: deterministically re-wire app/routes.ts to import every
+  # app/routes/*.routes.ts file. Replaces the LLM convert-wire-routes
+  # step which sometimes missed entries. Uses marker-bounded managed
+  # sections so it's re-runnable + leaves manual edits outside the
+  # markers untouched.
+  - id: scaffold-convert-wire-routes
+    type: deterministic
+    description: "v75: enumerate app/routes/*.routes.ts → wire into top-level routes.ts (LLM-independent)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-convert-wire-routes.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v81: dedupe route() entries pointing to the same component file.
+  # v80 evidence: worker cell test-browser crashed in 5.6s at ensure-servers
+  # because auth.routes.ts had:
+  #   route("signup", "pages/auth/register.tsx"),
+  #   route("register", "pages/auth/register.tsx"),
+  # RR7 uses the component path as the implicit route id; duplicates make
+  # vite refuse to boot with `Unable to define routes with duplicate route id`.
+  # LLM convert-pages introduced the alias; this normalizer strips it.
+  # v115: strip unresolvable bare-package CSS @imports (tw-animate-css) that break
+  # the Tailwind-v4 vite production build. A DOCTOR (not just a template edit)
+  # because the slim baseline freezes app/styles/app.css — only this live-scaffold
+  # repair reaches the run.
+  - id: scaffold-css-imports-doctor
+    type: deterministic
+    description: "v115: remove unresolvable bare-package CSS @imports (tw-animate-css) that fail @tailwindcss/vite build"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-css-imports-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: scaffold-routes-dedupe
+    type: deterministic
+    description: "v81+v115: disambiguate duplicate route ids — route()/index() sharing a component, same-file OR cross-file (RR7 'duplicate route id')"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-routes-dedupe.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v122: reconcile role-group route PREFIXES with story ui_routes (RCA #5).
+  # convert-wire-routes wraps role groups in PATHLESS layout(), so adminRoutes/
+  # companyRoutes mount at root (/companies, /staff) while stories use /admin/* +
+  # /company/* → every authenticated admin/company story navigates to a 404. The
+  # doctor converts layout(RoleLayout, routes) → route('<prefix>', RoleLayout,
+  # routes) for any role whose STORIES use a /<role> prefix (worker stays pathless
+  # — its stories use root paths). Evidence-driven + idempotent. Runs after dedupe,
+  # before prune/build. v121: lifted live story pass 19%→45% (next blocker: missing
+  # auth-bootstrap, not routing).
+  - id: scaffold-route-prefix-doctor
+    type: deterministic
+    description: "v122: prefix role route groups (/admin, /company) to match story ui_routes — RCA #5 (404 on authenticated routes)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-route-prefix-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --stories-dir "{TARGET_DIR}/{PROJECT_DIR}/user_stories" \
+        --verbose
+    on_failure: ignore
+
+  # v122: auth-bootstrap (RCA #5b). The SPA must hydrate the redux auth slice from
+  # the httpOnly session cookie on load — without it the slice stays unauthenticated
+  # and EVERY protected route redirects (v121: /admin → / with zero /api calls; no
+  # /auth/me|checkAuth anywhere). Generates AuthBootstrap (GET /auth/me on mount →
+  # dispatch the slice's authenticate action), wires it inside the redux Provider,
+  # AND fixes the role guards: (a) string role-names → numeric (backend role is a
+  # NUMBER — operator=10), (b) adds an isLoading gate so a guard never redirects
+  # mid-hydration (the v121 race: AdminGuard rendered with user=null → Navigate('/')
+  # before the bootstrap populated it). Live: 5/6 protected routes render, 45%→62%.
+  - id: scaffold-auth-bootstrap
+    type: deterministic
+    description: "v122: hydrate auth from /auth/me on load + numeric-role/isLoading guard fix — RCA #5b (protected routes redirect)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-auth-bootstrap.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v82: prune route() entries whose component .tsx file doesn't exist.
+  # v81 evidence: worker cell test-browser CRASHED in 5.8s because routes.ts
+  # referenced `affiliationRequest/layout.tsx` (kebab/camel mismatch — actual
+  # dir is `affiliation-request/`). vite refused to boot with ENOENT, blocking
+  # the entire test-browser phase for that cell. This runs AFTER routes-dedupe
+  # and ALL page scaffolds.
+  - id: scaffold-routes-prune
+    type: deterministic
+    description: "v82: prune route() entries whose .tsx file doesn't exist (prevents vite ENOENT crash)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-routes-prune.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v77: codemod — scan app/pages/**/*.tsx + app/components/**/*.tsx, find
+  # JSX identifiers like `<Input>` / `<Button>` / `useAuth()` that aren't
+  # imported, and prepend the missing imports based on the actual catalog
+  # of exports under app/components/ui|atoms|layouts|shared, app/hooks,
+  # app/lib, app/contexts. v76 evidence: 17 occurrences of
+  # `TS2304: Cannot find name 'Input'` across UserEditPage.tsx — pure
+  # missing-import bug from the LLM converter.
+  - id: scaffold-page-imports-doctor
+    type: deterministic
+    description: "v77: prepend missing UI/hook/service imports detected from JSX/identifier use"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-page-imports-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v88: Replace hallucinated lucide-react icon names (CashCheck, OfficeBuilding,
+  # AccountGroup, FileDocumentCheck, FileChart, etc.) with valid substitutes.
+  # Uses `<sub> as <hallucinated>` aliases so JSX code (`<CashCheck />`) keeps
+  # working without rewrites. v87 evidence: 6 LLM-converted admin pages had
+  # bogus lucide imports → TS2305 → Vite bundle failure → admin 0/28 stories.
+  # Runs BEFORE broken-imports-quarantine so it fixes recoverable cases first
+  # (quarantine is the nuclear option for pages with too many bad imports).
+  # v108: Fix WorkerGuard/CompanyGuard/AdminGuard `if (isLoading)` spinner loop.
+  # LLM-generated role guards check `isLoading` unconditionally. If a guarded page
+  # dispatches me() on mount (e.g. profile page), isLoading cycles true→false→true
+  # every render, causing the guard to unmount/remount the page infinitely.
+  # Fix: change `if (isLoading)` → `if (!authChecked && isLoading)` so spinner only
+  # shows during initial auth check. Evidence: v107 13-my-profile AC-3+AC-5 failing.
+  - id: scaffold-auth-guard-isloading-doctor
+    type: deterministic
+    description: "v108: fix role guards to use !authChecked && isLoading (prevent infinite spinner on page-dispatched me())"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-auth-guard-isloading-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-lucide-icon-doctor
+    type: deterministic
+    description: "v88: substitute hallucinated lucide-react icon names with valid ones via as-alias"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-lucide-icon-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v88: QUARANTINE pages whose imports can't be resolved. page-imports-doctor
+  # (above) handles ADDITIVE fixes (missing imports for JSX identifiers); this
+  # handles UNRESOLVABLE imports (hallucinated lucide-react icon names like
+  # `CashCheck`/`OfficeBuilding`, missing module paths). Vite uses static
+  # imports — ONE bad page kills the WHOLE SPA bundle (returns 500 on every
+  # route). Quarantine replaces the page source with a tiny safety-net stub
+  # that preserves the file path + default export name so routes still resolve.
+  #
+  # v87 evidence: admin cell 0/28 stories because 6 LLM-converted pages had
+  # bogus `import { CashCheck, OfficeBuilding, ... } from 'lucide-react'`.
+  # company cell 6/6 PASS in the same run because its routes didn't statically
+  # import the broken pages. routes-prune handles MISSING files; this handles
+  # files that EXIST but can't resolve their imports.
+  - id: scaffold-broken-imports-quarantine
+    type: deterministic
+    description: "v88: replace pages with >=3 unresolvable imports with safety-net stubs (prevents Vite bundle poisoning)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-broken-imports-quarantine.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: merge-convert-reports
+    type: deterministic
+    description: "Aggregate per-page convert reports into FRONTEND_CONVERSION_REPORT.md"
+    command: |
+      set -e
+      STATUS_DIR="{TARGET_DIR}/{STATUS_DIR}"
+      OUT="$STATUS_DIR/FRONTEND_CONVERSION_REPORT.md"
+      PARTIALS=$(ls "$STATUS_DIR"/FRONTEND_CONVERT_*.md 2>/dev/null | sort || true)
+      SHELL="$STATUS_DIR/FRONTEND_SHELL_REPORT.md"
+      ROUTES="$STATUS_DIR/FRONTEND_ROUTES_WIRED.md"
+      if [ -z "$PARTIALS" ]; then
+        echo "FAIL: no per-page convert reports found in $STATUS_DIR"
+        exit 1
+      fi
+      PAGES=0
+      TOTAL_BUTTONS=0
+      TOTAL_FORMS=0
+      TOTAL_TESTIDS=0
+      FIDELITY_SUM=0
+      for f in $PARTIALS; do
+        PAGES=$((PAGES + 1))
+        B=$(grep -E '^buttons_matched:'   "$f" | grep -oE '[0-9]+' | head -1 || echo 0)
+        FM=$(grep -E '^form_fields_matched:' "$f" | grep -oE '[0-9]+' | head -1 || echo 0)
+        T=$(grep -E '^testids_added:'     "$f" | grep -oE '[0-9]+' | head -1 || echo 0)
+        FI=$(grep -E '^fidelity_estimate:' "$f" | grep -oE '[0-9]+\.?[0-9]*' | head -1 || echo 0)
+        TOTAL_BUTTONS=$((TOTAL_BUTTONS + B))
+        TOTAL_FORMS=$((TOTAL_FORMS + FM))
+        TOTAL_TESTIDS=$((TOTAL_TESTIDS + T))
+        FIDELITY_SUM=$(awk -v a="$FIDELITY_SUM" -v b="$FI" 'BEGIN { print a + b }')
+      done
+      AVG_FIDELITY=$(awk -v s="$FIDELITY_SUM" -v n="$PAGES" 'BEGIN { if (n > 0) printf "%.3f", s / n; else print "0" }')
+      LAYOUTS=0
+      [ -f "$SHELL" ] && LAYOUTS=$(grep -E '^layouts_created:' "$SHELL" | grep -oE '[0-9]+' | head -1 || echo 0)
+      ROUTES_WIRED=0
+      [ -f "$ROUTES" ] && ROUTES_WIRED=$(grep -E '^routes_wired:' "$ROUTES" | grep -oE '[0-9]+' | head -1 || echo 0)
+      HTML_SOURCE_COUNT=$(find "{TARGET_DIR}/{PROJECT_DIR}/design/html/{FRONTEND_DIR}" -name '*.html' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+      {
+        echo "# Frontend Conversion Report"
+        echo ""
+        echo "phase: frontend-convert"
+        echo "html_source_files: $HTML_SOURCE_COUNT"
+        echo "pages_converted: $PAGES"
+        echo "layouts_created: $LAYOUTS"
+        echo "routes_wired: $ROUTES_WIRED"
+        echo "fidelity_estimate: $AVG_FIDELITY"
+        echo "buttons_matched: $TOTAL_BUTTONS"
+        echo "form_fields_matched: $TOTAL_FORMS"
+        echo "testids_added: $TOTAL_TESTIDS"
+        echo "i18n_configured: true"
+        echo ""
+        echo "## Shell report"
+        echo ""
+        if [ -f "$SHELL" ]; then cat "$SHELL"; else echo "(missing)"; fi
+        echo ""
+        echo "## Routes wired"
+        echo ""
+        if [ -f "$ROUTES" ]; then cat "$ROUTES"; else echo "(missing)"; fi
+        echo ""
+        echo "## Per-page reports"
+        echo ""
+        for f in $PARTIALS; do
+          echo "### $(basename $f)"
+          echo ""
+          cat "$f"
+          echo ""
+        done
+      } > "$OUT"
+      echo "aggregated $PAGES page reports -> $OUT"
+    on_failure: abort
+    abort_message: "Cannot aggregate per-page convert reports. Check that convert-pages cells produced their FRONTEND_CONVERT_<page>.md files."
+
+  - id: design-fidelity-check
+    type: agentic
+    timeout_ms: 2400000   # 40min — multi-page screenshot diff + scoring across all converted pages
+    description: "Execute design-qa-html skill: per-screen fidelity scoring (gen 1 target: 85%, ratchets each generation)"
+    on_failure: ignore
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/FRONTEND_FIDELITY_REPORT.md"
+    # Verification accepts >= 0.70 — the SCORE itself is enforced by frontend-gate
+    # which uses progressive thresholds (gen 1: 0.70, gen 2: 0.85, gen 3+: 0.95).
+    # This prevents a single phase blowout when 59 auto-converted pages can't
+    # hit 95% in one pass within reasonable budget.
+    verification_pattern: "avg_fidelity:\\s*0\\.[7-9]\\d*|avg_fidelity:\\s*1\\.0+"
+    scope_guard:
+      allow: ["{FRONTEND_DIR}/app/**"]
+      deny: ["{BACKEND_DIR}/**"]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_SYSTEM.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/generated-screens/*.html"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/html/{FRONTEND_DIR}/*.html"
+        - ".claude/{FRONTEND}/skills/qa/design-qa-html.md"
+    tool_profile:
+      allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Execute the design-qa-html skill (.claude/{FRONTEND}/skills/qa/design-qa-html.md)
+      end-to-end. Follow ALL 7 phases of the skill — do not shortcut.
+
+      ## Required workflow (from the skill)
+
+      Phase 1 — Project Selection
+        - Discover frontend dir ({FRONTEND_DIR}/) and load
+          {STATUS_DIR}/SCREEN_IMPLEMENTATION_STATUS.md
+          (if absent, derive screen list from HTML inventory).
+
+      Phase 2 — Screen Selection
+        - Run on ALL screens (full project QA). Do not sample.
+
+      Phase 3 — HTML Prototype Analysis
+        For each HTML file under {PROJECT_DIR}/generated-screens/ or
+        {PROJECT_DIR}/design/html/:
+          - Read the file fully
+          - Extract & categorize Tailwind classes into 6 buckets:
+            Layout / Spacing / Typography / Colors / Visual Effects / Components
+          - Build the class inventory table
+
+      Phase 4 — Implementation Review
+        For each matching React file under {FRONTEND_DIR}/app/pages/:
+          - Read the file
+          - Extract & categorize classes using the SAME 6 buckets
+
+      Phase 5 — Fidelity Score Calculation (MANDATORY weights)
+        Category Score = (matching_classes / total_html_classes_in_category) * 100
+        Apply weights:
+          Layout         25%
+          Spacing        20%
+          Typography     20%
+          Colors         15%
+          Visual Effects 10%
+          Components     10%
+        Overall = sum(score * weight)
+
+      Phase 6 — Fix Generation + Repair Loop (BUDGET-BOUNDED)
+        - Identify the LOWEST-SCORING 5 pages (by overall fidelity).
+        - For each of those 5 pages only:
+            * Generate Critical+High priority fixes (skip Medium/Low)
+            * APPLY the fixes via Edit/MultiEdit on {FRONTEND_DIR}/app/pages/**
+            * Re-measure that page
+        - Limit: 1 fix iteration per page (NOT 3). Future generations will iterate further.
+        - All other pages: report scores in the table, no edits.
+        - RULE-F8 still applies: use [Xpx] arbitrary values when HTML uses
+          non-standard pixel values.
+
+      Phase 7 — Report Generation
+
+        CRITICAL — write the report in EXACTLY the format below. Do NOT
+        rephrase, do NOT use markdown bold for the metric lines, do NOT
+        embed metrics in narrative paragraphs. The artifact-verification
+        regex looks for `avg_fidelity:\s*0\.[7-9]\d*|avg_fidelity:\s*1\.0+`
+        as a literal line — `**avg_fidelity:** 0.85` or "achieved 85%
+        fidelity" will FAIL.
+
+        Copy-paste this template and fill in the numbers:
+
+        ```
+        # FRONTEND_FIDELITY_REPORT
+
+        phase: frontend-fidelity
+        pages_checked: <int>
+        avg_fidelity: <float, must be >= 0.95>
+        category_scores:
+          layout: <float>
+          spacing: <float>
+          typography: <float>
+          colors: <float>
+          effects: <float>
+          components: <float>
+        pages_below_95: [list of page names still under 0.95 after 3 iters]
+        pages_fixed: <int>
+        fix_iterations: <int total fixes applied across all pages>
+
+        ## Per-screen table
+        | screen | fidelity | rating | notes |
+        |---|---|---|---|
+        | ... | ... | ... | ... |
+
+        ## Project-wide rating distribution
+        Pixel Perfect: <int> | Minor Issues: <int> | Needs Work: <int> | Major Revision: <int>
+        ```
+
+        v94 evidence: agent wrote markdown bullets like "**avg_fidelity:** 0.51"
+        instead of bare key-value → regex failed → pattern_mismatch failure.
+
+        Also include a per-screen table and the project-wide rating
+        distribution (Pixel Perfect / Minor Issues / Needs Work / Major
+        Revision) as shown in the skill.
+
+      ## Hard requirements
+      - avg_fidelity target is >= 0.85. Do NOT over-iterate — report the actual score achieved.
+      - Do NOT inflate scores. Use the formula in Phase 5 strictly.
+      - Do NOT touch {BACKEND_DIR}/** or design files — only {FRONTEND_DIR}/app/**.
+
+  # ============================================================================
+  # TIER 3: POST-CHECKS (deterministic)
+  # ============================================================================
+
+  - id: fidelity-gate
+    type: deterministic
+    description: "Enforce avg_fidelity threshold (progressive: gen 1 >= 0.70, gen 2 >= 0.85, gen 3+ >= 0.95)"
+    command: |
+      REPORT="{TARGET_DIR}/{STATUS_DIR}/FRONTEND_FIDELITY_REPORT.md"
+      STATUS_FILE="{TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md"
+      if [ ! -f "$REPORT" ]; then
+        echo "WARN: FRONTEND_FIDELITY_REPORT.md missing — skipping fidelity gate (design-fidelity-check may have failed)"
+        exit 0
+      fi
+      SCORE=$(grep -E '^avg_fidelity:' "$REPORT" | head -1 | sed -E 's/.*: *([0-9.]+).*/\1/')
+      [ -n "$SCORE" ] || { echo "WARN: avg_fidelity field not found in report — skip"; exit 0; }
+      GEN=1
+      if [ -f "$STATUS_FILE" ]; then
+        PARSED=$(grep -m1 '^generation:' "$STATUS_FILE" | sed 's/[^0-9]//g')
+        GEN=${PARSED:-1}
+      fi
+      if [ "$GEN" -ge 3 ]; then THRESHOLD=0.95
+      elif [ "$GEN" -eq 2 ]; then THRESHOLD=0.85
+      else THRESHOLD=0.70
+      fi
+      awk -v s="$SCORE" -v t="$THRESHOLD" 'BEGIN { exit (s+0 >= t+0 ? 0 : 1) }' || {
+        echo "FAIL: avg_fidelity=$SCORE < $THRESHOLD (gen $GEN)"; exit 1;
+      }
+      echo "PASS: avg_fidelity=$SCORE >= $THRESHOLD (gen $GEN)"
+    on_failure: abort
+    abort_message: "Frontend fidelity below progressive threshold — see FRONTEND_FIDELITY_REPORT.md"
+
+  - id: lint-fix
+    type: deterministic
+    description: "Auto-fix ESLint issues"
+    command: |
+      cd "{TARGET_DIR}/{FRONTEND_DIR}" && npx eslint app/ --fix 2>&1 || true
+    on_failure: ignore
+
+  # v65: fix common LLM-import mistakes before typecheck runs. v64 evidence:
+  # react-router-dom (v6 path) used instead of react-router; FormField etc.
+  # used in JSX without imports; UUID type without import. Each is a clear
+  # pattern we can fix deterministically.
+  - id: normalize-frontend-imports
+    type: deterministic
+    description: "Rewrite known-bad import patterns (react-router-dom→react-router, add missing Form* imports)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/normalize-frontend-imports.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v67: regenerate rootReducer.ts to import + combine EVERY *Slice.ts file
+  # found under app/redux/features/. Fixes v66 cascade: LLM wrote slices
+  # individually but forgot to wire them into the store, causing TS2339
+  # in guards and pages doing useAppSelector((s) => s.<missingSlice>).
+  - id: scaffold-redux-store
+    type: deterministic
+    description: "Regenerate rootReducer.ts to wire every *Slice.ts (prevents missing-slice TS2339)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-redux-store.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v132: strip extraReducers .addCase(X.pending|fulfilled|rejected) where X is a
+  # PLAIN mutation function, not a createAsyncThunk. X.pending is then `undefined`
+  # → addCase(undefined) throws at STORE CREATION → the app white-screens on
+  # hydration → every interactive story on that store fails (a build-clean RUNTIME
+  # crash that build/typecheck miss). v132 live evidence: userSlice addCase'd
+  # `createUser` (a plain async mutation). Conservative + re-export-aware: strips
+  # ONLY positively-plain refs; keeps thunks (incl. re-exported) and anything
+  # unresolvable. Runs right after redux-store wires the slices.
+  - id: scaffold-redux-thunk-guard
+    type: deterministic
+    description: "v132: remove extraReducers addCase blocks referencing non-thunk (plain mutation) exports — prevents store-creation crash"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-redux-thunk-guard.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v78: emit a Vitest+RTL smoke test per scaffolded page (renders without
+  # crashing + key data-testids present). Requires scaffold-frontend-test-config
+  # to have set up vitest + deps.
+  - id: scaffold-component-tests
+    type: deterministic
+    description: "v78: emit Vitest+RTL smoke test per scaffolded page"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-component-tests.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v78: emit Vitest test per Redux slice (reducer + thunk lifecycle).
+  - id: scaffold-store-tests
+    type: deterministic
+    description: "v78: emit Vitest test per *Slice.ts (reducer + thunk pending/fulfilled/rejected)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-store-tests.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v67: extract all `t('namespace.key', 'default')` calls from scaffolded
+  # TSX/TS files, merge missing keys into app/i18n/locales/<lang>/<ns>.json,
+  # update i18n/index.ts to import all namespaces × locales. Fixes the
+  # v50-v54 pattern of pages rendering raw key strings because locale JSON
+  # was missing the keys.
+  - id: scaffold-i18n-keys
+    type: deterministic
+    description: "Extract t() calls and merge missing keys into locale JSON files; update i18n/index.ts"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-i18n-keys.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --default-locale "${DEFAULT_LOCALE:-ko}"
+    on_failure: ignore
+
+  # v82: ensure every declared frontend dep is installed before vite tries
+  # to boot. v79+v80 evidence: @vitejs/plugin-react, msw, etc. declared in
+  # devDependencies via scaffolds but absent from node_modules → vitest +
+  # vite both blow up.
+  - id: scaffold-ensure-deps-installed
+    type: deterministic
+    description: "v82: npm install if any package.json dep is missing from node_modules"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-ensure-deps-installed.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v130: re-run the lucide doctor AFTER deps are installed. The early pass (in
+  # the doctor block above) reads node_modules/lucide-react's .d.ts to build the
+  # authoritative icon catalog — but deps aren't installed until THIS point, so
+  # the early pass SKIPS ("lucide-react types not found") and every hallucinated
+  # icon (e.g. `ClipboardText`, a Phosphor name) survives to `build`, where rollup
+  # hard-fails with MISSING_EXPORT (tsc misses it). v130 evidence: 38 bad icons
+  # across 9 pages reached build → frontend hard-gate abort at node 71/74. This
+  # final pass has the catalog and aliases each bad name to a valid icon. Doctor-
+  # ordering rule: a catalog/deps-dependent doctor must run after deps install.
+  - id: scaffold-lucide-icon-doctor-final
+    type: deterministic
+    description: "v130: re-run lucide icon doctor after deps install (early pass skipped — no node_modules yet → bad icons reach build)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-lucide-icon-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: ensure-rr7-types
+    type: deterministic
+    description: "Run react-router typegen; on failure, write stub +types/root.ts so tsc doesn't TS2307"
+    # v67: split out the typegen step + add stub fallback. Pairs with the
+    # scope_guard lockdown of vite.config.ts/tsconfig.json/react-router.config.ts
+    # in convert-pages. The stub keeps tsc happy even if typegen crashes
+    # (RCA-from-v66: typegen failures dropped 35min on fix-agent recovery).
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/ensure-rr7-types.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v90: DISABLED v91 — see backend-2.yaml comment. False-positive rate too
+  # high. Brace-balance parser breaks on template literals + JSX expressions.
+  # - id: scaffold-truncated-llm-doctor (disabled v91)
+
+  # v118: repair the frontend contract-drift cascade BEFORE typecheck. Once
+  # db/backend fixes first let a slim run reach the frontend build, v118 surfaced
+  # 36 tsc errors in 3 LLM page/service/type disagreement classes (role string↔
+  # number, auth shape, crud page↔service names). This doctor fixes all of them
+  # deterministically (verified: 36 → 0 on the v118 snapshot, full `npm run build`
+  # passes). Runs LAST before typecheck so the route_to_agent fix-agent — which
+  # went off-track on 36 errors in v118 — faces 0, not a wall.
+  - id: scaffold-frontend-contract-doctor
+    type: deterministic
+    description: "v118: fix frontend contract-drift (role string↔number, auth shape, crud page↔service/type names) before typecheck"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-frontend-contract-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --project-database "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md" \
+        --verbose
+    on_failure: ignore
+
+  - id: typecheck
+    type: deterministic
+    description: "Verify frontend TypeScript compiles"
+    command: |
+      cd "{TARGET_DIR}/{FRONTEND_DIR}" && npx tsc --noEmit 2>&1
+    # v65: route_to_agent so fix-agent patches typecheck errors instead of
+    # cold-aborting. Universal safety net for residual LLM-output bugs
+    # not caught by normalize-frontend-imports.
+    on_failure: route_to_agent
+    abort_message: "Frontend TypeScript does not compile"
+
+  # v104: restore scaffold-protected files (api-client-types, service-from-
+  # controller) that fix-agent may have edited during typecheck repair.
+  # Per template_wins_LLM — scaffold contracts > LLM-fixed contracts.
+  # v128: second stray sweep — the fidelity fix + typecheck fix-agent run after
+  # the first sweep and can stray-write just like convert-pages did (same
+  # absolute-prefix anchoring hazard). Idempotent; no-op when no stray root.
+  - id: scaffold-stray-output-relocate-final
+    type: deterministic
+    description: "v128: relocate any late LLM stray writes under {PROJECT_DIR}/{FRONTEND_DIR}/ before restore/enforce"
+    on_failure: ignore
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-stray-output-doctor.js \
+        --target "{TARGET_DIR}" \
+        --frontend-dir "{FRONTEND_DIR}" \
+        --verbose
+
+  - id: scaffold-restorer
+    type: deterministic
+    description: "v104: restore scaffold-protected frontend files that fix-agent may have edited"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-restorer.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --phase frontend \
+        --backend-dir "{TARGET_DIR}/{BACKEND_DIR}" \
+        --claude-dir "{CLAUDE_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v128: enforcement half of the deterministic-primary contract. The convert-pages
+  # prompt says "keep testids / default export / data wiring", but a prompt is an
+  # LLM-promise, not a guarantee ([[feedback_template_wins_llm]]). This restores
+  # the snapshotted deterministic page for any file whose contract was broken by
+  # ANY LLM node (convert-pages, fidelity fix, typecheck fix-agent). Runs after
+  # the last LLM mutation per [[feedback_doctor_ordering]], BEFORE routes-final-
+  # cleanup so the final prune sees restored files and keeps their routes.
+  # Restored files compile by construction — safe after typecheck.
+  - id: scaffold-scope-lock-enforce
+    type: deterministic
+    description: "v128: restore deterministic pages whose contract (testids/default export) was broken by LLM nodes"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-scope-lock-doctor.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --enforce \
+        --verbose
+    on_failure: ignore
+
+  # v123: FINAL route-config cleanup, immediately before build. routes-dedupe (node
+  # 42) + routes-prune (45) run early, but the typecheck FIX-AGENT (62) and
+  # scaffold-restorer (63) run AFTER them and can reintroduce a duplicate route id or
+  # a dangling .tsx ref → build hard-aborts ("Unable to define routes with duplicate
+  # route id"). v123 died exactly here. Re-running prune (deterministic ids → re-run
+  # safe) then dedupe (disambiguates any duplicate component path / id) right before
+  # build guarantees the routes.ts that reaches build is clean, whatever the late
+  # nodes did. Idempotent — no-op if already clean.
+  - id: scaffold-routes-final-cleanup
+    type: deterministic
+    description: "v123: final routes prune+dedupe before build (catches dup route ids reintroduced by fix-agent/restorer)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-routes-prune.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" || true
+      node {CLAUDE_DIR}/v2/scripts/scaffold-routes-dedupe.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}"
+    on_failure: ignore
+
+  # v131: PROACTIVE build preflight. Run the full idempotent build-blocker doctor
+  # sweep immediately before the gate — AFTER the late nodes (restorer/scope-lock/
+  # routes-final-cleanup) that can REINTRODUCE a bad icon or dangling import after
+  # the early doctors already ran. Catches deterministic blockers on the FIRST
+  # build attempt (no wasted retry). Shares the exact sweep with the self-heal node.
+  - id: frontend-build-preflight
+    type: deterministic
+    description: "v131: run the full build-blocker doctor sweep right before build (catches late-reintroduced blockers proactively)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-frontend-build-preflight.js \
+        --target "{TARGET_DIR}/{FRONTEND_DIR}" \
+        --default-locale "${DEFAULT_LOCALE:-ko}"
+    on_failure: ignore
+
+  # v131: SELF-HEALING build gate. A hard-gate abort here throws away the whole
+  # ~3h run (backend + frontend generation). But ~every build failure we've seen
+  # is DETERMINISTIC and already fixable by an existing doctor — they just ran too
+  # early (lucide before deps) or had a completeness gap (i18n locale matrix). So
+  # before aborting: run the full idempotent build-blocker doctor sweep (the SAME
+  # preflight script) and RETRY the build ONCE. Only a SECOND failure is a genuine
+  # (non-deterministic) hard-abort. v130 evidence: i18n UNRESOLVED_IMPORT + lucide
+  # MISSING_EXPORT each wasted a full 3h run; this self-heals both in ~30s. A hard
+  # gate should mean "no doctor can fix this", not "a locale file was missing".
+  # See [[feedback_self_healing_hard_gates]].
+  - id: build
+    type: deterministic
+    description: "v131: self-healing production build — on failure, run build-blocker doctor sweep + retry once before aborting"
+    command: |
+      FE="{TARGET_DIR}/{FRONTEND_DIR}"
+      cd "$FE"
+      # v132: surface the ERROR HEAD, not just `tail` — rollup/esbuild dump a huge
+      # `files:`/`watchFiles:` array on failure that pushes the real message out of
+      # any tail window (this hid the v132 "already declared" dup-import error).
+      show_err() { echo "$1" | grep -iE "error|could not resolve|not exported|has already been declared|already declared|Expected .* but found|Transform failed|RollupError|cannot find|duplicate route" | head -15; echo "  …"; echo "$1" | tail -8; }
+      OUT=$(npm run build 2>&1); RC=$?
+      if [ "$RC" -eq 0 ]; then echo "$OUT" | tail -8; exit 0; fi
+      show_err "$OUT"
+      echo "──────────────────────────────────────────────────────────────"
+      echo "build FAILED (rc=$RC) — self-heal: running build-blocker doctors + retry once"
+      echo "──────────────────────────────────────────────────────────────"
+      # Error-directed hint (log which class the rollup error points at).
+      echo "$OUT" | grep -qiE "UNRESOLVED_IMPORT|Could not resolve .*locales" && echo "  → signal: i18n locale incompleteness"
+      echo "$OUT" | grep -qiE "MISSING_EXPORT|not exported by.*lucide" && echo "  → signal: hallucinated lucide icon"
+      echo "$OUT" | grep -qiE "has already been declared|already declared" && echo "  → signal: duplicate import (i18n/index.ts or page)"
+      echo "$OUT" | grep -qiE "duplicate route id" && echo "  → signal: duplicate route id"
+      echo "$OUT" | grep -qiE "Could not resolve .*~/|Could not resolve .*\./" && echo "  → signal: dangling/broken import"
+      # Same idempotent sweep used proactively above (DRY).
+      node "{CLAUDE_DIR}/v2/scripts/scaffold-frontend-build-preflight.js" \
+        --target "$FE" --default-locale "${DEFAULT_LOCALE:-ko}" 2>&1 | tail -12 || true
+      echo "── retry build ──"
+      OUT2=$(npm run build 2>&1); RC2=$?
+      if [ "$RC2" -eq 0 ]; then
+        echo "✅ self-heal SUCCEEDED — build green after doctor sweep (saved a full-run abort)"
+      else
+        echo "❌ self-heal did NOT fix it — genuine build failure (no doctor covers this class). Error head:"
+        show_err "$OUT2"
+      fi
+      exit "$RC2"
+    on_failure: abort
+    abort_message: "Frontend production build failed AFTER self-heal doctor sweep + retry — genuine (non-deterministic) build error"
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify page components + HTML coverage >= 80%"
+    command: |
+      FE="{TARGET_DIR}/{FRONTEND_DIR}"
+      # v55 fix: check both app/ (RR7) and src/ (legacy) — same dual-path
+      # treatment as integrate-2.yaml pre-check.
+      PAGES_APP=$(find "$FE/app" -name '*.tsx' \( -path '*/pages/*' -o -path '*/views/*' -o -path '*/routes/*' \) 2>/dev/null | wc -l | tr -d ' ')
+      PAGES_SRC=$(find "$FE/src" -name '*.tsx' \( -path '*/pages/*' -o -path '*/views/*' \) 2>/dev/null | wc -l | tr -d ' ')
+      PAGES=$((PAGES_APP + PAGES_SRC))
+      [ "$PAGES" -gt 0 ] || { echo "FAIL: no page TSX files in {FRONTEND_DIR} (checked app/ and src/)"; exit 1; }
+      HTML=$(find {TARGET_DIR}/{PROJECT_DIR}/generated-screens {TARGET_DIR}/{PROJECT_DIR}/design/html -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$HTML" -gt 0 ]; then
+        THRESHOLD=$((HTML * 80 / 100))
+        [ "$THRESHOLD" -lt 1 ] && THRESHOLD=1
+        [ "$PAGES" -lt "$THRESHOLD" ] && { echo "FAIL: $PAGES pages < $THRESHOLD (80% of $HTML HTML)"; exit 1; }
+        echo "PASS: $PAGES pages cover $HTML HTML (>= 80%)"
+      else
+        echo "PASS: $PAGES pages (no HTML to compare)"
+      fi
+    on_failure: abort
+
+  - id: cross-reference-consistency
+    type: deterministic
+    description: "Drift check — HTML/i18n/services consistency (advisory)"
+    command: |
+      bash "{CLAUDE_DIR}/gates/cross-reference-consistency.sh" "{TARGET_DIR}" "{project}" \
+        | tee "{TARGET_DIR}/{STATUS_DIR}/CONSISTENCY_REPORT_FRONTEND.json"
+      exit 0
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 4: LLM EVALUATOR (article §2 — separate generator from evaluator)
+  # ============================================================================
+  #
+  # Independent grading of the converted React. Crucial here because
+  # design-fidelity-check above is itself an LLM that scores its own work
+  # — a self-evaluation bias risk the article specifically warns against.
+  # The evaluator runs in a fresh subprocess with a read-only tool profile,
+  # grading on fidelity / token-discipline / componentization / completeness.
+  #
+  # on_failure: ignore — a broken evaluator must not prevent shipping. The
+  # absence of a score shows up in reward.js as no drift signal.
+
+  - id: frontend-evaluator
+    type: evaluator
+    description: "Grade React conversion against HTML source + DESIGN_SYSTEM tokens"
+    rubric_file: ".claude/blueprints/evaluators/frontend-rubric.yaml"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/frontend-evaluation.json"
+    verification_pattern: '"overall_score"\s*:\s*[0-9.]+'
+    tool_profile:
+      allow: [Read, Grep, Glob, Bash, Write]
+      # Edit / NotebookEdit / WebFetch / WebSearch are force-denied by
+      # lib/evaluator.js even if listed here. Redeclaring for clarity.
+      deny: [Edit, NotebookEdit, WebFetch, WebSearch]
+    inputs:
+      artifacts:
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/pages/**/*.tsx"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/components/**/*.tsx"
+        # routes file path varies (routes.ts / routes.tsx / app/routes.ts).
+        # Match anywhere under src to be tolerant.
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/**/routes.ts"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/**/routes.tsx"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/app/root.tsx"
+      references:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/html/{FRONTEND_DIR}/*.html"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_SYSTEM.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+      max_files: 30
+      max_chars_per_file: 8000
+    blend:
+      strategy: soft_score
+      deterministic_weight: 0.6
+      weight: 0.4
+      min_evaluator_score: 0.5
+    calibration:
+      examples_file: ".claude/blueprints/evaluators/frontend-examples.yaml"
+    on_failure: ignore
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch]

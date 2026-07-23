@@ -1,0 +1,152 @@
+# Few-shot calibration examples for the integrate evaluator.
+# Hand-written seeds.
+
+examples:
+
+  - criterion: api_coverage
+    correct_score: 0.3
+    excerpt: |
+      // Backend: 23 endpoints across 7 controllers
+      // Frontend wired (grep "from .*hooks/api"):
+      //   pages/Dashboard.tsx       — useStats()
+      //   pages/Applications.tsx    — useApplications()
+      //   pages/Notices.tsx         — useNotices()
+      // Mutations wired: 0
+      // File upload (POST /documents): not wired
+      // Admin pages: render mock arrays
+    rationale: >
+      Reads cherry-picked. No mutations wired — users can browse but can't
+      create, edit, or delete anything. Document upload critical for the
+      domain, not wired. Admin tier untouched. Roughly 12% of declared
+      endpoints have a frontend consumer.
+
+  - criterion: api_coverage
+    correct_score: 0.9
+    excerpt: |
+      // 21 of 23 endpoints have at least one consumer.
+      // GET /documents/:id/presigned-url and DELETE /audit-logs are the
+      // 2 unwired (audit log viewer is a stretch goal). All POST/PATCH/
+      // DELETE endpoints wired. File upload uses the presigned URL flow.
+      // Admin tier wired through useAdminUsers, useAdminPermissions.
+    rationale: >
+      Comprehensive coverage. All mutations and uploads wired. Admin tier
+      not skipped. The 2 unwired endpoints are explicitly noted as scope.
+
+  - criterion: error_ux
+    correct_score: 0.2
+    excerpt: |
+      const submit = async () => {
+        try {
+          await api.post('/applications', payload);
+          navigate('/applications');
+        } catch (e) {
+          console.error(e);  // user sees nothing
+        }
+      };
+
+      // axios interceptor:
+      axios.interceptors.response.use(
+        r => r,
+        err => Promise.reject(err)  // no 401 handling
+      );
+    rationale: >
+      Errors swallowed to console. User sees no feedback when submit fails.
+      No 401 handling — user with expired token sees stale data forever.
+      Server's validation messages never reach the form fields.
+
+  - criterion: error_ux
+    correct_score: 0.9
+    excerpt: |
+      const { mutateAsync, isPending } = useMutation({
+        mutationFn: (data) => api.post('/applications', data),
+        onError: (err) => {
+          if (err.response?.data?.fieldErrors) {
+            setFieldErrors(err.response.data.fieldErrors);
+          } else {
+            toast.error(err.response?.data?.message ?? t('common.error'));
+          }
+        },
+      });
+
+      // axios interceptor with _isRetry flag (RULE-I1)
+      axios.interceptors.response.use(r => r, async (err) => {
+        if (err.response?.status === 401 && !err.config._isRetry) {
+          err.config._isRetry = true;
+          await refreshToken();
+          return axios(err.config);
+        }
+        if (err.response?.status === 401) { logout(); navigate('/login'); }
+        return Promise.reject(err);
+      });
+    rationale: >
+      Server validation maps to form fields. Generic errors show toasts
+      using the server's message. 401 triggers single-retry refresh, then
+      logout on second failure. Mutations show pending state.
+
+  - criterion: flow_walkability
+    correct_score: 0.4
+    excerpt: |
+      // Login page submits, navigates to /home — works.
+      // /home renders dashboard with stats — works.
+      // From /home, "New Application" button:
+      //   <button onClick={() => alert('TODO')}>New Application</button>
+      //
+      // /admin/users renders empty list — useAdminUsers() returns []
+      //   but the "Invite user" form posts and never refreshes the list
+      //   (no queryClient.invalidateQueries call).
+    rationale: >
+      Login works but the primary flow (creating an application — the
+      whole point of the app) dead-ends in a TODO alert. Admin tier
+      mutations succeed but the list doesn't refresh, so users assume
+      they failed and submit again.
+
+  - criterion: flow_walkability
+    correct_score: 0.95
+    excerpt: |
+      // Worker flow: Login → /home → "New Application" → wizard step1 →
+      //   step2 → step3 → step4 → POST /applications → navigate to
+      //   /applications/:id → status chip shows "접수" → admin marks paid →
+      //   useApplication() refetches via queryClient.invalidateQueries
+      //   on socket event → status updates to "입금확인" without page reload.
+      //
+      // Admin flow: Login → /admin → /admin/applications → click row →
+      //   /admin/applications/:id → "Mark deposit confirmed" mutation →
+      //   list invalidated and refetched → status badge updates.
+    rationale: >
+      Both worker and admin primary flows walkable end-to-end. Mutations
+      route to relevant detail pages. Cache invalidation propagates state
+      changes without manual reload.
+
+  - criterion: state_handling
+    correct_score: 0.3
+    excerpt: |
+      // pages/Applications.tsx
+      const { data } = useApplications();
+      return (
+        <ul>
+          {data.map(app => <li key={app.id}>{app.title}</li>)}
+        </ul>
+      );
+      // crashes on undefined.map() during initial fetch.
+      // No empty state, no error state.
+    rationale: >
+      Renders against undefined → crashes on first render. No loading
+      state (would prevent the crash). No empty state ("0 items" identical
+      to "loading"). No error handling. RULE-F4 violation.
+
+  - criterion: state_handling
+    correct_score: 0.95
+    excerpt: |
+      const { data, isLoading, error } = useApplications();
+      if (isLoading) return <ApplicationListSkeleton />;
+      if (error) return <ErrorState error={error} onRetry={refetch} />;
+      if (!data?.length) {
+        return <EmptyState
+          title={t('applications.empty.title')}
+          cta={{ label: t('applications.empty.cta'), to: '/applications/new' }}
+        />;
+      }
+      return <ApplicationTable applications={data} />;
+    rationale: >
+      Explicit loading skeleton, retryable error state, empty state with
+      a CTA pointing at the next step. Never renders against undefined.

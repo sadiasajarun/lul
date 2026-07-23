@@ -1,0 +1,378 @@
+name: test-api-2
+description: |
+  Smoke test all routes + execute backend API tests with stability verification.
+  v2 blueprint with strict artifact contract on the smoke-test agentic node.
+version: 2
+manifest: test-api
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  # v96: Defensive parse-error sweep before tsc. Catches any backend .ts
+  # file that drifted into unparseable state since backend phase ended
+  # (e.g. integrate or some scaffold corrupted a controller). Same
+  # delete-and-rescaffold strategy as in backend-2.yaml — but here we
+  # only get the deletion since no scaffolds run in test-api. Still
+  # better than aborting test-api on a single broken file: test-api
+  # mostly cares that all routes WORK; one missing route is preferable
+  # to phase abort. v95 evidence: system-setting.controller.ts parse
+  # errors aborted test-api in 0.9s, cascading into 0/28 stories.
+  - id: scaffold-ts-balance-doctor
+    type: deterministic
+    description: "v96: delete unparseable backend .ts files so tsc pre-check has a chance to pass"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-ts-balance-doctor.js \
+        --target "{TARGET_DIR}/backend" \
+        --verbose
+    on_failure: ignore
+
+  # v105: restore scaffold-protected files (LoginDto, etc.) that backend's
+  # fix-agent may have edited during verify-green repair. Belt-and-suspenders
+  # vs backend-2.yaml's scaffold-restorer — if backend phase aborted at
+  # verify-green (no-abort skips remaining backend nodes), this catches it
+  # before tests run on broken contracts. v104 evidence: fix-agent edited
+  # LoginDto to @IsOptional, breaking POST /auth/login at runtime; backend
+  # phase aborted before its own scaffold-restorer could run.
+  - id: scaffold-restorer
+    type: deterministic
+    description: "v105: restore scaffold-protected backend files (catches case where backend phase aborted before its own restorer)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-restorer.js \
+        --target "{TARGET_DIR}" \
+        --phase backend \
+        --spec "{TARGET_DIR}/{STATUS_DIR}/MODULE_PLAN.yaml" \
+        --backend-dir "{TARGET_DIR}/backend" \
+        --claude-dir "{CLAUDE_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: pre-check
+    type: deterministic
+    description: "Verify backend compiles"
+    command: "cd {TARGET_DIR}/backend && npx tsc --noEmit 2>&1"
+    # v107: dropped `tsc --project tsconfig.app.json || tsc` fallback
+    # (same as v100 backend-2.yaml fix). tsconfig.app.json doesn't ship in
+    # the backend template, so first cmd always added TS5058 noise that
+    # made test-api pre-check ABORT in 1.9s even though the fallback would
+    # have succeeded. v106 evidence: test-api died at pre-check with
+    # `TS5058: tsconfig.app.json not found` exit 2, cascading into
+    # test-browser cells starting from a broken backend assumption.
+    on_failure: abort
+    abort_message: "Backend must compile before test-api"
+
+  - id: pm2-restart
+    type: deterministic
+    description: "Restart pm2 servers so they pick up freshly-generated backend/frontend code"
+    command: |
+      if command -v pm2 >/dev/null 2>&1 && pm2 list 2>/dev/null | grep -qE '\bbackend\b|\bfrontend\b'; then
+        pm2 restart backend frontend --update-env 2>&1 | tail -5 || true
+        # Wait for backend (NestJS bootstrap) — frontend is Vite, near-instant
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          sleep 1
+          curl -sf -o /dev/null http://localhost:{BACKEND_PORT}/api/health && { echo "backend ready after ${i}s"; exit 0; }
+        done
+        echo "WARN: backend health check did not return 200 within 10s; ensure-servers will catch any actual outage"
+      else
+        echo "pm2 not available or backend/frontend processes not registered — skip restart"
+      fi
+    on_failure: ignore
+
+  - id: ensure-servers
+    type: deterministic
+    description: "Boot this run's own backend + frontend (killing stale process holding ports) — mirrors test-browser-2.yaml/ensure-servers"
+    command: |
+      # v46 evidence (test-browser): old "just curl the port" check accepted
+      # whatever happened to be listening, even a leftover v42 frontend or
+      # a different project's backend. Same fix as test-browser/ensure-servers:
+      # actively kill stale processes and boot this run's servers. Idempotent
+      # — if servers from pm2-restart above are already up, kill_on_port wipes
+      # them and we re-boot from the run's own backend/ + frontend/.
+      set +e
+      T="{TARGET_DIR}"
+      BP="{BACKEND_PORT}"
+      FP="{FRONTEND_PORT}"
+
+      kill_on_port() {
+        local port="$1"
+        local pids
+        pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+        if [ -n "$pids" ]; then
+          echo "  killing stale processes on :$port — pids: $pids"
+          kill $pids 2>/dev/null
+          sleep 1
+          pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+          [ -n "$pids" ] && kill -9 $pids 2>/dev/null
+          sleep 1
+        fi
+      }
+
+      wait_for() {
+        local url="$1" name="$2" max="${3:-60}"
+        for i in $(seq 1 "$max"); do
+          local code
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo 000)
+          if [ "$code" != "000" ] && [ "${code:0:1}" != "5" ]; then
+            echo "  $name ready after ${i}s (HTTP $code)"
+            return 0
+          fi
+          sleep 1
+        done
+        echo "  FAIL: $name not reachable after ${max}s at $url"
+        return 1
+      }
+
+      echo "[ensure-servers] target=$T backend=:$BP frontend=:$FP"
+
+      # v106: skip kill+restart if backend is already healthy (avoids
+      # taking down a working backend pm2-restart just spun up).
+      BACKEND_PID_FILE="$T/backend/.ensure-servers-backend.pid"
+      check_backend_healthy() {
+        local code
+        code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$BP/api/health" 2>/dev/null || echo 000)
+        [ "$code" != "000" ] && [ "${code:0:1}" != "5" ]
+      }
+      # v128: a healthy port is NOT proof of OUR backend (mirror of the
+      # test-browser-2.yaml fix). The fast-path accepted ANY responder on :$BP,
+      # so a transient fix-agent dev server latched it → skipped boot, wrote no
+      # pid, and when it died the API tests false-failed on a dead backend.
+      # Trust the port only when a pid WE spawned is alive.
+      backend_owned_and_healthy() {
+        check_backend_healthy || return 1
+        [ -f "$BACKEND_PID_FILE" ] || return 1
+        local pid; pid=$(cat "$BACKEND_PID_FILE" 2>/dev/null)
+        [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+      }
+
+      kill_on_port "$FP"
+      if backend_owned_and_healthy; then
+        echo "[ensure-servers] backend healthy + owned (pid $(cat "$BACKEND_PID_FILE" 2>/dev/null)) on :$BP — sharing it"
+      else
+        echo "[ensure-servers] backend not healthy on :$BP — killing + restarting"
+        kill_on_port "$BP"
+        if [ -d "$T/backend" ] && [ -f "$T/backend/package.json" ]; then
+          echo "[ensure-servers] booting backend at $T/backend ..."
+          (
+            cd "$T/backend"
+            PORT="$BP" nohup npm run start:dev >.ensure-servers-backend.log 2>&1 &
+            echo $! > .ensure-servers-backend.pid
+          )
+        else
+          echo "  WARN: no $T/backend or package.json — skipping backend boot"
+        fi
+      fi
+
+      if [ -d "$T/frontend" ] && [ -f "$T/frontend/package.json" ]; then
+        echo "[ensure-servers] booting frontend at $T/frontend ..."
+        (
+          cd "$T/frontend"
+          PORT="$FP" nohup npm run dev >.ensure-servers-frontend.log 2>&1 &
+          echo $! > .ensure-servers-frontend.pid
+        )
+      else
+        echo "  WARN: no $T/frontend or package.json — skipping frontend boot"
+      fi
+
+      wait_for "http://localhost:$BP/api" backend 90 || \
+        wait_for "http://localhost:$BP" backend 30 || {
+          echo "FAIL: backend never reached on :$BP"
+          tail -30 "$T/backend/.ensure-servers-backend.log" 2>/dev/null
+          exit 1
+        }
+      # v128: record the ACTUAL listener pid, not the npm wrapper from `$!`
+      # (mirror of test-browser-2.yaml). The wrapper outlives a dead NestJS
+      # child, so backend_owned_and_healthy/verify_pid must track the real
+      # port listener instead.
+      __listener=$(lsof -ti tcp:"$BP" -sTCP:LISTEN 2>/dev/null | head -1)
+      if [ -n "$__listener" ]; then
+        echo "$__listener" > "$BACKEND_PID_FILE"
+        echo "  backend listener pid: $__listener (replaced npm wrapper in pid file)"
+      fi
+      wait_for "http://localhost:$FP" frontend 60 || {
+        echo "FAIL: frontend never reached on :$FP"
+        tail -30 "$T/frontend/.ensure-servers-frontend.log" 2>/dev/null
+        exit 1
+      }
+
+      # v47: verify spawned PID still alive (port could be stale leftover)
+      verify_pid() {
+        local pid_file="$1" name="$2"
+        # v128: missing pid = fast-path skipped boot against a foreign/transient
+        # responder (mirror of test-browser-2.yaml). FAIL loudly, don't WARN.
+        [ -f "$pid_file" ] || { echo "  FAIL: $name pid file missing — ensure-servers never booted an OWNED $name (a foreign/transient process held the port)"; return 1; }
+        local pid
+        pid=$(cat "$pid_file" 2>/dev/null)
+        if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+          echo "  FAIL: $name pid=$pid not alive — likely crashed on bootstrap (check .env)"
+          return 1
+        fi
+        echo "  $name pid=$pid alive ✓"
+      }
+      verify_pid "$T/backend/.ensure-servers-backend.pid" backend || {
+        tail -30 "$T/backend/.ensure-servers-backend.log" 2>/dev/null
+        exit 1
+      }
+      verify_pid "$T/frontend/.ensure-servers-frontend.pid" frontend || {
+        tail -30 "$T/frontend/.ensure-servers-frontend.log" 2>/dev/null
+        exit 1
+      }
+
+      echo "PASS: this run's servers booted (backend=:$BP, frontend=:$FP)"
+    on_failure: abort
+    abort_message: "Could not boot this run's backend+frontend for test-api"
+
+  # v88: Ensure _fixtures.yaml has every NOT NULL column the seed will need.
+  # Prevents the v87 smoke-test failure:
+  #   ERROR: null value in column "phone" of relation "users" violates not-null constraint
+  # Walks backend/src/modules/**/*.entity.ts, finds @Column declarations that
+  # are NOT nullable + have no default + are not soft-delete/timestamp, then
+  # walks _fixtures.yaml and injects sensible defaults for missing fields
+  # under fixture entries whose plural section matches the entity name. Skips
+  # placeholder entries (all-null `guest:` etc).
+  - id: scaffold-fixture-completeness
+    type: deterministic
+    description: "v88: inject missing NOT NULL fields into _fixtures.yaml (phone, passwordHash, etc.)"
+    command: |
+      FIXTURES="{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml"
+      [ -f "$FIXTURES" ] || { echo "no _fixtures.yaml — skipping"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-fixture-completeness.js \
+        --fixtures "$FIXTURES" \
+        --backend "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 2: AGENTIC NODE WITH ARTIFACT CONTRACT
+  # ============================================================================
+
+  - id: smoke-test
+    type: agentic
+    # v90: missed max_turns declaration in v91 model-agnostic pass.
+    # v89 evidence: smoke-test hit MAX_TURNS=120 (node-declared: unset) →
+    # default 120 was insufficient → agent killed mid-execution.
+    intent: verification
+    cost_class: heavy
+    max_turns: 250
+    description: "Visit every route via playwright-cli, capture console errors"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/SMOKE_TEST_STATUS.md"
+    verification_pattern: "routes_probed:\\s*[0-9]+"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{STATUS_DIR}/routes.yaml"
+        - ".claude/skills/qa/test-smoke/SKILL.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+      mcp: [playwright]
+    prompt: |
+      Smoke test every route listed in {STATUS_DIR}/routes.yaml via playwright-cli.
+
+      FOR EACH ROUTE:
+      1. Navigate to the route
+      2. Take a snapshot
+      3. Check console for TypeError, ReferenceError, uncaught exceptions
+      4. Verify root element has visible children (not a blank page)
+      5. Check for unexpected network errors (401 on public, 500 anywhere)
+
+      This smoke test is BLOCKING — all routes must pass before backend tests run.
+
+      REPORT FILE: {STATUS_DIR}/SMOKE_TEST_STATUS.md
+      Required fields (regex-verifiable):
+        phase: test-api-smoke
+        routes_probed: <int>
+        routes_passed: <int>
+        console_errors: <int>
+        network_errors: <int>
+        crashes: <int>
+        failed_routes: [list]
+
+      If any route crashes, mark it in failed_routes. Fix before running backend tests.
+
+  # ============================================================================
+  # TIER 3: RUN BACKEND TESTS (deterministic)
+  # ============================================================================
+
+  - id: run-backend-tests
+    type: deterministic
+    description: "Execute backend API test suite"
+    command: |
+      cd {TARGET_DIR}/{BACKEND_DIR}
+      if grep -q '"test:e2e"' package.json 2>/dev/null; then
+        npm run test:e2e -- --forceExit 2>&1
+      else
+        npm test -- --forceExit 2>&1
+      fi
+    on_failure: route_to_agent
+    # v82: cut from 3 → 1. v81 evidence: 3 attempts × 25min each = 95min
+    # wasted while bcrypt was simply not installed (fixed by
+    # scaffold-ensure-deps-installed, not by re-running fix-agent).
+    # Combined with fix-agent 10min timeout cap in orchestrator.js, this
+    # node now caps wasted time at ~10min on a bad fix path.
+    route_to_agent_attempts: 1
+    max_retries: 1
+    fix_read_files:
+      - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+      - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+    fix_context: |
+      This is a NestJS backend with TypeORM. Tests use Jest + Supertest.
+      Test files: {BACKEND_DIR}/test/e2e/*.e2e-spec.ts
+      Test helper: {BACKEND_DIR}/test/helpers/app.ts
+      Source modules: {BACKEND_DIR}/src/modules/*/
+
+      DIAGNOSIS STEPS:
+      1. Read the test failure output above carefully
+      2. Read PROJECT_API.md and PROJECT_DATABASE.md above for expected behavior
+      3. Read the failing test file AND the controller/service it tests
+      4. Determine: wrong test expectation or wrong source code?
+
+      Common patterns:
+        - 404 instead of 401 → route may not exist or missing auth guard
+        - 404 instead of 403 → route exists but guard returns wrong error
+        - 500 → service/controller bug
+        - Test expects wrong status code → check PROJECT_API.md for correct behavior
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify smoke coverage >= 50% of routes + backend test files exist"
+    command: |
+      SMOKE="{TARGET_DIR}/{STATUS_DIR}/SMOKE_TEST_STATUS.md"
+      ROUTES_FILE="{TARGET_DIR}/{STATUS_DIR}/routes.yaml"
+
+      # Check smoke report exists
+      [ -f "$SMOKE" ] || { echo "FAIL: smoke report missing"; exit 1; }
+      PROBED=$(grep '^routes_probed:' "$SMOKE" | head -1 | sed 's/.*:\s*//' | tr -d ' ')
+      [ -z "$PROBED" ] || [ "$PROBED" = "0" ] && { echo "FAIL: routes_probed=0"; exit 1; }
+
+      # Count total routes from routes.yaml
+      TOTAL_ROUTES=0
+      if [ -f "$ROUTES_FILE" ]; then
+        TOTAL_ROUTES=$(grep -c '^\s*- path:' "$ROUTES_FILE" 2>/dev/null || echo 0)
+      fi
+
+      # Enforce: probed >= 50% of known routes (smoke doesn't need to hit every route,
+      # but must be more than a token effort)
+      if [ "$TOTAL_ROUTES" -gt 0 ]; then
+        THRESHOLD=$(( (TOTAL_ROUTES * 50 + 99) / 100 ))
+        if [ "$PROBED" -lt "$THRESHOLD" ]; then
+          echo "FAIL: smoke probed $PROBED routes but $TOTAL_ROUTES exist (need >= $THRESHOLD = 50%)"
+          exit 1
+        fi
+        echo "PASS: smoke probed $PROBED/$TOTAL_ROUTES routes (>= 50%)"
+      else
+        echo "PASS: smoke probed $PROBED routes (no routes.yaml to compare)"
+      fi
+
+      # Check backend test files exist
+      TEST_COUNT=$(find "{TARGET_DIR}/backend" -name '*.e2e-spec.ts' -o -name '*.spec.ts' 2>/dev/null | grep -v node_modules | wc -l | tr -d ' ')
+      if [ "$TEST_COUNT" -eq 0 ]; then
+        echo "FAIL: no backend test files found"
+        exit 1
+      fi
+      echo "PASS: $TEST_COUNT backend test files found"
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [playwright]

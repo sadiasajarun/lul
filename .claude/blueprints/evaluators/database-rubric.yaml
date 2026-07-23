@@ -1,0 +1,180 @@
+# Rubric for grading database-phase output (TypeORM entities + migrations).
+#
+# Database has fewer existing gates than other phases — typecheck and
+# evidence-check (entity files exist) are the only deterministic checks.
+# That makes the evaluator more important here: schema mistakes are
+# expensive to undo once data lands in production.
+#
+# Grades whether the schema actually models the domain correctly, with
+# correct relationships, constraints, and migration safety.
+
+name: database-evaluation
+version: 1
+
+scope: >
+  TypeORM entity files under backend/src/modules/*/entities/, migration
+  files under backend/src/database/migrations/, and shared enum files
+  under backend/src/common/enums/, graded against PROJECT_DATABASE.md
+  (schema spec) and PROJECT_KNOWLEDGE.md (domain model). The evaluator
+  does not check whether typecheck passes (deterministic gate handles
+  that). It grades structural fit: do entities + relationships actually
+  represent the domain, are constraints correct, are migrations safe.
+
+criteria:
+
+  domain_modeling_fit:
+    weight: 0.30
+    question: >
+      Does the schema cover every entity declared in PROJECT_DATABASE.md
+      and every domain object hinted at in PROJECT_KNOWLEDGE.md? Are
+      entity boundaries sensible (one User entity vs three duplicated
+      user-shaped tables, or a generic "Item" entity for what should
+      be three distinct domain objects)? Does field naming and typing
+      match domain vocabulary?
+    anchors:
+      - score: 1.0
+        description: >
+          Every declared entity exists with the declared field set.
+          Domain vocabulary preserved in entity + column names. No
+          missing entities (PROJECT_DATABASE.md is fully realized).
+          Boundaries make sense — distinct domain concepts get distinct
+          tables, related concepts use FKs not denormalized columns.
+      - score: 0.7
+        description: >
+          Most entities present and correctly modeled. 1-2 entities
+          missing or merged into others (e.g. RefundRecord folded into
+          Application as nullable columns when it should be its own
+          table for audit purposes).
+      - score: 0.4
+        description: >
+          Major gaps. Several entities from PROJECT_DATABASE.md absent.
+          Some domain concepts modeled as JSON columns instead of proper
+          tables. Field names drift from domain vocabulary into generic
+          terms ("status" instead of "application_status").
+      - score: 0.1
+        description: >
+          Schema is a sketch. Most declared entities missing. Critical
+          domain objects (e.g. Payment, Document) absent entirely.
+          Single User table conflates roles that should be separate.
+
+  relationships_correctness:
+    weight: 0.25
+    question: >
+      Are FK directions, cardinalities, and cascade behaviors correct
+      for the domain? @ManyToOne / @OneToMany / @ManyToMany match the
+      relationships in PRD. onDelete behaviors (CASCADE / SET NULL /
+      RESTRICT) match what should happen when the parent is deleted
+      (e.g. delete User → CASCADE Application; delete Application →
+      RESTRICT if PaymentRequest exists).
+    anchors:
+      - score: 1.0
+        description: >
+          Every relationship from PROJECT_DATABASE.md is declared with
+          correct cardinality. CASCADE only where the child is owned
+          by the parent and has no audit value standalone. RESTRICT
+          where child must outlive parent for compliance/audit.
+          @JoinColumn explicit on owning side. No orphan relationships.
+      - score: 0.7
+        description: >
+          Relationships mostly correct. 1-2 cardinality choices
+          questionable (M2M used where a join table with metadata
+          would be better, or vice versa). Some onDelete defaults
+          left implicit.
+      - score: 0.4
+        description: >
+          Several relationships wrong. Audit-bearing children CASCADE-
+          deleted (data loss when parent removed). M2M without join-
+          table metadata where it's needed (e.g. user-role assignments
+          missing assigned_at, assigned_by).
+      - score: 0.1
+        description: >
+          Relationships absent or wildly wrong. Foreign-key columns
+          declared but @ManyToOne missing. CASCADE everywhere (deleting
+          a User vaporizes all audit history). Orphan entities not
+          connected to the rest of the schema.
+
+  constraint_correctness:
+    weight: 0.25
+    question: >
+      Are uniqueness, NOT NULL, and indexes correct for the access
+      patterns? Email unique on User. Reference number unique on
+      Application. Composite uniqueness where business rules require
+      it (e.g., one Active Document per type per User). Indexes on
+      lookup columns the controllers query by. NOT NULL where the
+      domain says required.
+    anchors:
+      - score: 1.0
+        description: >
+          Every domain-required uniqueness is enforced via @Unique or
+          @Index({ unique: true }). Composite uniqueness for "one X per
+          Y per Z" rules. Lookup columns indexed (e.g. status, role,
+          deleted_at for partial indexes). NOT NULL on every field
+          PRD calls required.
+      - score: 0.7
+        description: >
+          Primary uniqueness present (email, reference number).
+          1-2 composite-uniqueness rules from PRD missed. Most lookup
+          columns indexed; 1-2 dashboards will scan tables in
+          production.
+      - score: 0.4
+        description: >
+          Uniqueness only on PK and email. Reference numbers can
+          collide. No composite uniqueness — duplicate "active
+          documents per user per type" allowed. Indexes missing on
+          status/role columns (table scans on every dashboard query).
+      - score: 0.1
+        description: >
+          No uniqueness beyond PK. Reference numbers can collide.
+          Most fields nullable that shouldn't be. No indexes — every
+          query is a sequential scan.
+
+  migration_safety:
+    weight: 0.20
+    question: >
+      Are migrations safe to apply on a non-empty database? Adding
+      NOT NULL columns has a default or a backfill step. New unique
+      constraints don't exist on tables with duplicate data. Renaming
+      columns goes through an additive-deprecate-drop sequence.
+      synchronize:false (production never auto-syncs). Migrations
+      don't drop user data.
+    anchors:
+      - score: 1.0
+        description: >
+          Every migration is forward-safe on a populated DB. NOT NULL
+          additions have explicit defaults or backfill steps. Renames
+          go additive-then-drop across 2+ migrations. synchronize:false
+          asserted in production config. No DROP TABLE / DROP COLUMN
+          on tables containing user data without an explicit backup
+          step.
+      - score: 0.7
+        description: >
+          Most migrations safe. 1-2 NOT NULL additions without explicit
+          defaults (would fail on populated DB but caught locally).
+          synchronize correctly disabled. No destructive ops.
+      - score: 0.4
+        description: >
+          Several migrations would break on populated DB. NOT NULL
+          additions assume empty tables. Column renames done in one
+          step (clients break during deploy). synchronize:true left
+          on for production by default.
+      - score: 0.1
+        description: >
+          DROP TABLE on tables that exist in production. ALTER COLUMN
+          changing types without conversion. synchronize:true in
+          production config (data corruption risk). Migrations are
+          essentially a CREATE TABLE script that assumes empty DB.
+
+output_format:
+  type: json
+  required_fields:
+    - overall_score
+    - weighted_breakdown
+    - blockers
+    - rationale
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    P0 = unshippable: missing entities critical to declared features,
+    cascade-deleting audit-bearing children, synchronize:true in
+    production config, destructive migrations on populated tables.
+    P1 = should fix: missing composite uniqueness, missing indexes on
+    hot lookup columns, NOT NULL additions without defaults. P2 = nice.

@@ -1,0 +1,68 @@
+name: pm-3-design
+display_name: "PM Design (role-folder HTML + snapshot)"
+phase_id: P3-design
+track: pm
+
+prerequisites:
+  phases: [P2-prd]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/design.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PRD.md"
+    - "{TARGET_DIR}/.claude-project/prd/*.md"
+  current_state:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/DESIGN_STATUS.md"
+      optional: true
+    - glob: "{TARGET_DIR}/.claude-project/design/DESIGN_STATUS.md"
+      optional: true
+  design_guide:
+    - glob: "{TARGET_DIR}/.claude-project/design/*_DesignGuide.md"
+      optional: true
+  design_system:
+    - glob: "{TARGET_DIR}/.claude-project/design/DESIGN_SYSTEM.md"
+      optional: true
+  prd_history:
+    - glob: "{TARGET_DIR}/.claude-project/prd/history/PRD_v*.hash"
+      optional: true
+
+skills:
+  primary: ".claude/skills/design/prd-to-design-guide/SKILL.md"
+  secondary:
+    - ".claude/skills/design/design-guide-to-prompts/SKILL.md"
+    - ".claude/skills/design/generate-html/SKILL.md"
+    - ".claude/skills/design/generate-html-gemini/SKILL.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion, WebSearch, WebFetch]
+  deny: []
+  mcp: [sequential-thinking, playwright]
+
+gate:
+  script: ".claude/gates/pm-3-design-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: design_approved
+      description: "DESIGN_STATUS.approved=true"
+    - name: phase_complete
+      description: "DESIGN_STATUS.phase_complete=true"
+    - name: role_folders_present
+      description: "design/html/<role>/ for every role in STATUS.roles"
+    - name: min_html_per_role
+      description: "Each role folder has >= 1 HTML"
+    - name: snapshot_recorded
+      description: "prd_hash_at_generation, prd_version, html_bundle_hash, roles, generated_at all set"
+    - name: routing_valid
+      description: "All cross-role hrefs resolve"
+    - name: shared_consistency
+      description: "Navbar/footer identical across role folders"
+    - name: route_coverage
+      description: "Every routes.yaml route has an HTML file"
+
+ralph:
+  - workflow: design-gen
+    trigger: "role folder coverage incomplete or QA fails"

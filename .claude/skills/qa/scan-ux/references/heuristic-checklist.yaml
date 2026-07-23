@@ -1,0 +1,976 @@
+# UX Heuristic Checklist
+# 10 categories, 65+ checks
+# Each check: browser detection (playwright) + source detection (grep/AST)
+# Used by: ux-scanner-agent.md, skills/qa/scan-ux/SKILL.md
+
+version: 1
+total_categories: 10
+responsive_excluded: true  # Covered by react/skills/responsive-design/SKILL.md (19 rules + dedicated agent)
+
+categories:
+
+  # ─────────────────────────────────────────────
+  # 1. FAKE / HARDCODED DATA
+  # ─────────────────────────────────────────────
+  - id: fake-data
+    name: "Hardcoded / Mock Data"
+    description: "Detect static, hardcoded, or placeholder data that should come from API"
+    checks:
+
+      - id: FD-01
+        name: "Pagination shows fixed page count regardless of data"
+        severity: P1
+        browser:
+          method: "Compare pagination button count against visible table row count"
+          steps:
+            - "snapshot page → count elements with role=button inside pagination container"
+            - "count visible table rows or list items"
+            - "if button_count > ceil(row_count / 10) + 2 → flag"
+        source:
+          method: "Grep for hardcoded page arrays"
+          patterns:
+            - "\\['1'.*'2'.*'3'"
+            - "\\[1,\\s*2,\\s*3"
+            - "totalPages.*=.*\\d{2,}"
+            - "pageCount.*:.*\\d{2,}"
+
+      - id: FD-02
+        name: "KPI/stat cards show static numbers"
+        severity: P1
+        browser:
+          method: "Refresh page, compare stat card values before/after"
+          steps:
+            - "extract text from elements matching stat/KPI card patterns"
+            - "reload page"
+            - "extract same elements → compare"
+            - "if identical after reload AND no API call observed → flag"
+        source:
+          method: "Grep for number literals in JSX stat components"
+          patterns:
+            - "\\{\\d{3,}\\}"
+            - "\"\\$\\d+"
+            - "'\\d+,\\d+'"
+            - "value.*=.*['\"]\\d{2,}"
+
+      - id: FD-03
+        name: "Hardcoded growth/change subtitles"
+        severity: P2
+        browser:
+          method: "Check for template-like growth metric text"
+          steps:
+            - "find text matching /[+-]\\d+(\\.\\d+)?%/ patterns"
+            - "verify it's not from API response"
+        source:
+          method: "Grep for hardcoded percentage strings in JSX"
+          patterns:
+            - "['\"]\\+\\d+%"
+            - "['\"]\\-\\d+%"
+            - "from last month"
+            - "from last week"
+            - "지난 달 대비"
+            - "전월 대비"
+
+      - id: FD-04
+        name: "Chart/graph renders empty or static"
+        severity: P1
+        browser:
+          method: "Screenshot chart area, check for empty canvas or zero-data"
+          steps:
+            - "find chart container (canvas, svg, .recharts, .chart)"
+            - "screenshot → check if mostly blank or single color"
+            - "verify data prop is not empty array"
+        source:
+          method: "Grep for chart components without data prop or with mock data"
+          patterns:
+            - "data=\\{\\[\\]\\}"
+            - "data=\\{mockData"
+            - "data=\\{sampleData"
+            - "<(Bar|Line|Pie|Area)Chart[^>]*/?>"
+
+      - id: FD-05
+        name: "Table shows same rows after filter change"
+        severity: P1
+        browser:
+          method: "Apply filter, compare table content before/after"
+          steps:
+            - "extract table row text content"
+            - "change filter/search input"
+            - "wait 500ms → extract rows again"
+            - "if rows identical → flag"
+        source:
+          method: null
+
+  # ─────────────────────────────────────────────
+  # 2. DEAD / STUB UI ELEMENTS
+  # ─────────────────────────────────────────────
+  - id: dead-ui
+    name: "Dead / Stub UI Elements"
+    description: "Detect buttons, links, and interactive elements that do nothing when activated"
+    checks:
+
+      - id: DU-01
+        name: "Button with no onClick handler"
+        severity: P0
+        browser:
+          method: "Click button, verify side effect occurs"
+          steps:
+            - "find all button elements from snapshot"
+            - "for each: click → observe network requests, navigation, DOM changes"
+            - "if zero side effects → flag"
+        source:
+          method: "Grep for buttons without onClick, type=submit, or disabled"
+          patterns:
+            - "<[Bb]utton[^>]*(?!onClick|type=\"submit\"|disabled)[^>]*>"
+          exclude_patterns:
+            - "aria-"
+            - "\\.\\.\\."
+            - "type=\"submit\""
+
+      - id: DU-02
+        name: "Link with href='#' or no href"
+        severity: P1
+        browser:
+          method: "Check anchor href attribute from accessibility snapshot"
+          steps:
+            - "find all link elements"
+            - "check href value"
+            - "if href='#' or empty → flag"
+        source:
+          method: "Grep for dead links"
+          patterns:
+            - "href=\"#\""
+            - "href='#'"
+            - "<a[^>]*(?!href)[^>]*>"
+
+      - id: DU-03
+        name: "Search/filter input doesn't filter"
+        severity: P1
+        browser:
+          method: "Type in search, verify list content changes"
+          steps:
+            - "find search/filter input"
+            - "extract list/table content"
+            - "type 3+ characters into input"
+            - "wait 500ms → compare content"
+            - "if no change → flag"
+        source:
+          method: "Grep for onChange that only sets state without filtering"
+          patterns:
+            - "onChange.*setState.*(?!filter|search|query)"
+            - "setSearch.*(?!useEffect|useMemo)"
+
+      - id: DU-04
+        name: "Export/download button does nothing"
+        severity: P1
+        browser:
+          method: "Click export button, verify download or API call"
+          steps:
+            - "find buttons with text matching /export|download|내보내기|다운로드/i"
+            - "click → check for download event or network request"
+            - "if neither → flag"
+        source:
+          method: "Grep for export/download with empty handler"
+          patterns:
+            - "(export|download|내보내기|다운로드).*TODO"
+            - "(export|download|내보내기|다운로드).*console\\.log"
+            - "onClick.*\\{\\s*\\}"
+
+      - id: DU-05
+        name: "Notification bell with no dropdown or badge"
+        severity: P2
+        browser:
+          method: "Click notification icon, check for dropdown"
+          steps:
+            - "find bell/notification icon element"
+            - "click → wait 300ms"
+            - "check for new dropdown/popover element"
+            - "if nothing appears → flag"
+        source:
+          method: "Grep for hardcoded notification count"
+          patterns:
+            - "notification.*\"0\""
+            - "notification.*\\{0\\}"
+            - "badge.*count.*0"
+
+      - id: DU-06
+        name: "Tabs don't switch content"
+        severity: P1
+        browser:
+          method: "Click each tab, verify content area changes"
+          steps:
+            - "find tab elements (role=tab or tab-like pattern)"
+            - "extract content area text"
+            - "click second tab → extract again"
+            - "if content identical → flag"
+        source:
+          method: null
+
+  # ─────────────────────────────────────────────
+  # 3. TEXT QUALITY / i18n / COPY
+  # ─────────────────────────────────────────────
+  - id: text-quality
+    name: "Text Quality, i18n & Copy"
+    description: "Detect translation issues, awkward mixed-language text, inconsistent terminology, and copy quality problems"
+    checks:
+
+      - id: TQ-01
+        name: "Mixed language in same UI string (awkward KR+EN)"
+        severity: P2
+        browser:
+          method: "Extract visible text, detect mixed unicode blocks in same element"
+          steps:
+            - "get all text nodes from accessibility snapshot"
+            - "for each: test regex /[\\uAC00-\\uD7AF].*[a-zA-Z]{3,}|[a-zA-Z]{3,}.*[\\uAC00-\\uD7AF]/"
+            - "exclude allowlist: brand names, technical terms (API, URL, ID, etc.)"
+            - "if matched → flag"
+        source:
+          method: "Grep locale JSON for mixed-script values"
+          patterns:
+            - "[\\uAC00-\\uD7AF].*[a-zA-Z]{3,}"
+          file_glob: "**/locales/**/*.json"
+
+      - id: TQ-02
+        name: "Untranslated strings (raw i18n key shown)"
+        severity: P1
+        browser:
+          method: "Regex for key patterns on page text"
+          steps:
+            - "extract all visible text"
+            - "test regex /^[a-z]+\\.[a-z_]+\\.[a-z_]+/ (dot-separated key patterns)"
+            - "test regex /\\{\\{\\w+\\}\\}/ (unresolved interpolation)"
+            - "if matched → flag"
+        source:
+          method: "Diff keys across locale JSON files"
+          steps:
+            - "list all keys in default locale (en.json)"
+            - "list all keys in each additional locale"
+            - "report missing keys per locale"
+
+      - id: TQ-03
+        name: "Inconsistent terminology"
+        severity: P2
+        browser:
+          method: "Extract all button/link text, check synonym groups"
+          steps:
+            - "get all button and link text"
+            - "check against synonym groups"
+            - "if multiple variants from same group → flag"
+        source:
+          method: "Grep locale files for synonym variants"
+          synonym_groups:
+            - ["sign in", "log in", "login", "signin", "로그인", "사인인"]
+            - ["sign up", "register", "create account", "회원가입", "가입"]
+            - ["delete", "remove", "discard", "삭제", "제거"]
+            - ["cancel", "close", "dismiss", "취소", "닫기"]
+            - ["save", "submit", "confirm", "apply", "done", "저장", "제출", "확인", "적용", "완료"]
+            - ["settings", "preferences", "configuration", "설정", "환경설정"]
+            - ["search", "find", "look up", "검색", "찾기"]
+
+      - id: TQ-04
+        name: "Generic error messages"
+        severity: P2
+        browser:
+          method: "Trigger errors, check message specificity"
+          steps:
+            - "submit empty form or trigger validation error"
+            - "check error text for vague patterns"
+        source:
+          method: "Grep for vague error strings"
+          patterns:
+            - "Something went wrong"
+            - "An error occurred"
+            - "Error occurred"
+            - "문제가 발생했습니다"
+            - "오류가 발생했습니다"
+            - "알 수 없는 오류"
+            - "Unknown error"
+            - "Please try again"
+            - "다시 시도해주세요"
+          file_glob: "**/*.{tsx,jsx,json}"
+
+      - id: TQ-05
+        name: "Placeholder/debug text in production"
+        severity: P1
+        browser:
+          method: "Regex on all visible text"
+          steps:
+            - "extract all visible text from page"
+            - "test against placeholder patterns"
+            - "if matched → flag"
+        source:
+          method: "Grep source and locale files"
+          patterns:
+            - "Lorem ipsum"
+            - "dolor sit amet"
+            - "\\bTODO\\b"
+            - "\\bTBD\\b"
+            - "\\bFIXME\\b"
+            - "\\bXXX\\b"
+            - "\\bHACK\\b"
+            - "\\bPLACEHOLDER\\b"
+            - "test@test\\.com"
+            - "example@example"
+            - "asdf"
+            - "foo bar"
+          file_glob: "**/*.{tsx,jsx,json}"
+
+      - id: TQ-06
+        name: "Empty state with no guidance"
+        severity: P1
+        browser:
+          method: "Navigate to empty list/table, check for guidance text + CTA"
+          steps:
+            - "find list/table containers"
+            - "if zero items: check for guidance text (>20 chars)"
+            - "check for CTA button/link"
+            - "if neither guidance nor CTA → flag"
+        source:
+          method: "Grep for empty state handling"
+          patterns:
+            - "length === 0"
+            - "\\.length === 0"
+            - "isEmpty"
+            - "noData"
+            - "emptyState"
+          note: "Flag if conditional renders nothing meaningful for empty case"
+
+      - id: TQ-07
+        name: "Inconsistent date/number format across pages"
+        severity: P2
+        browser:
+          method: "Extract date/number text, compare formats across pages"
+          steps:
+            - "find text matching date patterns (YYYY-MM-DD, MM/DD/YYYY, DD.MM.YYYY, etc.)"
+            - "find text matching number patterns (1,000 vs 1.000 vs 1000)"
+            - "collect formats per page"
+            - "if >1 format detected across app → flag"
+        source:
+          method: "Grep for multiple date formatting approaches"
+          patterns:
+            - "toLocaleDateString"
+            - "moment\\("
+            - "dayjs\\("
+            - "format\\(['\"]"
+            - "new Date\\(.*toISOString"
+            - "\\d{4}-\\d{2}-\\d{2}"
+
+      - id: TQ-08
+        name: "Console warnings for missing translation keys"
+        severity: P1
+        browser:
+          method: "Listen page.on('console') for i18next missingKey events"
+          steps:
+            - "attach console listener before navigation"
+            - "navigate to page"
+            - "collect messages matching /missingKey|missing key|Missing message|FormatMessage/i"
+            - "if any → flag with key names"
+        source:
+          method: null
+
+      - id: TQ-09
+        name: "Inconsistent tone (formal vs casual mixing)"
+        severity: P3
+        browser:
+          method: null
+        source:
+          method: "Regex locale values for mixed speech level suffixes"
+          patterns:
+            - "합니다"
+            - "해요"
+            - "해주세요"
+            - "하세요"
+            - "입니다"
+          note: "Flag if both 합니다/입니다 (formal) and 해요/해주세요 (informal) appear in same locale namespace"
+          file_glob: "**/locales/ko/**/*.json"
+
+      - id: TQ-10
+        name: "Hardcoded user-facing strings not wrapped in t()"
+        severity: P2
+        browser:
+          method: null
+        source:
+          method: "Grep JSX text children and string attributes not using t()"
+          steps:
+            - "find JSX text children (content between > and <)"
+            - "find string props: placeholder, title, aria-label, alt"
+            - "exclude: className, data-testid, key, id, type, role"
+            - "if string literal (not t() or {t()} or useTranslation) → flag"
+          patterns:
+            - ">\\s*[A-Z\\uAC00-\\uD7AF][^<]{3,}<"
+            - "placeholder=\"[A-Z\\uAC00-\\uD7AF]"
+            - "title=\"[A-Z\\uAC00-\\uD7AF]"
+            - "aria-label=\"[A-Z\\uAC00-\\uD7AF]"
+          note: "Only flag if project has i18n setup (i18next installed)"
+
+      - id: TQ-11
+        name: "Technical jargon leaked to UI"
+        severity: P0
+        browser:
+          method: "Regex on visible text for technical strings"
+          steps:
+            - "extract all visible text"
+            - "test for: null, undefined, NaN, [object Object], TypeError, ReferenceError"
+            - "if matched → flag as P0"
+        source:
+          method: "Grep for unguarded template literals"
+          patterns:
+            - "\\$\\{.*\\}.*(?!\\?\\?|\\|\\||\\?\\.).*"
+            - "\\{\\w+\\.\\w+\\}(?!.*\\?)"
+
+  # ─────────────────────────────────────────────
+  # 4. ACCESSIBILITY (WCAG 2.2 subset)
+  # ─────────────────────────────────────────────
+  - id: accessibility
+    name: "Accessibility (WCAG 2.2 subset)"
+    description: "Detect common accessibility violations automatable via DOM/ARIA inspection"
+    checks:
+
+      - id: A11Y-01
+        name: "No visible focus indicator"
+        severity: P1
+        browser:
+          method: "Tab through elements, check :focus-visible styles"
+          steps:
+            - "press Tab repeatedly"
+            - "for each focused element: check outline/border/box-shadow change"
+            - "if no visual change → flag"
+        source:
+          patterns:
+            - "outline:\\s*none"
+            - "outline:\\s*0"
+            - "\\*:focus\\s*\\{[^}]*outline.*none"
+          exclude_patterns:
+            - "focus-visible"
+            - "focus-within"
+
+      - id: A11Y-02
+        name: "Form inputs without associated label"
+        severity: P1
+        browser:
+          method: "Check snapshot for inputs missing aria-label or <label>"
+          steps:
+            - "find all input/select/textarea from snapshot"
+            - "check for: aria-label, aria-labelledby, associated <label>, title"
+            - "if none → flag"
+        source:
+          patterns:
+            - "<input[^>]*(?!aria-label|id)[^>]*/>"
+            - "<select[^>]*(?!aria-label|id)[^>]*>"
+            - "<textarea[^>]*(?!aria-label|id)[^>]*>"
+
+      - id: A11Y-03
+        name: "Images without alt text"
+        severity: P1
+        browser:
+          method: "Check snapshot for img elements without alt"
+          steps:
+            - "find all img elements"
+            - "check for alt attribute (non-empty or explicit alt='')"
+            - "if missing → flag"
+        source:
+          patterns:
+            - "<img[^>]*(?!alt)[^>]*/>"
+            - "<img[^>]*alt=\"\"[^>]*/>"
+          note: "alt='' is valid for decorative images, but flag if no role=presentation"
+
+      - id: A11Y-04
+        name: "Interactive div/span without keyboard access"
+        severity: P1
+        browser:
+          method: "Check elements with onClick but no role=button or tabIndex"
+          steps:
+            - "find elements with click handlers from snapshot"
+            - "check for: role=button, role=link, tabIndex, native button/a"
+            - "if non-interactive element with click handler and no ARIA → flag"
+        source:
+          patterns:
+            - "<div[^>]*onClick"
+            - "<span[^>]*onClick"
+            - "<li[^>]*onClick"
+          exclude_patterns:
+            - "role="
+            - "tabIndex"
+
+      - id: A11Y-05
+        name: "Modal without focus trap"
+        severity: P2
+        browser:
+          method: "Open modal, Tab to check focus escapes"
+          steps:
+            - "trigger modal open"
+            - "Tab through all focusable elements"
+            - "if focus moves to element outside modal → flag"
+        source:
+          patterns:
+            - "Modal|Dialog"
+          note: "Check if modal component uses FocusTrap, useFocusTrap, or manual focus management"
+
+      - id: A11Y-06
+        name: "Color contrast below 4.5:1 for text"
+        severity: P2
+        browser:
+          method: "Evaluate computed styles on text elements"
+          steps:
+            - "for visible text elements: get computed color and background-color"
+            - "calculate contrast ratio"
+            - "if < 4.5:1 for normal text or < 3:1 for large text → flag"
+        source:
+          method: null
+
+      - id: A11Y-07
+        name: "Missing document language attribute"
+        severity: P2
+        browser:
+          method: "Check html[lang] attribute"
+          steps:
+            - "read document.documentElement.lang"
+            - "if empty or missing → flag"
+        source:
+          patterns:
+            - "<html[^>]*(?!lang)[^>]*>"
+          file_glob: "**/index.html"
+
+      - id: A11Y-08
+        name: "Toast/notification without aria-live"
+        severity: P2
+        browser:
+          method: "Trigger toast, check snapshot for aria-live"
+          steps:
+            - "trigger an action that shows toast/notification"
+            - "check new element for aria-live=polite|assertive or role=alert|status"
+            - "if neither → flag"
+        source:
+          patterns:
+            - "toast|Toast|notification|Notification|snackbar|Snackbar"
+          note: "Check component for aria-live or role=alert/status"
+
+  # ─────────────────────────────────────────────
+  # 5. SESSION / AUTH RACE CONDITIONS
+  # ─────────────────────────────────────────────
+  - id: session-auth
+    name: "Session / Auth Race Conditions"
+    description: "Detect authentication timing issues, blank screens, and token handling bugs"
+    checks:
+
+      - id: SA-01
+        name: "Blank screen on page refresh"
+        severity: P1
+        browser:
+          method: "Refresh authenticated page, measure time to first meaningful content"
+          steps:
+            - "login → navigate to authenticated route"
+            - "reload page"
+            - "measure time until >3 meaningful elements visible"
+            - "if > 2000ms of blank screen → flag"
+        source:
+          patterns:
+            - "isAuthenticated.*&&"
+            - "isLoading.*\\?"
+            - "authLoading"
+          note: "Check layout components for loading state during token refresh"
+
+      - id: SA-02
+        name: "401 cascade before token refresh completes"
+        severity: P1
+        browser:
+          method: "Observe network on refresh for 401 before retry"
+          steps:
+            - "attach network listener"
+            - "reload authenticated page"
+            - "count 401 responses before successful retry"
+            - "if >3 cascading 401s → flag"
+        source:
+          patterns:
+            - "interceptor"
+            - "refreshToken"
+            - "401"
+          note: "Check axios interceptor handles refresh queue properly"
+
+      - id: SA-03
+        name: "Refresh redirects to wrong login page"
+        severity: P1
+        browser:
+          method: "Refresh client/admin page, check redirect URL"
+          steps:
+            - "login as client → navigate to /client/dashboard"
+            - "reload page"
+            - "if redirected: check URL matches /client/login (not /login)"
+        source:
+          patterns:
+            - "redirect.*login"
+            - "navigate.*login"
+            - "PrivateRoute"
+            - "AuthGuard"
+
+      - id: SA-04
+        name: "Logout doesn't clear refresh_token cookie"
+        severity: P0
+        browser:
+          method: "Call logout, check cookies remain"
+          steps:
+            - "login → verify refresh_token cookie exists"
+            - "call logout"
+            - "check document.cookie or context.cookies()"
+            - "if refresh_token still present → flag"
+        source:
+          patterns:
+            - "logout"
+            - "clearCookie"
+            - "removeCookie"
+            - "refresh_token"
+          note: "Verify logout handler clears httpOnly cookie via API call"
+
+  # ─────────────────────────────────────────────
+  # 6. SECURITY SURFACE
+  # ─────────────────────────────────────────────
+  - id: security
+    name: "Security Surface"
+    description: "Detect common security issues visible from frontend/API interaction"
+    checks:
+
+      - id: SEC-01
+        name: "Privileged action accessible to wrong role"
+        severity: P0
+        browser:
+          method: "Login as member, attempt admin action"
+          steps:
+            - "login as member/viewer role"
+            - "navigate to admin routes"
+            - "attempt privileged actions (delete, settings, user management)"
+            - "if action succeeds or UI is visible → flag"
+        source:
+          patterns:
+            - "role.*admin"
+            - "isAdmin"
+            - "canDelete"
+          note: "Check if role guard exists on both frontend route AND backend API"
+
+      - id: SEC-02
+        name: "API data leaks across tenant boundaries"
+        severity: P0
+        browser:
+          method: "Compare API response org_id with current user"
+          steps:
+            - "login as org A user"
+            - "capture API responses"
+            - "check if any response contains org B data"
+        source:
+          method: null
+
+      - id: SEC-03
+        name: "No rate limiting on auth endpoints"
+        severity: P1
+        browser:
+          method: null
+        source:
+          patterns:
+            - "ThrottlerGuard"
+            - "rateLimit"
+            - "throttle"
+            - "@Throttle"
+          file_glob: "**/*auth*.*"
+          note: "Flag if login/register endpoints have no throttle decorator/middleware"
+
+      - id: SEC-04
+        name: "XSS via unsanitized user input display"
+        severity: P0
+        browser:
+          method: "Submit script tag in form fields, check rendering"
+          steps:
+            - "find text input fields"
+            - "enter: <img src=x onerror=alert(1)>"
+            - "submit form → check if input renders as HTML"
+        source:
+          patterns:
+            - "dangerouslySetInnerHTML"
+            - "innerHTML"
+            - "__html"
+
+      - id: SEC-05
+        name: "Password reset token not validated"
+        severity: P1
+        browser:
+          method: null
+        source:
+          patterns:
+            - "reset.*token"
+            - "resetPassword"
+            - "forgot.*password"
+          note: "Check if token is verified against DB before allowing password change"
+
+  # ─────────────────────────────────────────────
+  # 7. DATA CONSISTENCY
+  # ─────────────────────────────────────────────
+  - id: data-consistency
+    name: "Data Integrity"
+    description: "Detect data display inconsistencies, stale data, and format mismatches"
+    checks:
+
+      - id: DC-01
+        name: "KPI card count doesn't match table rows"
+        severity: P1
+        browser:
+          method: "Compare summary number with actual table row count"
+          steps:
+            - "find KPI/stat card numbers"
+            - "find related table"
+            - "count visible rows (including pagination total if available)"
+            - "if card number != table total → flag"
+        source:
+          method: null
+
+      - id: DC-02
+        name: "Mutation doesn't refresh related queries"
+        severity: P1
+        browser:
+          method: "Create/update item, verify list updates without refresh"
+          steps:
+            - "perform create/update action"
+            - "check if list/table reflects change immediately"
+            - "if stale data shown until manual refresh → flag"
+        source:
+          patterns:
+            - "useMutation"
+            - "invalidateQueries"
+          note: "Flag mutations without onSuccess → invalidateQueries"
+
+      - id: DC-03
+        name: "Mixed date formats across pages"
+        severity: P2
+        browser:
+          method: "Compare date strings on different pages"
+          steps:
+            - "collect all date-like strings across multiple pages"
+            - "classify format (ISO, US, EU, Korean, relative)"
+            - "if >1 format style → flag"
+        source:
+          patterns:
+            - "toLocaleDateString"
+            - "format\\("
+            - "moment\\("
+            - "dayjs\\("
+
+      - id: DC-04
+        name: "DTO field name mismatch"
+        severity: P1
+        browser:
+          method: "Check network response fields vs rendered data"
+          steps:
+            - "capture API response JSON"
+            - "compare field names with what component expects"
+            - "if snake_case in response but camelCase expected (or vice versa) → flag"
+        source:
+          patterns:
+            - "created_at|createdAt"
+            - "updated_at|updatedAt"
+            - "org_id|orgId"
+          note: "Cross-check API response types with component prop types"
+
+  # ─────────────────────────────────────────────
+  # 8. MISSING / STUB FEATURES
+  # ─────────────────────────────────────────────
+  - id: missing-features
+    name: "Missing / Stub Features"
+    description: "Detect features promised in UI but not actually implemented"
+    checks:
+
+      - id: MF-01
+        name: "Menu item leads to 404 or blank page"
+        severity: P0
+        browser:
+          method: "Click every nav link, verify content loads"
+          steps:
+            - "find all navigation links (sidebar, header, footer)"
+            - "click each → wait for content"
+            - "if 404, error page, or <3 meaningful elements → flag"
+        source:
+          method: null
+
+      - id: MF-02
+        name: "Reply/comment UI promised but not implemented"
+        severity: P1
+        browser:
+          method: "Check for reply button/input on comment threads"
+          steps:
+            - "find comment/feedback sections"
+            - "check for reply button or input field"
+            - "if button exists: click → check if reply input appears"
+        source:
+          patterns:
+            - "reply|Reply|답글"
+            - "comment|Comment|코멘트|댓글"
+
+      - id: MF-03
+        name: "File upload button with no handler"
+        severity: P0
+        browser:
+          method: "Click upload, verify file picker opens"
+          steps:
+            - "find upload buttons/dropzones"
+            - "click → check if file dialog opens"
+            - "if nothing happens → flag"
+        source:
+          patterns:
+            - "upload|Upload|업로드"
+            - "onChange|onDrop"
+            - "input.*type=\"file\""
+
+      - id: MF-04
+        name: "Version/history feature shows nothing"
+        severity: P1
+        browser:
+          method: "Navigate to version UI, check content"
+          steps:
+            - "find version/history navigation"
+            - "click → check for content"
+            - "if empty or only loading spinner after 5s → flag"
+        source:
+          method: null
+
+  # ─────────────────────────────────────────────
+  # 9. UI POLISH & FEEDBACK
+  # ─────────────────────────────────────────────
+  - id: ui-polish
+    name: "UI Polish & Feedback"
+    description: "Detect missing user feedback, visual states, and interaction polish"
+    checks:
+
+      - id: UP-01
+        name: "No hover state on interactive elements"
+        severity: P3
+        browser:
+          method: "Check computed styles on hover"
+          steps:
+            - "for interactive elements (buttons, links, cards)"
+            - "compare default styles vs :hover styles"
+            - "if identical (no cursor, background, opacity change) → flag"
+        source:
+          patterns:
+            - ":hover"
+            - "hover:"
+          note: "Flag interactive elements without any hover style definition"
+
+      - id: UP-02
+        name: "No loading state during async operations"
+        severity: P2
+        browser:
+          method: "Trigger async action, check for spinner/skeleton"
+          steps:
+            - "trigger form submit or data-loading action"
+            - "check for loading indicator (spinner, skeleton, disabled button)"
+            - "if button stays clickable with no feedback → flag"
+        source:
+          patterns:
+            - "isLoading"
+            - "isPending"
+            - "isFetching"
+            - "loading"
+            - "Spinner"
+            - "Skeleton"
+
+      - id: UP-03
+        name: "No error boundary at route level"
+        severity: P2
+        browser:
+          method: null
+        source:
+          patterns:
+            - "ErrorBoundary"
+            - "errorElement"
+            - "errorComponent"
+          note: "Check if top-level routes have error boundary wrapping"
+
+      - id: UP-04
+        name: "Truncated text without title/tooltip"
+        severity: P3
+        browser:
+          method: "Find elements with text-overflow:ellipsis, check for title attr"
+          steps:
+            - "find elements with computed text-overflow: ellipsis"
+            - "check for title attribute"
+            - "if text is clipped AND no title/tooltip → flag"
+        source:
+          patterns:
+            - "text-overflow.*ellipsis|truncate|line-clamp"
+          note: "Check if title attribute or Tooltip wrapper exists"
+
+      - id: UP-05
+        name: "No confirmation dialog for destructive actions"
+        severity: P2
+        browser:
+          method: "Click delete button, check for confirm dialog"
+          steps:
+            - "find buttons with text matching /delete|remove|삭제|제거/i"
+            - "click → check if confirmation modal/dialog appears"
+            - "if action executes immediately → flag"
+        source:
+          patterns:
+            - "delete|remove|삭제|제거"
+            - "confirm|window\\.confirm|Modal"
+
+      - id: UP-06
+        name: "Missing success feedback after form submission"
+        severity: P2
+        browser:
+          method: "Submit form, verify toast/message appears"
+          steps:
+            - "fill and submit a form"
+            - "check for success toast, message, or redirect"
+            - "if form clears with no feedback → flag"
+        source:
+          patterns:
+            - "onSuccess"
+            - "toast"
+            - "notification"
+            - "message\\.success"
+
+  # ─────────────────────────────────────────────
+  # 10. REAL-TIME / WEBSOCKET
+  # ─────────────────────────────────────────────
+  - id: real-time
+    name: "Real-time / WebSocket"
+    description: "Detect WebSocket connection issues, port mismatches, and event misalignment"
+    checks:
+
+      - id: RT-01
+        name: "WebSocket connection fails silently"
+        severity: P1
+        browser:
+          method: "Check network for WS connection on relevant pages"
+          steps:
+            - "navigate to pages expected to have real-time features"
+            - "check network tab for WebSocket connection"
+            - "if connection fails or never attempted → flag"
+        source:
+          patterns:
+            - "io\\("
+            - "new WebSocket"
+            - "socket\\.connect"
+            - "useSocket"
+          note: "Check for error handling on connection failure"
+
+      - id: RT-02
+        name: "Port mismatch between frontend and backend WS"
+        severity: P1
+        browser:
+          method: "Compare configured WS URL with backend listen port"
+          steps:
+            - "check WS connection URL in network"
+            - "compare with backend server listen port"
+        source:
+          patterns:
+            - "SOCKET_URL|WEBSOCKET_URL|WS_URL|VITE_.*SOCKET"
+            - "localhost:\\d{4}"
+          note: "Cross-check .env frontend WS port vs backend listen port"
+
+      - id: RT-03
+        name: "Events emitted but not consumed (or vice versa)"
+        severity: P2
+        browser:
+          method: null
+        source:
+          method: "Cross-grep backend emit event names vs frontend listeners"
+          steps:
+            - "grep backend for: emit('eventName') or server.emit('eventName')"
+            - "grep frontend for: on('eventName') or socket.on('eventName')"
+            - "report events with no matching consumer/producer"

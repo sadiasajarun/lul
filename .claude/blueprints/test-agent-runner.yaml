@@ -1,0 +1,44 @@
+name: test-agent-runner
+description: Minimal blueprint to verify claude-agent-runner.js works end-to-end
+version: 1
+
+nodes:
+  # A simple agentic node that MUST create a specific output file
+  - id: list-pages
+    type: agentic
+    description: "Agent lists React pages and writes report"
+    prompt: |
+      Count the React page files in frontend/src/pages/ and write a report.
+
+      Use Glob and Bash tools to:
+      1. Find all .tsx files in frontend/src/pages/ (including subdirectories)
+      2. Count them
+      3. List the first 10 filenames
+
+      Write the report to {STATUS_DIR}/hrm/AGENT_RUNNER_TEST.md with this exact format:
+      ```
+      # Agent Runner Test Report
+
+      total_pages: <number>
+
+      ## First 10 files
+      - filename1
+      - filename2
+      ...
+      ```
+
+      The "total_pages: N" line must be present — it is required for verification.
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/hrm/AGENT_RUNNER_TEST.md"
+    verification_pattern: "total_pages: [0-9]+"
+    tool_profile:
+      allow:
+        - "Read"
+        - "Write"
+        - "Glob"
+        - "Bash(find:*)"
+        - "Bash(ls:*)"
+        - "Bash(wc:*)"
+      deny:
+        - "WebSearch"
+        - "WebFetch"
+        - "Edit"

@@ -1,0 +1,174 @@
+# Few-shot calibration examples for the frontend evaluator.
+# Hand-written seeds; promote real-run examples once the evaluator stabilizes.
+
+examples:
+
+  - criterion: fidelity
+    correct_score: 0.3
+    excerpt: |
+      // HTML source had: status chip "입금대기 · 3일 남음", reference number
+      // "FSP-20260421-0042", and a 4-language switcher (KO/EN/RU/VI).
+      // React conversion:
+      export function ApplicationDetail() {
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl">Application Detail</h1>
+            <p>Status: Pending</p>
+            <button className="bg-blue-600 text-white px-4 py-2">View</button>
+          </div>
+        );
+      }
+    rationale: >
+      Status chip, reference number, language switcher all dropped. "Status:
+      Pending" replaced the declared Korean status states. Translates HTML
+      into a generic skeleton instead of converting it 1:1. RULE-F7 violation.
+
+  - criterion: fidelity
+    correct_score: 0.95
+    excerpt: |
+      export function ApplicationDetail() {
+        const { t } = useTranslation();
+        const refNo = 'FSP-20260421-0042';
+        return (
+          <main className="px-6 py-4">
+            <header className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <span className="font-mono text-sm text-blue-600">{refNo}</span>
+              <LanguageToggle />
+            </header>
+            <StatusChip status="awaiting_deposit" daysLeft={3} />
+            <BankTransferInstructions
+              bank="국민은행" account="123-45-6789" amount={145000} />
+            ...
+          </main>
+        );
+      }
+    rationale: >
+      Reference number, status chip with declared "awaiting_deposit"
+      mapping, language switcher, and bank-transfer instructions all
+      preserved from the HTML. Domain-specific elements intact.
+
+  - criterion: token_discipline
+    correct_score: 0.2
+    excerpt: |
+      <div className="bg-[#FAFBFC] p-[13px]">
+        <h1 style={{ fontSize: '27px', color: '#3366FF' }}>Dashboard</h1>
+        <button className="bg-[#4285F4] text-white px-[17px] py-[9px] rounded-[7px]">
+          Submit
+        </button>
+      </div>
+    rationale: >
+      Raw hex outside the token table (#FAFBFC, #3366FF, #4285F4). Inline
+      styles. Arbitrary pixel values that don't match the 4px-base spacing
+      scale. None of these resolve to DESIGN_SYSTEM tokens.
+
+  - criterion: token_discipline
+    correct_score: 0.9
+    excerpt: |
+      <div className="bg-slate-50 p-4">
+        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <button className="h-10 px-4 bg-blue-600 hover:bg-blue-700
+                           text-white text-sm font-medium rounded-md">
+          Submit
+        </button>
+      </div>
+    rationale: >
+      Every value resolves to DESIGN_SYSTEM tokens: bg-slate-50 (page bg),
+      text-2xl/font-bold (H1 type scale), h-10 px-4 (declared button size),
+      bg-blue-600 + hover:bg-blue-700 (primary button variant).
+
+  - criterion: componentization
+    correct_score: 0.3
+    excerpt: |
+      // pages/WorkerHome.tsx — first 60 lines
+      export function WorkerHome() {
+        return (
+          <>
+            <header className="flex items-center justify-between p-4 bg-white border-b">
+              <span className="font-bold">FSP</span>
+              <nav className="flex gap-6">
+                <Link to="/home">Home</Link>
+                <Link to="/applications">Applications</Link>
+                <Link to="/notices">Notices</Link>
+              </nav>
+              <div className="flex gap-2">
+                <button>KO</button><button>EN</button>
+              </div>
+            </header>
+            <main className="p-6">...</main>
+            <footer className="p-4 border-t">© 2026 FSP</footer>
+          </>
+        );
+      }
+      // pages/Applications.tsx — repeats the SAME header + footer markup
+      // pages/Notices.tsx — repeats again
+    rationale: >
+      Header, footer, language toggle, and nav are duplicated inline across
+      pages instead of extracted into a shared Layout component. Editing
+      the brand requires touching every page file. RULE-F1 violation.
+
+  - criterion: completeness
+    correct_score: 0.2
+    excerpt: |
+      // routes.ts
+      export const routes = [
+        { path: '/', element: <HomePage /> },
+        { path: '/admin', element: <AdminDashboard /> },
+        { path: '/admin/users', element: <AdminUsers /> },
+        // no <Route path="*" />
+      ];
+
+      // components/layouts/AdminLayout.tsx
+      export function AdminLayout() {
+        return <div className="bg-slate-900 text-white">{/* logo, no Link wrap */}
+          <span className="font-bold">FSP Admin</span>
+          <Outlet />
+        </div>;
+      }
+
+      // pages/AdminUsers.tsx
+      export function AdminUsers() {
+        return <button>Delete user</button>; // dead button
+      }
+    rationale: >
+      No 404 catch-all route. AdminLayout brand isn't wrapped in <Link to="/">.
+      AdminUsers route has no ProtectedRoute or role check despite admin
+      scope. The Delete button has no onClick — dead button. Multiple
+      RULE-F2/F4/F5 violations.
+
+  - criterion: completeness
+    correct_score: 0.95
+    excerpt: |
+      // routes.ts
+      export const routes = [
+        { path: '/', element: <HomePage /> },
+        {
+          path: '/admin/*',
+          element: (
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          ),
+          children: [
+            { path: 'users', element: <AdminUsers /> },
+          ],
+        },
+        { path: '*', element: <NotFoundPage /> },
+      ];
+
+      // components/layouts/AdminLayout.tsx
+      <Link to="/" className="flex items-center gap-2">
+        <img src={logo} alt="FSP brand logo" className="h-8" />
+        <span className="font-bold">FSP Admin</span>
+      </Link>
+
+      // pages/AdminUsers.tsx
+      const { data: users, isLoading, error } = useUsers();
+      if (isLoading) return <LoadingSkeleton />;
+      if (error) return <ErrorState error={error} />;
+      if (!users.length) return <EmptyState message="No users yet" />;
+      return <UserTable users={users} />;
+    rationale: >
+      404 catch-all present. AdminLayout brand correctly wrapped in <Link>.
+      Admin route protected by <ProtectedRoute requiredRole="admin">.
+      AdminUsers handles loading + error + empty states. Every required
+      pattern present.

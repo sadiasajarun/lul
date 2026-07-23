@@ -1,0 +1,12 @@
+# Claude Code local settings
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+
+# Claude project local files
+.claude-project/
+
+# Personal skill sync scripts (not shared)
+scripts/sync-skills-to-local.sh
+scripts/skill-map.sh

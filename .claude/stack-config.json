@@ -1,0 +1,12 @@
+{
+  "version": "2.0",
+  "description": "Stack and module configuration for selective loading",
+  "enabledStacks": [
+    "base",
+    "nestjs",
+    "django",
+    "react"
+  ],
+  "enabledTeamModules": [],
+  "availableTeamModules": []
+}

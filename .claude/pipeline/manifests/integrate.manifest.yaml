@@ -1,0 +1,59 @@
+name: integrate
+display_name: "Frontend-Backend Integration"
+phase_number: 7
+
+prerequisites:
+  phases: [backend, frontend]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/integrate.rules.md"
+  - ".claude/rules/stacks/{$FRONTEND}.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_API.md"
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_API_INTEGRATION.md"
+  phase_docs:
+    - glob: ".claude/{$FRONTEND}/docs/*.md"
+      purpose: "All frontend submodule patterns and conventions"
+    - glob: ".claude/{$BACKEND}/guides/*.md"
+      exclude: "workflow-*.md"
+      purpose: "All backend submodule patterns and conventions"
+  current_state:
+    - "{TARGET_DIR}/.claude-project/status/frontend/API_INTEGRATION_STATUS.md"
+  code_patterns:
+    - glob: "{TARGET_DIR}/frontend/app/services/**/*.ts"
+      sample: 2
+      optional: true
+      purpose: "Existing API service patterns"
+    - glob: "{TARGET_DIR}/backend/src/modules/*/controllers/*.controller.ts"
+      sample: 2
+      purpose: "Backend API contracts to integrate with"
+
+skills:
+  primary: ".claude/{$FRONTEND}/skills/api-integration/SKILL.md"
+  agents:
+    - ".claude/{$FRONTEND}/agents/frontend-developer.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  script: ".claude/gates/integrate-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: all_apis_connected
+      description: "Every screen's data comes from real API"
+    - name: error_boundaries
+      description: "API failures show error states"
+    - name: loading_states
+      description: "Async operations show loading"
+    - name: type_safety
+      description: "No any types in API responses"
+
+ralph:
+  - workflow: integration-qa
+    trigger: "APIs not connected"

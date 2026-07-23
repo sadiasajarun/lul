@@ -1,0 +1,60 @@
+name: frontend
+display_name: "HTML-to-React Conversion"
+phase_number: 6
+
+prerequisites:
+  phases: [design]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/frontend.rules.md"
+  - ".claude/rules/stacks/{$FRONTEND}.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+  phase_docs:
+    - glob: ".claude/{$FRONTEND}/docs/*.md"
+      purpose: "All frontend submodule patterns and conventions"
+  design_context:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/DESIGN_STATUS.md"
+      purpose: "Locate HTML source files"
+    - glob: "{TARGET_DIR}/.claude-project/design/DESIGN_SYSTEM.md"
+      purpose: "Design system to follow during conversion"
+  current_state:
+    - "{TARGET_DIR}/.claude-project/status/frontend/SCREEN_IMPLEMENTATION_STATUS.md"
+  code_patterns:
+    - glob: "{TARGET_DIR}/frontend/app/pages/*.tsx"
+      sample: 1
+      optional: true
+      purpose: "Existing React page patterns"
+
+skills:
+  primary: ".claude/{$FRONTEND}/skills/converters/html-to-react-converter.md"
+  agents:
+    - ".claude/{$FRONTEND}/agents/frontend-developer.md"
+    - ".claude/{$FRONTEND}/agents/design-qa-agent.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  script: ".claude/gates/frontend-gate.sh"
+  pass_threshold: 0.85
+  evaluation_criteria:
+    - name: all_screens_built
+      description: "Every HTML page has a React component"
+    - name: design_fidelity
+      description: "Enforced by frontend-gate.sh check `design-fidelity` (lib/fidelity-check.cjs): weighted HTML↔React comparison across Layout (25%), Typography (20%), Components (15%), Visual (15%), Korean text tokens (25%). Pass thresholds: avg_fidelity >= 0.95 AND min_fidelity >= 0.85. Full report persisted to .claude-project/status/{project}/FIDELITY_REPORT.json."
+    - name: responsive
+      description: "Works at mobile/tablet/desktop"
+    - name: components_extracted
+      description: "Shared components extracted as React layout"
+    - name: env_example_exists
+      description: ".env.example exists with all VITE_* variables"
+
+ralph:
+  - workflow: design-qa
+    trigger: "after HTML-to-React conversion"

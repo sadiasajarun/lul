@@ -1,0 +1,77 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo",
+  "programs": {
+    "abal": {
+      "students": 1400,
+      "boys": 674,
+      "girls": 726,
+      "mainstreamed": 221,
+      "mainstream_rate": 0.1579,
+      "dropout_reasons": {
+        "Poverty": 51,
+        "Family Awareness": 18,
+        "Migration": 8,
+        "Others": 1,
+        "Distance": 11,
+        "Inattentive": 6,
+        "Working child": 5
+      },
+      "attendance": {
+        "recorded_mean": 74.83,
+        "coverage": 1,
+        "recorded_count": 1400,
+        "raw_mean_including_zeros": 74.83,
+        "summary_dataset_value": 74.83
+      }
+    },
+    "catchup": {
+      "students": 2500,
+      "boys": 1234,
+      "girls": 1266,
+      "mainstreamed": 362,
+      "mainstream_rate": 0.1448,
+      "dropout_reasons": {
+        "Migration": 11,
+        "Family Awareness": 28,
+        "Poverty": 75,
+        "Distance": 24,
+        "Inattentive": 13,
+        "Working child": 12,
+        "Others": 8
+      },
+      "attendance": {
+        "recorded_mean": 75,
+        "coverage": 1,
+        "recorded_count": 2500,
+        "raw_mean_including_zeros": 75,
+        "summary_dataset_value": 75
+      }
+    },
+    "innovation": {
+      "students": 100,
+      "boys": 47,
+      "girls": 53,
+      "mainstreamed": 18,
+      "mainstream_rate": 0.18,
+      "dropout_reasons": {
+        "Poverty": 4,
+        "Inattentive": 2
+      },
+      "attendance": {
+        "recorded_mean": 76.03,
+        "coverage": 1,
+        "recorded_count": 100,
+        "raw_mean_including_zeros": 76.03,
+        "summary_dataset_value": 76.03
+      }
+    }
+  },
+  "totals": {
+    "students": 4000,
+    "teachers": 200,
+    "programs": 3,
+    "mainstreamed": 601,
+    "mainstream_rate": 0.1503
+  }
+}

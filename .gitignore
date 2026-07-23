@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.DS_Store
+
+# Secrets — never commit (holds the live AI API key). .env.example IS committed as a template.
+.env
+.env.local
+.env.*.local
+
+# Real personal data (PII: student/teacher names, parents, income, GPS). The app ships on the
+# synthetic Database/demo/ set, which IS committed. Only the raw root CSVs are excluded.
+Database/*.csv
+
+# Claude Code secrets (keep .gitkeep)
+.claude-project/secrets/*
+!.claude-project/secrets/.gitkeep
+
+# Temporary plans (keep .gitkeep)
+.claude-project/status/temp/*
+!.claude-project/status/temp/.gitkeep
+
+# Local Claude settings
+.claude/settings.local.json

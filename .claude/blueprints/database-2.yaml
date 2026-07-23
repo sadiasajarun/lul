@@ -1,0 +1,427 @@
+name: database-2
+description: |
+  Database schema generation — v2 blueprint with strict artifact contracts.
+  Agentic node produces entity files; a mandatory schema report summarizes the outcome.
+version: 2
+manifest: database
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: pre-check
+    type: deterministic
+    description: "Verify PRD docs exist before designing schema"
+    command: |
+      DOCS="{TARGET_DIR}/{PROJECT_DIR}/docs"
+      [ -f "$DOCS/PROJECT_KNOWLEDGE.md" ] || { echo "FAIL: PROJECT_KNOWLEDGE.md missing"; exit 1; }
+      [ -f "$DOCS/PROJECT_DATABASE.md" ] || { echo "FAIL: PROJECT_DATABASE.md missing"; exit 1; }
+      echo "PRD docs found"
+    on_failure: abort
+    abort_message: "Phase 2 (prd) must complete first — PROJECT_KNOWLEDGE.md and PROJECT_DATABASE.md required"
+
+  - id: scaffold-base-classes
+    type: deterministic
+    description: "Copy src/core/base/ from canonical templates before entities import from it (single source of truth)"
+    command: |
+      set -e
+      SRC_DIR="{CLAUDE_DIR}/{BACKEND}/templates/core/base"
+      DST_DIR="{TARGET_DIR}/{BACKEND_DIR}/src/core/base"
+
+      [ -d "$SRC_DIR" ] || { echo "FAIL: template dir missing: $SRC_DIR"; exit 1; }
+      mkdir -p "$DST_DIR"
+
+      copied=0; skipped=0
+      for src in "$SRC_DIR"/*.ts; do
+        [ -f "$src" ] || continue
+        name=$(basename "$src")
+        dst="$DST_DIR/$name"
+        if [ -f "$dst" ]; then
+          echo "exists: $name — skipping"
+          skipped=$((skipped+1))
+        else
+          cp "$src" "$dst"
+          echo "copied: $name"
+          copied=$((copied+1))
+        fi
+      done
+      echo "scaffold-base-classes: copied=$copied skipped=$skipped src=$SRC_DIR"
+
+      [ -f "$DST_DIR/base.entity.ts" ] || { echo "FAIL: base.entity.ts missing after scaffold"; exit 1; }
+      [ -f "$DST_DIR/base.repository.ts" ] || { echo "FAIL: base.repository.ts missing after scaffold"; exit 1; }
+      [ -f "$DST_DIR/base.service.ts" ] || { echo "FAIL: base.service.ts missing after scaffold"; exit 1; }
+      [ -f "$DST_DIR/base.controller.ts" ] || { echo "FAIL: base.controller.ts missing after scaffold"; exit 1; }
+    on_failure: abort
+    abort_message: "Failed to scaffold src/core/base/ from {CLAUDE_DIR}/{BACKEND}/templates/core/base/ before design-schema"
+
+  # v78: derive TypeORM entity .ts files from PROJECT_DATABASE.md tables.
+  # Runs BEFORE design-schema as the deterministic baseline. The agentic
+  # design-schema node still runs and may refine, but if it fails the
+  # deterministic baseline already produced entities for downstream phases.
+  - id: scaffold-entities
+    type: deterministic
+    description: "v78: derive TypeORM entities from PROJECT_DATABASE.md (LLM-independent baseline)"
+    command: |
+      DB="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      [ -f "$DB" ] || { echo "no PROJECT_DATABASE.md — skipping entity scaffold"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-entities.js \
+        --db "$DB" \
+        --target "{TARGET_DIR}/{BACKEND_DIR}"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 2: AGENTIC NODE WITH ARTIFACT CONTRACT
+  # ============================================================================
+
+  - id: design-schema
+    type: agentic
+    timeout_ms: 1500000  # 25 min — gentle-mode override for slow opencode models
+    # v86b: ROOT-CAUSE FIX for database phase "failures" across v76-v86.
+    #
+    # scaffold-entities (v78, runs RIGHT ABOVE this node) deterministically
+    # generates the entire schema from PROJECT_DATABASE.md:
+    #   - 20 entity files w/ BaseEntity, snake_case columns
+    #   - 22 @ManyToOne relations
+    #   - 50 @Index decorators (perf indexes)
+    #   - 16 type-safe TypeScript enums
+    # When scaffold-entities was added in v78, this design-schema agentic
+    # node became REDUNDANT — it re-reads the same PROJECT_DATABASE.md and
+    # generates the same output. v86 evidence: scaffold-entities produced
+    # 20/19 expected entities; design-schema 429'd on mimo and pipeline
+    # continued fine with scaffold-entities' baseline.
+    #
+    # FIX (v86b):
+    # 1. condition: SKIP design-schema entirely when scaffold-entities
+    #    covered ≥90% of expected entities. The scenarios where we still
+    #    NEED an agentic refiner are vanishingly rare now.
+    # 2. backend: claude — only matters when condition allows the run; if
+    #    scaffold-entities is incomplete, we want the high-quality model
+    #    to finish the job (no mimo TPM cap).
+    # 3. on_failure: ignore — even when it runs, failure means scaffold-
+    #    entities' baseline is what ships. Pipeline shouldn't report ❌.
+    condition: |
+      ENTITY_COUNT=$(find "{TARGET_DIR}/{BACKEND_DIR}/src/modules" -name '*.entity.ts' 2>/dev/null | wc -l | tr -d ' ')
+      DBMD="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      TARGET_COUNT=$(grep -cE "^### [a-z]" "$DBMD" 2>/dev/null || echo 0)
+      [ "$TARGET_COUNT" -le 0 ] && { echo "no PROJECT_DATABASE.md target; running design-schema"; exit 0; }
+      THRESHOLD=$((TARGET_COUNT * 9 / 10))
+      echo "scaffold-entities baseline: $ENTITY_COUNT entities vs $TARGET_COUNT target (threshold $THRESHOLD)"
+      if [ "$ENTITY_COUNT" -ge "$THRESHOLD" ]; then
+        echo "  baseline covers >=90% — skipping design-schema (redundant agentic refiner)"
+        exit 1
+      fi
+      echo "  baseline incomplete — running design-schema to fill gaps"
+      exit 0
+    # v91: model-agnostic. Was hardcoded `backend: claude` because mimo
+    # 429'd on this big single-shot LLM call. Declares intent/cost; cell
+    # config picks the backend via AGENT_BACKEND_synthesis or _heavy.
+    intent: synthesis
+    cost_class: heavy
+    max_turns: 80
+    on_failure: ignore
+    description: "Implement TypeORM entities + migrations from PROJECT_DATABASE.md (skipped when scaffold-entities covered)"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/DATABASE_SCHEMA_REPORT.md"
+    verification_pattern: "entities_created\\s*[:|]\\s*[0-9]+"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+        - ".claude/{BACKEND}/guides/database-patterns.md"
+        - ".claude/{BACKEND}/guides/workflow-design-database.md"
+    tool_profile:
+      allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Implement the database schema for project {project} following PROJECT_DATABASE.md exactly.
+
+      STACK: {BACKEND} + TypeORM + PostgreSQL
+
+      TASKS:
+      1. For every entity in PROJECT_DATABASE.md, create:
+         - {BACKEND_DIR}/src/modules/{entity}/entities/{entity}.entity.ts
+         - Fields match the spec exactly (names, types, nullable, unique)
+         - UUID primary key via @PrimaryGeneratedColumn('uuid')
+         - Soft delete via @DeleteDateColumn() on deleted_at
+         - MUST extend BaseEntity from '{BACKEND_DIR}/src/core/base/base.entity' (pre-installed by scaffold-base-classes — DO NOT redefine id, createdAt, updatedAt, deletedAt; DO NOT modify files under src/core/base/)
+      2. Create/update {BACKEND_DIR}/src/database/migrations/*.ts so tsc compiles cleanly
+      3. No orphan entities — every entity must participate in at least one relation if the spec requires it
+      4. For EVERY status/type/enum field in PROJECT_DATABASE.md:
+            a. Create a TypeScript enum in backend/src/common/enums/ or backend/src/shared/enums/
+            b. Import it in the entity file
+            c. Use @Column({ type: 'enum', enum: YourEnum, default: YourEnum.DEFAULT_VALUE })
+            d. Type the field as the enum type (e.g., `status: ApplicationStatus`)
+            e. NEVER use `string` type for enum columns — the database gate fails at >2 string-as-enum fields
+         Example:
+           import { ApplicationStatus } from '../../../common/enums/application-status.enum';
+           @Column({ type: 'enum', enum: ApplicationStatus, default: ApplicationStatus.SUBMITTED })
+           status: ApplicationStatus;
+
+      REQUIRED REPORT FILE:
+        Path: {STATUS_DIR}/DATABASE_SCHEMA_REPORT.md
+        Must contain (regex-verifiable):
+          phase: database
+          entities_created: <int>
+          migrations_created: <int>
+          relations_declared: <int>
+          enums_defined: <int>
+          typecheck_status: (PASS|FAIL)
+          entity_files: [list of paths]
+
+      SCOPE GUARD:
+      - ONLY create files under backend/src/modules/*/entities/, {BACKEND_DIR}/src/common/enums/, and {BACKEND_DIR}/src/database/migrations/
+      - Do NOT create controllers, services, or DTOs (Phase 5)
+      - Do NOT modify any file under {BACKEND_DIR}/src/core/base/ — base.entity.ts, base.repository.ts, base.service.ts, base.controller.ts are canonical templates copied by scaffold-base-classes; treat them as read-only
+      - Do NOT modify frontend files
+
+  # ============================================================================
+  # TIER 3: POST-CHECKS (deterministic)
+  # ============================================================================
+
+  # v90: Generate canonical TS enum files from `### XxxEnum` sections in
+  # PROJECT_DATABASE.md. Without these, entities use smallint+docstring
+  # ("0=role_a, 1=role_b") and the app must compare magic numbers. Database
+  # evaluator flags this as missing enum semantics. Project-agnostic — parses
+  # spec markup, supports numeric and string enums.
+  - id: scaffold-enums-from-spec
+    type: deterministic
+    description: "v90: generate src/common/enums/*.ts from PROJECT_DATABASE.md `### XxxEnum` sections"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-enums-from-spec.js \
+        --db "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md" \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v90: Emit canonical src/database/data-source.ts with auto-discovered
+  # entities + migrations + env-driven connection config. Without this,
+  # production deploys must use `synchronize: true` (auto-schema from
+  # entities) — which corrupts data. Detects DB env var naming convention
+  # (DB_*, POSTGRES_*, etc.) from .env.example.
+  - id: scaffold-data-source
+    type: deterministic
+    description: "v90: emit src/database/data-source.ts (canonical TypeORM DataSource for migrations + boot)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-data-source.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}"
+    on_failure: ignore
+
+  # v90: Fix malformed composite @Index declarations. LLM emits
+  # @Index('IDX_foo', ['(col1, col2)']) — ONE column literally named
+  # '(col1, col2)'. Should be ['col1', 'col2']. TypeORM mis-creates the
+  # index → dashboard queries do full table scans. Project-agnostic regex.
+  - id: scaffold-composite-index-fixer
+    type: deterministic
+    description: "v90: split @Index(['(a, b)']) → @Index(['a', 'b']) (composite index TypeORM bug)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-composite-index-fixer.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v87 ROOT-CAUSE FIX. v86 evidence: smoke-test failed with "column 'role' is
+  # of type users_role_enum but expression is of type integer". RoleEnum,
+  # UserStatusEnum, ApplicationStatusEnum, DocumentStatusEnum are emitted with
+  # NUMERIC values (e.g. FOREIGN_WORKER = 0) — matching PROJECT_DATABASE.md's
+  # "DB Value" column. But @Column({ type: 'enum', enum: X }) makes Postgres
+  # CREATE TYPE x_enum AS ENUM ('0', '1', ...) which only accepts string '0'.
+  # TypeORM inserts integer 0 → mismatch → seed fails → no users → 0/N stories
+  # cascade. Bug latent across v78-v85b (earlier crashes masked it).
+  #
+  # This scaffold detects numeric enums and rewrites @Column to type: 'int',
+  # drops the CREATE TYPE in the migration, and replaces "x_enum" type refs
+  # with INTEGER. Default values preserved (TS enum values resolve to ints at
+  # runtime). String-valued enums (service_type, document_type, etc.) untouched.
+  - id: scaffold-numeric-enum-doctor
+    type: deterministic
+    description: "v87: rewrite numeric enums to type: 'int' (prevents 'column X of type Y but expression integer' on seed)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-numeric-enum-doctor.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v88: Remove broken @ManyToOne to non-existent `Target` entity in audit-log
+  # + notification. LLM interprets polymorphic FK columns (target_entity +
+  # target_id) as a single Target entity FK and emits an import that doesn't
+  # resolve. Removes the import + @ManyToOne block + JoinColumn + property,
+  # preserves the scalar columns. v87 evidence: audit-log.entity.ts:9,
+  # notification.entity.ts:9 — Claude fix-agent ate 72 turns fixing this.
+  - id: scaffold-polymorphic-fk-doctor
+    type: deterministic
+    description: "v88: rewrite hallucinated polymorphic FK @ManyToOne to scalar columns (target_entity + target_id)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-polymorphic-fk-doctor.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v88: Fix wrong onDelete cascade rules on retention-required tables.
+  # PROJECT_DATABASE.md L800-803 mandates 5-year retention on payment+refund
+  # records and 2-year retention + immutability on audit-logs and status
+  # history. LLM emits CASCADE everywhere → deleting a user wipes their
+  # financial + audit trail. This scaffold rewrites:
+  #   PaymentRequest/RefundRecord: CASCADE → RESTRICT (block delete)
+  #   AuditLog/ApplicationStatusHistory: CASCADE → SET NULL (preserve history)
+  - id: scaffold-cascade-doctor
+    type: deterministic
+    description: "v89: fix cascade rules on retention-required tables (default list + spec-derived rules from PROJECT_DATABASE.md)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-cascade-doctor.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --db "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md" \
+        --verbose
+    on_failure: ignore
+
+  # v92: Detects entity fields declared `status!: string` with a
+  # `@Column({ type:'varchar', default:'X' })` AND finds the matching enum
+  # file already emitted by scaffold-enums-from-spec — then rewrites the
+  # entity to use TypeORM enum columns + the strong enum type.
+  #
+  # WHY: scaffold-entities derives field types from PROJECT_DATABASE.md's
+  # table rows (column type = varchar) even when scaffold-enums-from-spec
+  # has produced the matching enum. Result: deterministic check
+  # `prefer-enum-over-string` fails (>2 string-as-enum fields), and the
+  # database evaluator drops constraint_correctness + migration_safety.
+  # v92 evidence: 5 such fields capped database gate at 0.799 (6/8).
+  #
+  # SAFE: only rewrites when (a) the matching enum file already exists
+  # (no invention) and (b) the default value is a verified enum member.
+  - id: scaffold-string-to-enum-doctor
+    type: deterministic
+    description: "v92: rewrite status!:string + @Column(varchar,default:'X') → enum column (when enum already emitted by scaffold-enums-from-spec)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-string-to-enum-doctor.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  # v92: Generate initial TypeORM migration from entities so production
+  # deploys don't rely on TYPEORM_SYNCHRONIZE=true (which silently rewrites
+  # the schema and corrupts data).
+  #
+  # WHY: every v76-v92 run shipped with backend/src/database/migrations/
+  # empty. Database evaluator's migration_safety criterion dropped to 0.40
+  # in v92, costing ~0.05 on the blended gate. Gate also fails the
+  # deterministic `migrations-exist` check.
+  #
+  # Idempotent: if migrations/*.ts already exists, skips. Falls back to a
+  # stub migration if `typeorm migration:generate` fails (better than
+  # leaving the dir empty — gate just wants ≥1 .ts).
+  # v114: remove DUPLICATE @Entity('table') classes before generating the
+  # migration. scaffold-entities couldn't parse the doubled PROJECT_DATABASE.md
+  # format and emitted 0-column stub entities at modules/{singular}/; the LLM
+  # implement node then wrote COMPLETE entities at modules/{plural}/entities/.
+  # Every table ended up with TWO User/Company/... classes → TypeORM ambiguity
+  # (seed threw "Property email was not found in User") + backend compile errors.
+  # The doctor keeps the most-complete entity per table, deletes the stubs, and
+  # repoints imports. MUST run before scaffold-initial-migration so the baked
+  # schema is derived from the deduped entity set.
+  - id: scaffold-entity-dedup-doctor
+    type: deterministic
+    description: "v114: remove duplicate @Entity(table) classes (keep most-complete, repoint imports) — fixes systemic stub+LLM entity duplication"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-entity-dedup-doctor.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore
+
+  - id: scaffold-initial-migration
+    type: deterministic
+    description: "v92: emit initial TypeORM migration (typeorm migration:generate, stub fallback) — passes migrations-exist + lifts migration_safety eval"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-initial-migration.js \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --name InitialSchema \
+        --verbose
+    on_failure: ignore
+
+  - id: typecheck
+    type: deterministic
+    description: "Verify entity + shared files compile (scoped — backend phase regenerates services/main later)"
+    command: |
+      cd {TARGET_DIR}/{BACKEND_DIR}
+      # Write a scoped tsconfig that includes only schema-layer files. Other files
+      # (main.ts, app.module.ts, services, controllers, seed.ts) are generated in
+      # later phases and may not exist yet at the database-phase boundary.
+      cat > tsconfig.entities.json <<'JSON'
+      {
+        "extends": "./tsconfig.json",
+        "compilerOptions": { "noEmit": true },
+        "include": [
+          "src/modules/**/entities/**/*.ts",
+          "src/shared/**/*.ts",
+          "src/core/**/*.ts",
+          "src/database/migrations/**/*.ts"
+        ],
+        "exclude": ["node_modules", "dist", "test"]
+      }
+      JSON
+      npx tsc --project tsconfig.entities.json 2>&1
+      EXIT=$?
+      rm -f tsconfig.entities.json
+      exit $EXIT
+    on_failure: abort
+    abort_message: "Entity/shared TypeScript does not compile after schema generation"
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify entity + migration files were actually created"
+    command: |
+      ENTITY_COUNT=$(find {TARGET_DIR}/{BACKEND_DIR}/src -name '*.entity.ts' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$ENTITY_COUNT" -eq 0 ]; then
+        echo "FAIL: No *.entity.ts files found"
+        exit 1
+      fi
+      echo "PASS: $ENTITY_COUNT entity files found"
+    on_failure: abort
+    abort_message: "Database phase must produce at least 1 entity file"
+
+  # ============================================================================
+  # TIER 3: LLM EVALUATOR (article §2 — separate generator from evaluator)
+  # ============================================================================
+  #
+  # Database has fewer deterministic gates than other phases (typecheck +
+  # entity-files-exist), making the evaluator more important here. Schema
+  # mistakes are expensive to undo once data lands in production.
+
+  - id: database-evaluator
+    type: evaluator
+    # v91: model-agnostic. Evaluators want the strongest judge — cell
+    # config picks via AGENT_BACKEND_verification.
+    intent: verification
+    cost_class: heavy
+    max_turns: 60
+    timeout_ms: 1500000  # 25 min — gentle-mode override for slow opencode models
+    description: "Grade domain modeling fit, relationships, constraints, migration safety"
+    rubric_file: ".claude/blueprints/evaluators/database-rubric.yaml"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/database-evaluation.json"
+    verification_pattern: '"overall_score"\s*:\s*[0-9.]+'
+    tool_profile:
+      allow: [Read, Grep, Glob, Bash, Write]
+      deny: [Edit, NotebookEdit, WebFetch, WebSearch]
+    inputs:
+      artifacts:
+        - "{TARGET_DIR}/{BACKEND_DIR}/src/modules/**/entities/*.entity.ts"
+        - "{TARGET_DIR}/{BACKEND_DIR}/src/database/migrations/*.ts"
+        - "{TARGET_DIR}/{BACKEND_DIR}/src/common/enums/*.ts"
+        - "{TARGET_DIR}/{BACKEND_DIR}/src/shared/enums/*.ts"
+      references:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+      max_files: 30
+      max_chars_per_file: 8000
+    # v118: hard_gate — database schema quality is deterministic (entities,
+    # relations, indexes, UUID PKs, soft-delete, migrations apply/rollback — all
+    # grep/compile-checkable). The soft_score 0.6/0.4 blend injected a non-
+    # reproducible LLM score into a structurally-gradeable domain. Score = det
+    # (reproducible); evaluator stays advisory + P0 veto.
+    blend:
+      strategy: hard_gate
+    calibration:
+      examples_file: ".claude/blueprints/evaluators/database-examples.yaml"
+    on_failure: ignore
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]

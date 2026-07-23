@@ -1,0 +1,158 @@
+name: spec-2
+description: |
+  Spec phase — PRD gap analysis + seed generation.
+  v2 blueprint with strict artifact contracts.
+  Every agentic node MUST produce a marker file matching a verification regex.
+version: 2
+manifest: spec
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: split-prd-chunks
+    type: deterministic
+    description: "Split PRD into 400-line chunks (auto-detect .md/.pdf) — ignore if no PRD"
+    command: |
+      CHUNK_DIR="{TARGET_DIR}/{PROJECT_DIR}/context"
+      mkdir -p "$CHUNK_DIR"
+
+      # Reuse existing chunks if present
+      EXISTING=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$EXISTING" -gt 0 ]; then
+        echo "Reusing $EXISTING existing PRD chunks"
+        exit 0
+      fi
+
+      # Search standard PRD locations
+      PRD_FILE=""
+      for c in \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.md \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.pdf \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd/PRD.md"; do
+        [ -f "$c" ] && PRD_FILE="$c" && break
+      done
+
+      if [ -z "$PRD_FILE" ]; then
+        echo "No PRD file found — full interview mode"
+        exit 0
+      fi
+
+      echo "PRD found: $PRD_FILE"
+      TMP="$CHUNK_DIR/prd_raw.txt"
+      if [[ "$PRD_FILE" == *.pdf ]]; then
+        if command -v pdftotext &>/dev/null; then
+          pdftotext -layout "$PRD_FILE" "$TMP"
+        else
+          echo "[PDF_FALLBACK] ORIGINAL_PATH=$PRD_FILE" > "$CHUNK_DIR/PRD_chunk_00.md"
+          exit 0
+        fi
+      else
+        cp "$PRD_FILE" "$TMP"
+      fi
+      split -l 400 -d --additional-suffix=.md "$TMP" "$CHUNK_DIR/PRD_chunk_"
+      rm -f "$TMP"
+      COUNT=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+      echo "PRD split into $COUNT chunks"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 2: AGENTIC NODES WITH ARTIFACT CONTRACTS
+  # ============================================================================
+
+  - id: generate-seed
+    type: agentic
+    description: "Generate seed.yaml capturing goal, constraints, acceptance_criteria, ontology"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/seed.yaml"
+    verification_pattern: "^goal:\\s*\\S"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/seed-*.yaml"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      You are running the spec phase for project {project}.
+
+      GOAL: Produce a seed.yaml that crystallizes the project requirements.
+
+      INPUTS:
+      - PRD_chunk_*.md files (if present) — read them in order; together they are the complete PRD
+      - If chunk_00 contains [PDF_FALLBACK], use Read with pages parameter on ORIGINAL_PATH
+      - If no chunks exist, run the interview flow from .claude/spec/commands/ouroboros/interview.md
+
+      OUTPUT STRUCTURE (seed.yaml must contain at minimum):
+        goal: <single measurable sentence>
+        constraints:
+          hard: [...]
+          soft: [...]
+        acceptance_criteria:
+          - <specific and testable>
+        ontology:
+          - term: <name>
+            definition: <meaning>
+        ambiguity_score: <0.0 - 1.0>
+
+      QUALITY BAR:
+      - goal must be a measurable single sentence
+      - acceptance_criteria must be specific (no "fast", "user-friendly")
+      - ontology entries must have definitions, not just names
+      - ambiguity_score must be <= 0.2
+
+      SCOPE GUARD:
+      - Write ONLY to {STATUS_DIR}/
+      - Do NOT create code, design, or documentation files
+      - Do NOT modify .claude/ or project structure
+
+  - id: update-pipeline-status
+    type: agentic
+    description: "Write SPEC_REPORT.md summarizing seed generation outcome"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/SPEC_REPORT.md"
+    verification_pattern: "ambiguity_score:\\s*[0-9.]+"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Write a spec-phase summary report.
+
+      OUTPUT FILE: {STATUS_DIR}/SPEC_REPORT.md
+
+      REQUIRED FIELDS (must be parseable by regex):
+        phase: spec
+        seed_file: <path to seed.yaml>
+        goal: <from seed>
+        ambiguity_score: <float>
+        constraints_count: <int>
+        acceptance_criteria_count: <int>
+        ontology_terms_count: <int>
+        status: (PASS|NEEDS_REVIEW)
+
+      Read seed.yaml from the previous step. Count items, compute ambiguity,
+      and write the report. If ambiguity_score > 0.2, mark status: NEEDS_REVIEW.
+
+  # ============================================================================
+  # TIER 3: EVIDENCE CHECK (deterministic)
+  # ============================================================================
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify spec phase produced seed.yaml and SPEC_REPORT.md"
+    command: |
+      STATUS_DIR="{TARGET_DIR}/{STATUS_DIR}"
+      FAIL=0
+      [ -f "$STATUS_DIR/seed.yaml" ] || { echo "FAIL: seed.yaml missing"; FAIL=1; }
+      [ -f "$STATUS_DIR/SPEC_REPORT.md" ] || { echo "FAIL: SPEC_REPORT.md missing"; FAIL=1; }
+      if [ "$FAIL" -eq 0 ]; then
+        grep -q '^goal:' "$STATUS_DIR/seed.yaml" || { echo "FAIL: seed.yaml missing 'goal:' field"; FAIL=1; }
+      fi
+      [ "$FAIL" -eq 1 ] && exit 1
+      echo "PASS: spec artifacts verified"
+    on_failure: abort
+    abort_message: "Spec phase produced no seed.yaml or SPEC_REPORT.md — re-run the phase"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]

@@ -1,0 +1,46 @@
+name: ship
+display_name: "Deploy to Target Environment"
+phase_number: 10
+
+prerequisites:
+  phases: [test-browser]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/ship.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/status/{project}/seed-*.yaml"
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+  deployment:
+    - glob: "{TARGET_DIR}/docker-compose.prod.yml"
+      optional: true
+    - glob: "{TARGET_DIR}/ecosystem.config.js"
+      optional: true
+    - glob: "{TARGET_DIR}/.env.example"
+      optional: true
+
+skills:
+  # Ship phase uses phase instructions directly (no external skill)
+  # See: .claude/pipeline/phases/10-ship.md
+  primary: ".claude/pipeline/phases/10-ship.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: []
+
+gate:
+  script: ".claude/gates/ship-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: build_succeeds
+      description: "Production build completes"
+    - name: env_configured
+      description: "All env vars set"
+    - name: drift_acceptable
+      description: "Spec drift <= 0.2"
+
+ralph: []

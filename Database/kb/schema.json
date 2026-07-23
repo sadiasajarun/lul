@@ -1,0 +1,101 @@
+{
+  "version": "631801009bf8",
+  "tables": {
+    "student_profiles": {
+      "grain": "one row per learner",
+      "key": "Student ID (12-digit, Excel-escaped =\"…\")",
+      "rows": 250485,
+      "columns": 34,
+      "notable": [
+        "Mainstream Status",
+        "Reason for Dropout",
+        "Gender",
+        "Disability Type",
+        "Nutrition",
+        "Division",
+        "Center ID"
+      ]
+    },
+    "student_assessment": {
+      "grain": "one row per learner",
+      "key": "Student ID (12-digit, clean)",
+      "columns": 44,
+      "notable": [
+        "<Subject> BL (baseline)",
+        "<Subject> C1..C5 (cycles)"
+      ]
+    },
+    "student_attendance": {
+      "grain": "one row per learner (contaminated)",
+      "key": "Student ID (≠ profiles format)",
+      "columns": 4,
+      "notable": [
+        "Attendance(In Percent)"
+      ]
+    },
+    "me_evaluation": {
+      "grain": "one row per centre visit",
+      "key": "Center ID",
+      "columns": 36,
+      "notable": [
+        "Pedagogy",
+        "Assessments",
+        "Documentation",
+        "Learning Environment",
+        "Community & Family Engagement",
+        "GPS"
+      ]
+    },
+    "teacher_profiles": {
+      "grain": "one row per teacher",
+      "key": "Center ID",
+      "rows": 3397,
+      "columns": 17,
+      "notable": [
+        "Teacher Education",
+        "Teacher Experience",
+        "Employment Status",
+        "Division"
+      ]
+    }
+  },
+  "relations": [
+    {
+      "from": "student_profiles.Student ID",
+      "to": "student_assessment.Student ID",
+      "type": "1:1",
+      "strength": "strong (~99.6%)",
+      "note": "strip =\"…\" wrapper first"
+    },
+    {
+      "from": "student_profiles.Center ID",
+      "to": "me_evaluation.Center ID",
+      "type": "N:1",
+      "strength": "partial (~64%)"
+    },
+    {
+      "from": "student_profiles.Center ID",
+      "to": "teacher_profiles.Center ID",
+      "type": "N:1",
+      "strength": "partial (~50%)"
+    },
+    {
+      "from": "student_profiles.Student ID[0:9]",
+      "to": "student_profiles.Center ID",
+      "type": "prefix",
+      "strength": "~85%",
+      "note": "Student ID embeds Center ID"
+    },
+    {
+      "from": "student_attendance.Student ID",
+      "to": "student_profiles.Student ID",
+      "type": "BROKEN",
+      "strength": "0% — different key space + test rows"
+    }
+  ],
+  "programs": [
+    "abal",
+    "catchup",
+    "innovation"
+  ]
+}

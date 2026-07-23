@@ -1,0 +1,154 @@
+# Few-shot calibration examples for the design evaluator.
+#
+# The evaluator agent sees these *before* grading the real artifacts. They
+# anchor the "what does a 0.3 look like vs 0.9" decision in concrete prose.
+# Seed examples are hand-written; later examples should be promoted from
+# past evaluations that were spot-checked and judged well-calibrated.
+#
+# Each example: one short artifact excerpt + the correct score for ONE
+# criterion + a one-line rationale. Keep excerpts under ~30 lines so the
+# prompt stays manageable.
+
+examples:
+
+  - criterion: coherence
+    correct_score: 0.2
+    excerpt: |
+      <div class="bg-gray-50 p-4">
+        <h1 style="font-size: 27px; color: #3366FF;">Dashboard</h1>
+        <div style="margin-top: 18px; padding: 13px; background: #FAFBFC;">
+          <button style="background: #4285F4; color: white; padding: 9px 17px;">
+            Submit
+          </button>
+        </div>
+      </div>
+    rationale: >
+      Raw hex colors (#3366FF, #FAFBFC, #4285F4) that don't appear in any
+      token table. Inline styles with arbitrary pixel values (18px, 13px,
+      9px 17px) instead of the declared 4px-based spacing scale. Font size
+      27px is not in the type scale. Zero token discipline.
+
+  - criterion: coherence
+    correct_score: 0.9
+    excerpt: |
+      <div class="bg-slate-50 p-4">
+        <h1 class="text-2xl font-bold text-slate-800">대시보드</h1>
+        <div class="mt-4 p-4 bg-white rounded-lg border border-slate-200">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5
+                       rounded-full bg-emerald-50 text-emerald-700 text-xs">
+            입금확인
+          </span>
+          <button class="h-10 px-4 bg-blue-600 text-white rounded-md
+                         hover:bg-blue-700 font-medium text-sm">
+            제출
+          </button>
+        </div>
+      </div>
+    rationale: >
+      Every value maps to the DESIGN_SYSTEM: bg-slate-50 is the declared
+      page background, text-2xl font-bold matches the H1 type scale,
+      bg-blue-600 is the primary button variant, bg-emerald-50 +
+      text-emerald-700 matches the "Deposit Confirmed" status color
+      mapping. The declared Korean status label (입금확인) is used.
+
+  - criterion: originality
+    correct_score: 0.3
+    excerpt: |
+      <aside class="w-60 bg-slate-900 text-white h-screen p-6">
+        <h2 class="text-xl font-bold mb-6">Acme SaaS</h2>
+        <nav class="space-y-2">
+          <a href="#" class="block py-2">Dashboard</a>
+          <a href="#" class="block py-2">Users</a>
+          <a href="#" class="block py-2">Settings</a>
+          <a href="#" class="block py-2">Billing</a>
+        </nav>
+      </aside>
+      <main class="p-8">
+        <h1 class="text-3xl font-bold mb-6">Welcome back!</h1>
+        <div class="grid grid-cols-4 gap-4">
+          <div class="bg-white p-6 rounded-lg shadow">
+            <p class="text-sm text-gray-500">Total Revenue</p>
+            <p class="text-2xl font-bold">$12,345</p>
+          </div>
+        </div>
+      </main>
+    rationale: >
+      Generic SaaS shell. Navigation labels (Dashboard, Users, Settings,
+      Billing) ignore the actual roles declared in DOMAIN_RESEARCH (Foreign
+      Worker / Company Staff / Operator). Metric card shows "Total Revenue"
+      in USD — the domain is a KR platform with manual KRW bank transfers,
+      not revenue dashboards. No domain vocabulary. Swappable for any B2B
+      template.
+
+  - criterion: originality
+    correct_score: 0.9
+    excerpt: |
+      <header class="flex items-center justify-between px-6 py-4 bg-white
+                     border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <span class="text-xl font-bold text-slate-800">외국인 서비스</span>
+          <span class="text-xs text-slate-500">신청번호 FSP-20260421-0042</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="px-2 py-1 text-xs rounded bg-blue-600 text-white">KO</button>
+          <button class="px-2 py-1 text-xs text-slate-600">EN</button>
+          <button class="px-2 py-1 text-xs text-slate-600">RU</button>
+          <button class="px-2 py-1 text-xs text-slate-600">VI</button>
+        </div>
+      </header>
+      <main class="px-6 py-4">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span class="text-sm font-medium">입금대기 · 3일 남음</span>
+        </div>
+        <p class="text-sm text-slate-600">
+          국민은행 123-45-6789 FSP에 145,000원을 입금해 주세요.
+        </p>
+      </main>
+    rationale: >
+      Quadrilingual switcher (KO active, EN/RU/VI present) as first-class,
+      not an afterthought. Reference number format FSP-YYYYMMDD-NNNN is a
+      domain pattern from DOMAIN_RESEARCH (VFS-style tracking). "입금대기"
+      (Awaiting Deposit) status with bank transfer instructions in KRW
+      matches the declared manual-bank-transfer flow. Could not be swapped
+      for a generic SaaS without losing these domain-specific affordances.
+
+  - criterion: craft
+    correct_score: 0.4
+    excerpt: |
+      <div class="p-2">
+        <h1 class="text-base font-bold">My Applications</h1>
+        <p class="text-base text-gray-600">Your submitted requests</p>
+        <div class="mt-2 p-2 border">
+          <p class="text-base">Application #1</p>
+          <p class="text-base">Status: Pending</p>
+          <p class="text-base">Date: 2026-04-21</p>
+        </div>
+        <div class="mt-1 p-2 border">
+          <p class="text-base">Application #2</p>
+        </div>
+      </div>
+    rationale: >
+      No hierarchy — H1, subtitle, and every data row all use text-base.
+      Spacing oscillates between mt-1 and mt-2 arbitrarily. Border with no
+      radius, no color variation, no shadow. Second card has fewer fields
+      than the first without any visual reason. Feels like a wireframe
+      someone forgot to polish.
+
+  - criterion: functionality
+    correct_score: 0.3
+    excerpt: |
+      <!-- page: 08-worker-home.html -->
+      <div class="p-4">
+        <h1 class="text-2xl font-bold">Welcome</h1>
+        <p>You have 3 applications.</p>
+        <!-- no link to application detail -->
+        <!-- no link to new application -->
+        <!-- no bottom nav -->
+      </div>
+    rationale: >
+      Worker home page exists but is a dead end. No entry point to view
+      application detail (critical flow). No CTA to create a new application
+      (the primary action). No bottom nav to reach document cabinet,
+      notices, or settings — all of which are declared pages. A real worker
+      landing here cannot do anything. Major friction.

@@ -1,0 +1,50 @@
+{
+  "date": "2025-01-15",
+  "purpose": "RECEIPT",
+  "description": "2025년 1월 컨설팅 용역",
+  "supplier": {
+    "identificationNumber": "1234567890",
+    "organizationName": "공급자 상호",
+    "representativeName": "홍길동",
+    "address": "서울특별시 강남구 테헤란로 123",
+    "businessType": "서비스업",
+    "businessItem": "소프트웨어 개발",
+    "manager": {
+      "name": "김담당",
+      "email": "supplier@example.com",
+      "phone": "02-1234-5678",
+      "mobile": "010-1234-5678"
+    }
+  },
+  "supplied": {
+    "identificationNumber": "0987654321",
+    "organizationName": "공급받는자 상호",
+    "representativeName": "김철수",
+    "address": "서울특별시 마포구 월드컵북로 456",
+    "businessType": "도소매",
+    "businessItem": "전자상거래",
+    "managers": [
+      {
+        "name": "이대표",
+        "email": "recipient@example.com",
+        "mobile": "010-2345-6789"
+      },
+      {
+        "name": "박경리",
+        "email": "accounting@example.com"
+      }
+    ]
+  },
+  "items": [
+    {
+      "date": "2025-01-15",
+      "name": "컨설팅 용역",
+      "specification": "주간 정기 미팅 4회",
+      "unitPrice": 1000000,
+      "quantity": 1,
+      "supplyCost": 1000000,
+      "tax": 100000,
+      "description": "2025년 1월분"
+    }
+  ]
+}

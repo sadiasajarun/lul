@@ -1,0 +1,5 @@
+{
+  "version": "1.0",
+  "description": "Project-specific skill triggers for {PROJECT_NAME} - overrides/extends .claude/skills/skill-rules.json",
+  "skills": {}
+}

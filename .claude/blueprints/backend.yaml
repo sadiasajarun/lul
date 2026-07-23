@@ -1,0 +1,547 @@
+name: backend-phase
+description: TDD-driven API implementation — RED (failing tests) → GREEN (implement) → REFACTOR → REVIEW
+version: 3
+manifest: backend
+
+outputs:
+  - type: test_files
+    glob: "backend/test/**/*.e2e-spec.ts"
+  - type: controller_files
+    glob: "backend/src/**/*.controller.ts"
+  - type: service_files
+    glob: "backend/src/**/*.service.ts"
+  - type: dto_files
+    glob: "backend/src/**/*.dto.ts"
+  - type: seed_files
+    glob: "backend/src/database/seeders/**/*.ts"
+
+nodes:
+  # --- DETERMINISTIC: Pre-check ---
+  - id: pre-check
+    type: deterministic
+    description: "Verify database entities exist before building APIs"
+    command: |
+      ENTITY_COUNT=$(find {TARGET_DIR}/backend/src -name '*.entity.ts' 2>/dev/null | wc -l)
+      [ "$ENTITY_COUNT" -gt 0 ] && echo "Found $ENTITY_COUNT entities" || exit 1
+    on_failure: abort
+    abort_message: "Phase 4 (database) must complete first — no entity files found"
+
+  # --- DETERMINISTIC: Scaffold directory structure + copy framework templates ---
+  - id: scaffold-structure
+    type: deterministic
+    description: "Scaffold backend dirs and copy canonical templates (core/base, core/decorators, core/filters, core/guards, core/interceptors, core/pipes, shared, infrastructure/token, config) — single source of truth, no LLM invention"
+    command: |
+      set -e
+      BD="{TARGET_DIR}/{BACKEND_DIR}/src"
+      TPL="{CLAUDE_DIR}/{BACKEND}/templates"
+
+      # Core directories
+      mkdir -p "$BD/core/base" "$BD/core/decorators" "$BD/core/filters"
+      mkdir -p "$BD/core/guards" "$BD/core/interceptors" "$BD/core/pipes" "$BD/core/dto"
+      # Infrastructure
+      mkdir -p "$BD/infrastructure/mail" "$BD/infrastructure/s3"
+      mkdir -p "$BD/infrastructure/token" "$BD/infrastructure/logging"
+      # Database
+      mkdir -p "$BD/database/migrations" "$BD/database/seeders"
+      # Common + shared + config
+      mkdir -p "$BD/common/enums" "$BD/config" "$BD/modules"
+      mkdir -p "$BD/shared/dtos" "$BD/shared/interfaces"
+
+      # Copy framework templates (idempotent — never overwrite existing files)
+      [ -d "$TPL" ] || { echo "FAIL: template dir missing: $TPL"; exit 1; }
+
+      copy_tree() {
+        local src="$1" dst="$2"
+        [ -d "$src" ] || return 0
+        mkdir -p "$dst"
+        local copied=0 skipped=0
+        for f in "$src"/*.ts; do
+          [ -f "$f" ] || continue
+          local name=$(basename "$f")
+          if [ -f "$dst/$name" ]; then
+            skipped=$((skipped+1))
+          else
+            cp "$f" "$dst/$name"
+            copied=$((copied+1))
+          fi
+        done
+        echo "  $(basename "$src"): copied=$copied skipped=$skipped"
+      }
+
+      echo "Copying framework templates from $TPL"
+      copy_tree "$TPL/core/base"          "$BD/core/base"
+      copy_tree "$TPL/core/decorators"    "$BD/core/decorators"
+      copy_tree "$TPL/core/filters"       "$BD/core/filters"
+      copy_tree "$TPL/core/guards"        "$BD/core/guards"
+      copy_tree "$TPL/core/interceptors"  "$BD/core/interceptors"
+      copy_tree "$TPL/core/pipes"         "$BD/core/pipes"
+      copy_tree "$TPL/shared/dtos"        "$BD/shared/dtos"
+      copy_tree "$TPL/shared/interfaces"  "$BD/shared/interfaces"
+      copy_tree "$TPL/infrastructure/token" "$BD/infrastructure/token"
+      copy_tree "$TPL/config"             "$BD/config"
+
+      # Standalone main.ts — copy only if absent (LLM still owns module wiring there)
+      if [ -f "$TPL/main.ts" ] && [ ! -f "$BD/main.ts" ]; then
+        cp "$TPL/main.ts" "$BD/main.ts"
+        echo "  copied main.ts"
+      fi
+
+      # .gitkeep for genuinely-empty dirs (templates already filled the rest)
+      for d in database/migrations database/seeders infrastructure/mail infrastructure/s3 infrastructure/logging; do
+        [ ! "$(ls -A "$BD/$d" 2>/dev/null)" ] && touch "$BD/$d/.gitkeep"
+      done
+
+      # Sanity: critical base classes must exist after this node
+      for f in core/base/base.entity.ts core/base/base.repository.ts core/base/base.service.ts core/base/base.controller.ts; do
+        [ -f "$BD/$f" ] || { echo "FAIL: $f missing after scaffold"; exit 1; }
+      done
+
+      echo "PASS: Backend structure scaffolded from templates"
+    on_failure: abort
+    abort_message: "Failed to scaffold backend from {CLAUDE_DIR}/{BACKEND}/templates — verify templates exist and {CLAUDE_DIR}/{BACKEND} resolves correctly"
+
+  # --- DETERMINISTIC: Generate .env.example and .env ---
+  - id: env-setup
+    type: deterministic
+    description: "Ensure .env.example has required auth cookie vars, copy to .env if missing"
+    command: |
+      BD="{TARGET_DIR}/backend"
+      # Create .env.example if missing
+      if [ ! -f "$BD/.env.example" ]; then
+        echo "WARN: .env.example not found — will be created by implement step"
+      else
+        # Verify required auth vars exist
+        MISSING=""
+        for VAR in AUTH_TOKEN_COOKIE_NAME AUTH_REFRESH_TOKEN_COOKIE_NAME JWT_SECRET; do
+          grep -q "^$VAR=" "$BD/.env.example" 2>/dev/null || MISSING="$MISSING $VAR"
+        done
+        if [ -n "$MISSING" ]; then
+          echo "FAIL: .env.example missing required vars:$MISSING"
+          exit 1
+        fi
+      fi
+      # Copy .env.example to .env if .env doesn't exist
+      if [ ! -f "$BD/.env" ] && [ -f "$BD/.env.example" ]; then
+        cp "$BD/.env.example" "$BD/.env"
+        echo "Created .env from .env.example"
+      fi
+      echo "PASS: env files ready"
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # --- DETERMINISTIC: Start dev-watch (backend server for real-time error feedback) ---
+  - id: start-dev-watch
+    type: deterministic
+    description: "Start backend dev server in watch mode for real-time compilation error feedback"
+    command: |
+      cd {TARGET_DIR}
+
+      # Detect backend directory (multiple indicators, not just src/)
+      BACKEND_DIR=""
+      for candidate in backend server api; do
+        if [ -d "$candidate" ]; then
+          [ -f "$candidate/package.json" ] || [ -d "$candidate/src" ] || \
+          [ -f "$candidate/manage.py" ] || [ -f "$candidate/go.mod" ] && \
+          BACKEND_DIR="$candidate" && break
+        fi
+      done
+      [ -z "$BACKEND_DIR" ] && { echo "No backend directory found, skipping dev-watch"; exit 0; }
+
+      # Detect dev script from package.json (priority: start:dev > dev > start > serve)
+      BACKEND_SCRIPT=""
+      if [ -f "$BACKEND_DIR/package.json" ]; then
+        BACKEND_SCRIPT=$(node -e "
+          const s=Object.keys(require('./$BACKEND_DIR/package.json').scripts||{});
+          for(const p of['start:dev','dev','start','serve']){if(s.includes(p)){console.log(p);process.exit()}}
+          console.log('')
+        " 2>/dev/null)
+      fi
+      [ -z "$BACKEND_SCRIPT" ] && { echo "No dev script found in $BACKEND_DIR/package.json, skipping dev-watch"; exit 0; }
+
+      # Read PM2 prefix
+      PREFIX=""
+      if [ -f ecosystem.config.js ]; then
+        PREFIX=$(node -e "const c=require('./ecosystem.config.js');const a=c.apps?.[0];console.log(a?.name?.split('-')[0]||'')" 2>/dev/null)
+      fi
+      [ -z "$PREFIX" ] && PREFIX=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+      # Check if already running
+      RUNNING="no"
+      if command -v pm2 &>/dev/null; then
+        RUNNING=$(pm2 jlist 2>/dev/null | node -e "
+          let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+            try{const r=JSON.parse(d).find(p=>p.name==='${PREFIX}-backend'&&p.pm2_env.status==='online');console.log(r?'yes':'no')}catch(e){console.log('no')}
+          })" 2>/dev/null || echo "no")
+      fi
+
+      if [ "$RUNNING" = "yes" ]; then
+        echo "Backend already running via PM2 (${PREFIX}-backend) — skipping start"
+      else
+        # Read port from .env, package.json script, or ecosystem.config.js
+        BACKEND_PORT=""
+        [ -f "$BACKEND_DIR/.env" ] && BACKEND_PORT=$(grep '^PORT=' "$BACKEND_DIR/.env" | cut -d= -f2 | tr -d ' "')
+        [ -z "$BACKEND_PORT" ] && BACKEND_PORT=$(node -e "
+          const s=(require('./$BACKEND_DIR/package.json').scripts||{})['$BACKEND_SCRIPT']||'';
+          const m=s.match(/--port\s+(\d+)|-p\s+(\d+)/);console.log(m?(m[1]||m[2]):'')" 2>/dev/null)
+        [ -z "$BACKEND_PORT" ] && BACKEND_PORT=3000
+
+        # Kill stale process on port
+        lsof -ti:${BACKEND_PORT} | xargs kill -9 2>/dev/null || true
+        sleep 1
+
+        # Start via PM2 or nohup fallback — use PORT env var (universal)
+        if command -v pm2 &>/dev/null; then
+          cd "$BACKEND_DIR"
+          PORT=$BACKEND_PORT pm2 start npm --name "${PREFIX}-backend" -- run $BACKEND_SCRIPT 2>&1
+          cd ..
+        else
+          cd "$BACKEND_DIR"
+          PORT=$BACKEND_PORT nohup npm run $BACKEND_SCRIPT > /tmp/dev-watch-${PREFIX}-backend.log 2>&1 &
+          echo $! > /tmp/dev-watch-${PREFIX}-backend.pid
+          cd ..
+        fi
+        sleep 5
+
+        # Health check — accept any non-connection-refused response
+        for i in 1 2 3; do
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${BACKEND_PORT} 2>/dev/null)
+          [ "$STATUS" != "000" ] && echo "Backend healthy on port ${BACKEND_PORT} (HTTP $STATUS)" && break
+          echo "Backend not ready (attempt $i/3)..."
+          sleep 3
+        done
+      fi
+
+      # Read port for sentinel
+      BACKEND_PORT=""
+      [ -f "$BACKEND_DIR/.env" ] && BACKEND_PORT=$(grep '^PORT=' "$BACKEND_DIR/.env" | cut -d= -f2 | tr -d ' "')
+      [ -z "$BACKEND_PORT" ] && BACKEND_PORT=3000
+
+      # Write sentinel
+      mkdir -p {STATUS_DIR}
+      cat > {STATUS_DIR}/DEV_WATCH_ACTIVE.md <<SENTINEL
+      DEV_WATCH=true
+      PREFIX=${PREFIX}
+      LAYER=backend
+      BACKEND_PM2=${PREFIX}-backend
+      BACKEND_PORT=${BACKEND_PORT}
+      CHECK_BACKEND=pm2 logs ${PREFIX}-backend --lines 30 --nostream 2>/dev/null
+      CHECK_STATUS=pm2 jlist 2>/dev/null
+      SENTINEL
+      echo "Dev-watch active: backend server running (script: $BACKEND_SCRIPT)"
+    on_failure: ignore
+
+  # ============================================================
+  # PHASE 5a: RED — Generate failing tests from acceptance criteria
+  # ============================================================
+
+  # --- AGENTIC: Generate tests FIRST (before any implementation) ---
+  - id: generate-tests
+    type: agentic
+    description: "RED — Write e2e tests from PRD acceptance criteria (tests MUST fail — no implementation exists yet)"
+    skill: "$BACKEND/guides/workflow-generate-e2e-tests.md"
+    scope_guard:
+      allow: ["backend/test/**"]
+      deny: ["backend/src/modules/**/*.controller.ts", "backend/src/modules/**/*.service.ts", "backend/src/modules/**/*.dto.ts"]
+    context:
+      additional_read:
+        - "{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+        - ".claude/$BACKEND/guides/testing-guide.md"
+    prompt: |
+      Generate e2e tests for ALL endpoints defined in PROJECT_API.md.
+      Write tests BEFORE implementation exists — tests define the expected behavior.
+      Each test should encode acceptance criteria: status codes, response shapes, auth requirements.
+      Tests WILL fail at this point — that is correct (RED state).
+      Do NOT create controllers, services, or DTOs. Only test files.
+
+  # --- DETERMINISTIC: Verify RED state (tests exist and fail) ---
+  - id: verify-red
+    type: deterministic
+    description: "Confirm tests exist and fail (RED state)"
+    command: |
+      cd {TARGET_DIR}/backend
+      TEST_COUNT=$(find test -name '*.e2e-spec.ts' -o -name '*.spec.ts' 2>/dev/null | wc -l)
+      if [ "$TEST_COUNT" -eq 0 ]; then
+        echo "FAIL: No test files generated"
+        exit 1
+      fi
+      echo "Found $TEST_COUNT test files — RED state confirmed (implementation pending)"
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # ============================================================
+  # PHASE 5b: GREEN — Implement minimum code to pass tests
+  # ============================================================
+
+  # --- AGENTIC: Implement endpoints to pass tests ---
+  - id: implement
+    type: agentic
+    description: "GREEN — Implement minimum API code to make all tests pass"
+    skill: "$BACKEND/skills/api-development/SKILL.md"
+    scope_guard:
+      allow: ["backend/src/**"]
+      deny: ["backend/test/**"]
+    context:
+      additional_read:
+        - "{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+        - ".claude/$BACKEND/guides/architecture-overview.md"
+        - ".claude/$BACKEND/guides/best-practices.md"
+        - ".claude/$BACKEND/guides/routing-and-controllers.md"
+        - ".claude/$BACKEND/guides/services-and-repositories.md"
+        - ".claude/$BACKEND/guides/validation-patterns.md"
+        - ".claude/$BACKEND/guides/authentication-cookies.md"
+        - ".claude/$BACKEND/guides/database-patterns.md"
+        - "{STATUS_DIR}/DEV_WATCH_ACTIVE.md"
+        - ".claude/skills/dev/dev-watch/prompt-fragment.md"
+    prompt: |
+      Implement all API endpoints from PROJECT_API.md following the architecture in architecture-overview.md.
+      Your goal: make the existing e2e tests in backend/test/ PASS.
+      Follow the 4-layer pattern and PROHIBITED patterns defined in architecture-overview.md.
+      Do NOT modify any test files — only create/modify source code in backend/src/.
+      Focus on minimum correct implementation first.
+
+      PRE-INSTALLED FRAMEWORK FILES (READ-ONLY — DO NOT MODIFY OR RECREATE):
+      The scaffold-structure node has already copied canonical templates into backend/src/.
+      These files are the single source of truth — import from them, do not redefine them:
+        - core/base/{base.entity,base.repository,base.service,base.controller}.ts + index.ts
+        - core/decorators/* (current-user, public, roles, api-swagger, api-response-data) + index.ts
+        - core/filters/* (http-exception, all-exceptions) + index.ts
+        - core/guards/* (jwt-auth.guard, jwt.strategy, roles.guard) + index.ts
+        - core/interceptors/* (transform, logging, set-token, remove-token) + index.ts
+        - core/pipes/validation.pipe.ts + index.ts
+        - shared/dtos/{pagination,response-payload}.dto.ts + index.ts
+        - shared/interfaces/jwt-payload.interface.ts + index.ts
+        - infrastructure/token/{token.module,token.service}.ts
+        - config/{env-config.service,jwt.config}.ts
+      Treat all of the above as immutable. Only create files OUTSIDE these paths
+      (modules/, common/, database/migrations/, app.module.ts, main.ts if absent).
+      If a base class signature looks "wrong" — it is not. Adapt your code to it.
+
+      DEV-WATCH: If {STATUS_DIR}/DEV_WATCH_ACTIVE.md exists, a dev server is running.
+      After EACH file you create or modify, check for errors using the protocol in prompt-fragment.md.
+      Fix errors immediately before proceeding to the next file.
+
+  # --- DETERMINISTIC: Auto-fix lint ---
+  - id: lint-fix
+    type: deterministic
+    description: "Auto-fix ESLint issues (best-effort)"
+    command: "cd {TARGET_DIR}/backend && npx eslint src/ --fix 2>&1 || true"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: TypeScript compile ---
+  - id: typecheck
+    type: deterministic
+    description: "Verify all backend code compiles"
+    command: |
+      cd {TARGET_DIR}/backend && \
+      npx tsc --project tsconfig.app.json --noEmit 2>&1 || \
+      npx tsc --noEmit 2>&1
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # --- DETERMINISTIC: Verify GREEN state (tests pass) ---
+  - id: verify-green
+    type: deterministic
+    description: "Confirm tests pass (GREEN state)"
+    command: |
+      cd {TARGET_DIR}/backend
+      if [ -f tsconfig.spec.json ]; then
+        npx tsc --project tsconfig.spec.json --noEmit 2>&1 || {
+          echo "FAIL: Test files do not compile"
+          exit 1
+        }
+      fi
+      # Run unit tests to verify GREEN
+      npx jest --selectProjects unit --passWithNoTests 2>&1
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # ============================================================
+  # PHASE 5c: REFACTOR — Improve code while keeping tests green
+  # ============================================================
+
+  # --- AGENTIC: Refactor for clarity and conventions ---
+  - id: refactor
+    type: agentic
+    description: "REFACTOR — Improve code quality while keeping all tests green"
+    scope_guard:
+      allow: ["backend/src/**"]
+      deny: ["backend/test/**"]
+    prompt: |
+      Review the implementation code in backend/src/ for:
+      - PROHIBITED patterns from architecture-overview.md (base class extension, repository pattern)
+      - Code duplication that can be extracted to shared utilities
+      - Naming consistency with NestJS conventions
+      - Missing Swagger decorators (@ApiTags, @ApiOperation, @ApiResponse)
+      - Missing class-validator decorators on DTOs
+      Improve code clarity without changing behavior. Tests must still pass.
+      Do NOT modify any test files.
+
+      DEV-WATCH: If {STATUS_DIR}/DEV_WATCH_ACTIVE.md exists, a dev server is running.
+      After EACH file you modify, check for errors using the protocol in prompt-fragment.md.
+      Fix errors immediately before proceeding to the next file.
+    context:
+      additional_read:
+        - ".claude/$BACKEND/guides/best-practices.md"
+        - "{STATUS_DIR}/DEV_WATCH_ACTIVE.md"
+        - ".claude/skills/dev/dev-watch/prompt-fragment.md"
+
+  # ============================================================
+  # SEED — Create database seed files
+  # ============================================================
+
+  # --- AGENTIC: Generate seed files ---
+  - id: seed
+    type: agentic
+    description: "Create idempotent database seed files following seeder architecture"
+    skill: "$BACKEND/skills/database-seeding/SKILL.md"
+    scope_guard:
+      allow: ["backend/src/database/seeders/**", "backend/package.json"]
+      deny: ["backend/test/**"]
+    context:
+      additional_read:
+        - ".claude/$BACKEND/guides/architecture-overview.md"
+        - "{PROJECT_DIR}/user_stories/_fixtures.yaml"
+    prompt: |
+      Create database seed files in backend/src/database/seeders/ following the architecture:
+        - index.ts — Main orchestrator (bootstraps NestJS app via NestFactory.create, loads fixtures once, orchestrates seed order)
+        - One seed file per domain (user.seed.ts, {domain}.seed.ts, etc.)
+      Rules:
+        - Credentials MUST come from _fixtures.yaml (never hardcode)
+        - Idempotent: findOne check before insert
+        - Seed in dependency order (parents before children)
+        - Use Logger from @nestjs/common in each seeder (not console.log)
+        - Cross-entity lookups by unique field (email, etc.)
+        - Register "seed" npm script in package.json pointing to src/database/seeders/index.ts
+      Do NOT use Prisma — this project uses TypeORM.
+
+  # --- DETERMINISTIC: Verify seed files exist ---
+  - id: verify-seed
+    type: deterministic
+    description: "Confirm seed files were created"
+    command: |
+      cd {TARGET_DIR}/backend
+      if [ ! -f src/database/seeders/index.ts ]; then
+        echo "FAIL: src/database/seeders/index.ts not found"
+        exit 1
+      fi
+      SEED_COUNT=$(find src/database/seeders -name '*.seed.ts' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$SEED_COUNT" -eq 0 ]; then
+        echo "FAIL: No *.seed.ts files found in seeders/"
+        exit 1
+      fi
+      grep -q '"seed"' package.json || {
+        echo "FAIL: 'seed' script not registered in package.json"
+        exit 1
+      }
+      echo "PASS: index.ts + $SEED_COUNT seed files, npm script registered"
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # ============================================================
+  # REVIEW — Spec compliance check before gate
+  # ============================================================
+
+  # --- AGENTIC: Review changeset against specs ---
+  - id: review
+    type: agentic
+    description: "REVIEW — Verify implementation matches PRD specifications"
+    prompt: |
+      Review the backend implementation against PROJECT_API.md specifications:
+      1. Every PRD endpoint has a corresponding controller route?
+      2. Request/response DTOs match the documented shapes?
+      3. Correct HTTP status codes (201 for creation, 204 for deletion)?
+      4. Auth guards applied where documented (public vs protected)?
+      5. Error responses handled (400, 401, 403, 404)?
+      6. Any over-engineering or features not in the spec?
+      Report issues found. If critical issues exist, fix them (source only, not tests).
+    scope_guard:
+      allow: ["backend/src/**"]
+      deny: ["backend/test/**"]
+    context:
+      additional_read:
+        - "{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+
+  # --- DETERMINISTIC: Stop dev-watch (cleanup servers after implementation) ---
+  - id: stop-dev-watch
+    type: deterministic
+    description: "Stop dev servers started by dev-watch after implementation is complete"
+    command: |
+      cd {TARGET_DIR}
+      [ ! -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md ] && echo "No dev-watch active" && exit 0
+      PREFIX=$(grep '^PREFIX=' {STATUS_DIR}/DEV_WATCH_ACTIVE.md 2>/dev/null | head -1 | sed 's/.*=//' | tr -d ' ')
+      [ -z "$PREFIX" ] && { rm -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md; exit 0; }
+
+      if command -v pm2 &>/dev/null; then
+        pm2 delete ${PREFIX}-backend 2>/dev/null || true
+      else
+        [ -f /tmp/dev-watch-${PREFIX}-backend.pid ] && kill $(cat /tmp/dev-watch-${PREFIX}-backend.pid) 2>/dev/null || true
+        rm -f /tmp/dev-watch-${PREFIX}-backend.pid /tmp/dev-watch-${PREFIX}-backend.log
+      fi
+
+      rm -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md
+      echo "Dev-watch stopped"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: Evidence check (Layer 3) ---
+  - id: evidence-check
+    type: deterministic
+    description: "Verify backend phase produced actual artifacts before gate"
+    command: |
+      CTRL_COUNT=$(find {TARGET_DIR}/backend/src -name '*.controller.ts' 2>/dev/null | wc -l | tr -d ' ')
+      SVC_COUNT=$(find {TARGET_DIR}/backend/src -name '*.service.ts' 2>/dev/null | wc -l | tr -d ' ')
+      TEST_COUNT=$(find {TARGET_DIR}/backend -name '*.e2e-spec.ts' -o -name '*.spec.ts' 2>/dev/null | wc -l | tr -d ' ')
+      FAIL=0
+      [ "$CTRL_COUNT" -eq 0 ] && echo "FAIL: No *.controller.ts files" && FAIL=1
+      [ "$SVC_COUNT" -eq 0 ] && echo "FAIL: No *.service.ts files" && FAIL=1
+      [ "$TEST_COUNT" -eq 0 ] && echo "FAIL: No test files (*.e2e-spec.ts or *.spec.ts)" && FAIL=1
+      [ "$FAIL" -eq 1 ] && exit 1
+      echo "PASS: $CTRL_COUNT controllers, $SVC_COUNT services, $TEST_COUNT tests"
+    on_failure: abort
+    abort_message: "Backend phase must produce controllers, services, and tests. Re-run the phase."
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/backend-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.9"
+    on_failure: route_to_agent
+    max_retries: 2
+    fix_prompt: |
+      The backend gate FAILED. Read the gate output above to see which checks failed.
+      Common failures and how to fix:
+      - controllers-extend-base: Make controllers extend BaseController<Entity, CreateDto, UpdateDto>
+      - services-extend-base: Make services extend BaseService<Entity>, inject custom repository
+      - no-direct-repo-in-service: Replace @InjectRepository(Entity) with custom repository class injection
+      - querybuilder-in-repo-only: Move createQueryBuilder() calls from services to repository files
+      Structural compliance failures (checks 23-29):
+      - core-pipes-exists: Create backend/src/core/pipes/validation.pipe.ts exporting a pre-configured ValidationPipe instance, and core/pipes/index.ts barrel export
+      - logging-interceptor-exists: Create backend/src/core/interceptors/logging.interceptor.ts implementing NestInterceptor (log method, url, duration), update interceptors/index.ts
+      - api-swagger-decorator-exists: Create backend/src/core/decorators/api-swagger.decorator.ts as composite decorator using applyDecorators(@ApiOperation, @ApiResponse, etc.), update decorators/index.ts
+      - infrastructure-dirs: Create backend/src/infrastructure/{mail,s3,token,logging}/ directories with .gitkeep files
+      - database-migrations-dir: Create backend/src/database/migrations/ directory with .gitkeep
+      - database-seeders-dir: Create backend/src/database/seeders/ directory with index.ts seed runner
+      - core-subdirs-complete: Ensure all 6 core/ subdirectories exist: base, decorators, filters, guards, interceptors, pipes
+      Fix ALL failing checks, then the gate will re-run automatically.
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/backend.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for backend. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/backend-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

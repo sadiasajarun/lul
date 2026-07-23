@@ -1,0 +1,159 @@
+{
+  "version": "631801009bf8",
+  "kpis": [
+    {
+      "id": "kpi.students.total",
+      "statement": "The programme serves 250,632 enrolled learners across 3 programmes.",
+      "value": 250632,
+      "unit": "count"
+    },
+    {
+      "id": "kpi.teachers.total",
+      "statement": "There are 3,397 teachers.",
+      "value": 3397,
+      "unit": "count"
+    },
+    {
+      "id": "kpi.mainstream.rate",
+      "statement": "83.6% of learners have been mainstreamed into formal school (209,614 of 250,632).",
+      "value": 83.6,
+      "unit": "%"
+    },
+    {
+      "id": "centers.grade.mean",
+      "statement": "Across 2,800 evaluated centres the mean M&E score is 3.35 (of 4).",
+      "value": 3.35,
+      "unit": "score"
+    }
+  ],
+  "wins": [
+    {
+      "id": "equity.gender.abal",
+      "statement": "ABAL is 54.9% girls."
+    },
+    {
+      "id": "mainstream.catchup",
+      "statement": "Catchup has mainstreamed 98.3% of its learners (188,223 of 191,555)."
+    },
+    {
+      "id": "equity.gender.innovation",
+      "statement": "Innovation is 48.9% girls."
+    }
+  ],
+  "issues": [
+    {
+      "id": "dropout.abal.top",
+      "statement": "In ABAL, the leading dropout reason is Poverty (17,291 learners, 56.6% of ABAL dropouts).",
+      "severity": "watch"
+    },
+    {
+      "id": "dropout.catchup.top",
+      "statement": "In Catchup, the leading dropout reason is Poverty (46,755 learners, 51.5% of Catchup dropouts).",
+      "severity": "watch"
+    },
+    {
+      "id": "mainstream.innovation",
+      "statement": "Innovation has mainstreamed 9.9% of its learners (385 of 3,877).",
+      "severity": "warn"
+    },
+    {
+      "id": "dropout.innovation.top",
+      "statement": "In Innovation, the leading dropout reason is Others (112 learners, 47.7% of Innovation dropouts).",
+      "severity": "watch"
+    },
+    {
+      "id": "equity.nutrition.bad",
+      "statement": "336 learners have \"Bad\" nutrition status (0.2% of assessed).",
+      "severity": "watch"
+    },
+    {
+      "id": "attendance.catchup",
+      "statement": "Catchup: among learners with an attendance record, attendance averages 86.5%, but only 1.5% of learners have any record.",
+      "severity": "critical"
+    },
+    {
+      "id": "attendance.innovation",
+      "statement": "Innovation: among learners with an attendance record, attendance averages 97%, but only 1.8% of learners have any record.",
+      "severity": "critical"
+    },
+    {
+      "id": "quality.attendance.zeros",
+      "statement": "Attendance coverage network-wide is only 16.8% — most rows are recorded as 0, and whether 0 means \"no record\" or \"never attended\" is unresolved.",
+      "severity": "critical"
+    }
+  ],
+  "actions": [
+    {
+      "id": "action.mainstream.innovation",
+      "statement": "Innovation's 9.9% mainstreaming rate is far below the network's 83.6% — investigate whether this cohort is early in its cycle or genuinely stalling.",
+      "severity": "warn"
+    },
+    {
+      "id": "learning.abal.weakest",
+      "statement": "ABAL's weakest subject is Life Skills, averaging 3.4.",
+      "severity": "watch"
+    },
+    {
+      "id": "learning.catchup.weakest",
+      "statement": "Catchup's weakest subject is Life Skills, averaging 1.9.",
+      "severity": "watch"
+    },
+    {
+      "id": "learning.innovation.weakest",
+      "statement": "Innovation's weakest subject is Life Skills, averaging 7.1.",
+      "severity": "watch"
+    },
+    {
+      "id": "centers.grade.poor",
+      "statement": "56 centres score Poor (below 2 of 4), 287 Fair, and 2,457 Good — the Poor centres are where field support should go first.",
+      "severity": "watch"
+    },
+    {
+      "id": "centers.weakest-category",
+      "statement": "The weakest centre-quality dimension network-wide is assessments, averaging 3.08 of 4.",
+      "severity": "watch"
+    },
+    {
+      "id": "centers.worst-attendance",
+      "statement": "15 centres are flagged for the lowest attendance and need a visit.",
+      "severity": "warn"
+    }
+  ],
+  "dataQuality": [
+    {
+      "id": "attendance.catchup",
+      "statement": "Catchup: among learners with an attendance record, attendance averages 86.5%, but only 1.5% of learners have any record.",
+      "severity": "critical"
+    },
+    {
+      "id": "attendance.innovation",
+      "statement": "Innovation: among learners with an attendance record, attendance averages 97%, but only 1.8% of learners have any record.",
+      "severity": "critical"
+    },
+    {
+      "id": "quality.assessment.cycle-coverage",
+      "statement": "Assessment cycle marks are barely recorded: baseline coverage is 64% but Cycle-1 coverage is only 5.5%, so subject averages mostly reflect the baseline, not progress.",
+      "severity": "warn"
+    },
+    {
+      "id": "geography.thin.Rangpur",
+      "statement": "Rangpur has only 8 learners — too few to compare against the large divisions.",
+      "severity": "watch"
+    },
+    {
+      "id": "geography.thin.Sylhet",
+      "statement": "Sylhet has only 3 learners — too few to compare against the large divisions.",
+      "severity": "watch"
+    },
+    {
+      "id": "quality.attendance.zeros",
+      "statement": "Attendance coverage network-wide is only 16.8% — most rows are recorded as 0, and whether 0 means \"no record\" or \"never attended\" is unresolved.",
+      "severity": "critical"
+    },
+    {
+      "id": "quality.id-join",
+      "statement": "Attendance cannot be joined to a learner: profiles/assessment use a 12-digit Student ID while attendance uses a different key, so per-student attendance and risk scoring are not yet computable.",
+      "severity": "warn"
+    }
+  ]
+}

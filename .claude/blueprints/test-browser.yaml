@@ -1,0 +1,470 @@
+name: test-browser-phase
+description: Live browser verification — seed check, design QA, smoke, acceptance, exploration
+version: 1
+manifest: test-browser
+
+outputs:
+  - type: qa_report
+    glob: "{STATUS_DIR}/QA_REPORT.md"
+  - type: smoke_results
+    glob: "{PROJECT_DIR}/qa/smoke/*.md"
+
+nodes:
+  # --- DETERMINISTIC: Pre-check — User stories must exist (Phase 3.5 sync point) ---
+  - id: user-stories-check
+    type: deterministic
+    description: "Block Phase 9 if Phase 3.5 (user stories) was never executed"
+    command: |
+      STORIES_DIR=""
+      for candidate in \
+        "{TARGET_DIR}/{PROJECT_DIR}/user_stories" \
+        "{TARGET_DIR}/user_stories"; do
+        [ -d "$candidate" ] && STORIES_DIR="$candidate" && break
+      done
+
+      if [ -z "$STORIES_DIR" ]; then
+        echo "FAIL: No user_stories directory found."
+        echo "Phase 3.5 (user-stories) must complete before Phase 9."
+        echo "Run: /fullstack <project> --phase user-stories"
+        exit 1
+      fi
+
+      STORY_COUNT=$(find "$STORIES_DIR" -name '*.yaml' ! -name '_fixtures.yaml' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$STORY_COUNT" -eq 0 ]; then
+        echo "FAIL: user_stories/ directory exists but contains no YAML story files."
+        echo "Run: /fullstack <project> --phase user-stories"
+        exit 1
+      fi
+
+      echo "Found $STORY_COUNT user story files in $STORIES_DIR"
+    on_failure: abort
+    abort_message: "Phase 3.5 (user-stories) must complete first — no user story YAML files found. Run: /fullstack <project> --phase user-stories"
+
+  # --- DETERMINISTIC: Pre-flight checks (Tier 1) ---
+  - id: preflight
+    type: deterministic
+    description: "Tier 1 pre-flight: tsc, eslint, build, unit tests, api tests, npm audit"
+    command: |
+      cd {TARGET_DIR}
+      FAIL=0
+
+      # PF-1: TypeScript compilation
+      for dir in frontend backend; do
+        if [ -d "$dir" ] && [ -f "$dir/tsconfig.json" ]; then
+          echo "PF-1: tsc --noEmit ($dir)..."
+          (cd "$dir" && npx tsc --noEmit 2>&1) || FAIL=$((FAIL + 1))
+        fi
+      done
+
+      # PF-3: Production build
+      for dir in frontend backend; do
+        if [ -d "$dir" ] && grep -q '"build"' "$dir/package.json" 2>/dev/null; then
+          echo "PF-3: npm run build ($dir)..."
+          (cd "$dir" && npm run build 2>&1) || FAIL=$((FAIL + 1))
+        fi
+      done
+
+      # PF-4: Unit tests
+      if [ -d "backend" ] && [ -f "backend/package.json" ]; then
+        if grep -q '"test"' "backend/package.json" 2>/dev/null; then
+          echo "PF-4: unit tests..."
+          (cd backend && npx jest --selectProjects unit --forceExit 2>&1) || FAIL=$((FAIL + 1))
+        fi
+      fi
+
+      # PF-6: npm audit
+      for dir in frontend backend; do
+        if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+          echo "PF-6: npm audit ($dir)..."
+          HIGH=$(cd "$dir" && npm audit --audit-level=high --json 2>/dev/null | node -e "const d=require('fs').readFileSync('/dev/stdin','utf8');try{const j=JSON.parse(d);console.log((j.metadata?.vulnerabilities?.high||0)+(j.metadata?.vulnerabilities?.critical||0))}catch{console.log(0)}")
+          [ "$HIGH" -gt 0 ] && echo "FAIL: $HIGH high/critical vulnerabilities in $dir" && FAIL=$((FAIL + 1))
+        fi
+      done
+
+      [ "$FAIL" -gt 0 ] && { echo "Pre-flight FAILED: $FAIL checks"; exit 1; }
+      echo "Pre-flight ALL PASS"
+    on_failure: route_to_agent
+    max_retries: 3
+    agent_prompt: |
+      Pre-flight check failed. Read the error messages and fix:
+      - TypeScript errors: fix types
+      - Build errors: fix imports/environment variables
+      - Test failures: fix tests or code
+      - npm audit: run npm audit fix or resolve manually
+
+  # --- DETERMINISTIC: Ensure servers are running ---
+  - id: ensure-servers
+    type: deterministic
+    description: "Start backend + frontend servers via PM2"
+    command: |
+      cd {TARGET_DIR}
+      # Read ports from ecosystem.config.js
+      if [ -f ecosystem.config.js ]; then
+        BACKEND_PORT=$(node -e "const c=require('./ecosystem.config.js');console.log(c.apps?.find(a=>a.name?.includes('backend'))?.env?.PORT || 3000)")
+        FRONTEND_PORT=$(node -e "const c=require('./ecosystem.config.js');const a=c.apps?.find(a=>a.name?.includes('frontend'));console.log(a?.env?.VITE_DEV_PORT || a?.env?.PORT || 5173)")
+      else
+        BACKEND_PORT=3000
+        FRONTEND_PORT=5173
+      fi
+
+      BACKEND_URL="http://localhost:$BACKEND_PORT/api"
+      FRONTEND_URL="http://localhost:$FRONTEND_PORT"
+
+      # Health check backend
+      for i in 1 2 3 4 5; do
+        curl -sf "$BACKEND_URL" >/dev/null 2>&1 && break
+        [ $i -eq 5 ] && { echo "Backend not reachable at $BACKEND_URL"; exit 1; }
+        sleep 2
+      done
+
+      # Health check frontend
+      for i in 1 2 3 4 5; do
+        curl -sf "$FRONTEND_URL" >/dev/null 2>&1 && break
+        [ $i -eq 5 ] && { echo "Frontend not reachable at $FRONTEND_URL"; exit 1; }
+        sleep 2
+      done
+
+      echo "BACKEND_URL=$BACKEND_URL"
+      echo "FRONTEND_URL=$FRONTEND_URL"
+      echo "Servers healthy"
+    on_failure: abort
+    abort_message: "Servers must be running. Start with: pm2 start ecosystem.config.js"
+
+  # --- DETERMINISTIC: Seed + storageState setup ---
+  # Seed success is a prerequisite for design-qa (screenshot comparison) and acceptance-test
+  - id: seed-and-auth-setup
+    type: deterministic
+    description: "Run seed + generate storageState — on failure, agent creates seed/global-setup"
+    command: |
+      cd {TARGET_DIR}
+
+      # 1. Run seed script (TypeORM seeders via npm run seed)
+      if [ -f backend/package.json ] && grep -q '"seed"' backend/package.json 2>/dev/null; then
+        echo "Running npm run seed..."
+        cd backend && npm run seed 2>&1
+        cd ..
+      else
+        echo "FAIL: No seed script found in backend/package.json"
+        echo "Agent must create src/database/seeders/index.ts from _fixtures.yaml"
+        exit 1
+      fi
+
+      # 2. Verify storageState
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "$candidate" ] && FRONTEND_DIR="$candidate" && break
+      done
+      STORAGE_COUNT=$(find "$FRONTEND_DIR/playwright" -name "storageState-*.json" 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$STORAGE_COUNT" -gt 0 ]; then
+        echo "storageState files found ($STORAGE_COUNT)"
+        echo "STORAGE_STATE_READY=true"
+        exit 0
+      fi
+
+      # 3. Run global-setup
+      if [ -f "$FRONTEND_DIR/playwright/global-setup.ts" ]; then
+        echo "Running global-setup to generate storageState files..."
+        cd "$FRONTEND_DIR" && npx playwright test --project=setup 2>&1
+        cd ..
+      else
+        echo "FAIL: No global-setup.ts — agent must create it (RULE-T11)"
+        exit 1
+      fi
+
+      STORAGE_COUNT=$(find "$FRONTEND_DIR/playwright" -name "storageState-*.json" 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$STORAGE_COUNT" -eq 0 ]; then
+        echo "FAIL: storageState files not generated after global-setup"
+        exit 1
+      fi
+      echo "STORAGE_STATE_READY=true"
+    on_failure: route_to_agent
+    max_retries: 2
+    agent_prompt: |
+      Seed or storageState generation failed.
+      1. Read {PROJECT_DIR}/user_stories/_fixtures.yaml
+      2. Create backend/src/database/seeders/index.ts following .claude/$BACKEND/skills/database-seeding/SKILL.md
+      3. Register "seed" script in backend/package.json pointing to src/database/seeders/index.ts
+      4. Run npm run seed
+      5. Create $FRONTEND/playwright/global-setup.ts (RULE-T11: _fixtures.yaml credentials → storageState-{role}.json)
+      6. Register setup project in playwright.config.ts
+      7. Run npx playwright test --project=setup
+
+  # --- AGENTIC: Design QA (sub-phase 9a) — screenshot-based visual comparison ---
+  - id: design-qa
+    type: agentic
+    skill: "$FRONTEND/skills/qa/design-qa-html.md"
+    context:
+      additional_read:
+        - "{PROJECT_DIR}/design/DESIGN_SYSTEM.md"
+        - "{STATUS_DIR}/frontend/SCREEN_IMPLEMENTATION_STATUS.md"
+        - "{PROJECT_DIR}/user_stories/_fixtures.yaml"
+    prompt: |
+      Screenshot-based design QA: Take screenshots of React implementation with Playwright and compare 1:1 visually against HTML prototypes.
+
+      ⚠️ CRITICAL: Every HTML prototype MUST have a corresponding React page.
+      If there are 25 HTML files, at least 25 React pages must match 1:1.
+      The standard is **1:1 exact match**, not 85% fidelity — layout, colors, typography, spacing, and component structure must be identical.
+
+      1. HTML prototype locations (check in order):
+         - {PROJECT_DIR}/generated-screens/
+         - {PROJECT_DIR}/design/html/
+         - design/html/
+      2. Open each HTML prototype via file:// path in Playwright and capture screenshot
+      3. Visit the corresponding React page in Playwright and capture screenshot
+         - For auth-required pages, use storageState-{role}.json (generated in seed-and-auth-setup)
+      4. Compare both screenshots side by side + supplementary code-level (Tailwind class) comparison
+      5. Fidelity score per screen. Target: **100% (1:1 match)**.
+      6. When mismatches are found, immediately fix React code to match HTML, then re-verify with screenshots.
+      7. Do NOT compare only public pages and report "done" — full comparison including auth pages is required.
+      8. HTML is the source of truth — React must follow HTML. Arbitrary changes in React are prohibited.
+    condition: |
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html; do
+        ls {TARGET_DIR}/$dir/*.html >/dev/null 2>&1 && exit 0
+      done
+      exit 1
+
+  # --- AGENTIC: Smoke test (sub-phase 9b) ---
+  - id: smoke-test
+    type: agentic
+    skill: "skills/qa/test-smoke/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Visit all routes from routes.yaml via playwright-cli. For each route:
+      1. Navigate and take snapshot
+      2. Check for ErrorBoundary crashes (P0)
+      3. Check console errors (P0 if > 100 from single page)
+      4. Verify meaningful content renders (> 3 elements)
+      Auth-required routes without seed data: mark BLOCKED not FAIL.
+      If P0 found: fix before proceeding (max 3 iterations per P0).
+
+  # --- AGENTIC: Acceptance testing (sub-phase 9c) ---
+  - id: acceptance-test
+    type: agentic
+    skill: "skills/qa/review-ui/SKILL.md"
+    context:
+      additional_read:
+        # All YAML files in user_stories/ are discovered via glob by ui-review skill
+        # Page-by-page files: home.yaml, login.yaml, products.yaml, cart.yaml, admin-dashboard.yaml, portal-*.yaml, etc.
+        # Cross-cutting files: cross-page-flows.yaml, auth-guards.yaml
+        - "{PROJECT_DIR}/user_stories/*.yaml"
+    prompt: |
+      Execute all YAML user stories via playwright-qa-agent.
+      Spawn one agent per story file for parallel execution.
+      Stories requiring login with unavailable users: mark BLOCKED.
+      BLOCKED stories excluded from pass rate denominator.
+      Target: >= 80% PASS (excluding BLOCKED).
+
+  # --- AGENTIC: Chaos scenario testing (sub-phase 9c-chaos) [NEW] ---
+  - id: chaos-test
+    type: agentic
+    skill: "skills/qa/run-playwright/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Chaos scenario testing: Execute 7 abnormal conditions on all major routes.
+
+      For each route, execute the following scenarios sequentially:
+      C-1: Empty State — route('**/api/**', empty) → verify no crash
+      C-2: API Failure — route('**/api/**', 500/timeout/abort) → verify error handling
+      C-3: Token Expiry — route('**/api/**', 401) → verify redirect
+      C-4: Storage Nuke — localStorage.clear() → navigate → verify no crash
+      C-5: Double Submit — dblclick() → verify duplicate submission prevention
+      C-6: Back/Forward — goBack/goForward → verify state consistency
+      C-7: Slow Network — CDP emulate 500kbps → verify loading state
+
+      PASS = graceful degradation. FAIL = pageerror, blank screen, raw error.
+      Generate CHAOS_TEST_STATUS.md (route x scenario matrix).
+
+  # --- AGENTIC: Autonomous exploration (sub-phase 9d) ---
+  - id: exploration
+    type: agentic
+    skill: "$FRONTEND/skills/e2e-testing/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Autonomous browser exploration via playwright-cli.
+      Focus on: routes not covered by acceptance stories, edge cases.
+      For each page: click buttons, fill forms with edge data, check console.
+      Max 5 minutes. Classify bugs: P0 (crash/loop), P1 (broken nav/stuck), P2 (visual).
+      Any P0/P1 bug = phase FAIL.
+
+  # --- AGENTIC: Boundary value fuzzing (sub-phase 9c-fuzz) [NEW] ---
+  - id: fuzz-test
+    type: agentic
+    skill: "skills/qa/run-playwright/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Boundary value fuzzing: Input extreme values into input fields on all routes.
+
+      Payloads: empty string, 10000 chars, XSS(<script>alert(1)</script>),
+      SQLi('; DROP TABLE users;--), unicode/emoji, null/undefined,
+      numeric boundaries (0, -1, MAX_SAFE_INTEGER), date boundaries (2038, 1970, leap year)
+
+      After entering payloads into each input:
+      - Verify pageerror == 0
+      - Verify XSS is not rendered as HTML (innerHTML check)
+      - Verify validation messages are displayed
+
+      ⚠️ XSS reflection = immediate P0. Aggregate results in EXPLORATION_REPORT.md.
+
+  # --- AGENTIC: Gremlin/monkey testing (sub-phase 9c-monkey) [NEW] ---
+  - id: monkey-test
+    type: agentic
+    skill: "skills/qa/run-playwright/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Gremlin testing: Random interactions on each route for 30 seconds.
+
+      1. Inject gremlins.js CDN (https://unpkg.com/gremlins.js)
+      2. Random clicks/typing/scrolling/touches for 30 seconds
+      3. Collect pageerrors (filter known noise like ResizeObserver)
+      4. Critical errors == 0 required
+
+      Aggregate results in EXPLORATION_REPORT.md under "monkey-test" section.
+
+  # --- AGENTIC: Auto Bug Feedback (sub-phase 9d) — closes bug → story loop ---
+  - id: auto-bug-feedback
+    type: agentic
+    skill: "skills/qa/run-feedback-loop/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/EXPLORATION_REPORT.md"
+        - "{PROJECT_DIR}/bug_reports/_gap_patterns.yaml"
+        - "{PROJECT_DIR}/bug_reports/_rca_history.md"
+    prompt: |
+      Auto Bug Feedback: Extract P0/P1 bugs from EXPLORATION_REPORT.md and run automatic RCA.
+
+      1. Read EXPLORATION_REPORT.md — extract P0 and P1 bugs only
+      2. IF zero P0/P1 bugs: report "No critical bugs to process" and exit
+      3. For EACH bug, execute full 5-step bug-feedback-loop:
+         - Step 1: Create BUG-{NNN}.yaml (auto-increment ID)
+         - Step 2: RCA — classify root_origin + root_cause_category
+         - Step 3: Generate missing story → append to user_stories/*.yaml
+         - Step 4: Extract gap pattern → _gap_patterns.yaml
+         - Step 4.5: Patch upstream (agent-learnings, prompt-templates)
+         - Step 5: Archive to _rca_history.md
+      4. After all bugs: load skills/qa/learn-bugs/SKILL.md to accumulate patterns
+      5. Output: updated _gap_patterns.yaml + bug-patterns-global.yaml
+    condition: |
+      # Only run if EXPLORATION_REPORT.md exists and has P0/P1 bugs
+      REPORT=$(find {TARGET_DIR}/{STATUS_DIR} -name 'EXPLORATION_REPORT.md' 2>/dev/null | head -1)
+      [ -z "$REPORT" ] && exit 1
+      grep -qiE 'P0|P1|severity.*critical|severity.*high' "$REPORT" 2>/dev/null || exit 1
+
+  # --- AGENTIC: Bug prediction reverse search (sub-phase 9d-predict) [NEW] ---
+  - id: bug-predict
+    type: agentic
+    context:
+      additional_read:
+        - ".claude/skills/qa/learn-bugs/references/bug-patterns-global.yaml"
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Bug prediction reverse search: Identify high-risk code via historical patterns + git churn.
+
+      Signal A: Grep current code using source.patterns from bug-patterns-global.yaml
+      Signal B: git log --grep="fix|bug" → recently modified files + high-churn files
+
+      Generate high-risk file/route list using combined scores.
+      Write BUG_PREDICTION_REPORT.md (file, score, reason, route mapping).
+
+  # --- AGENTIC: UX Heuristic Scanner (sub-phase 9e) ---
+  - id: ux-scanner
+    type: agentic
+    skill: "skills/qa/scan-ux/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+        - ".claude/skills/qa/scan-ux/references/heuristic-checklist.yaml"
+    prompt: |
+      UX Heuristic Scan: Run autonomous UX heuristic scan on all routes.
+      10 categories, 65+ checks. Dual verification via browser (playwright) + source (grep).
+
+      1. Load routes.yaml → group by auth_level
+      2. Per group: login → spawn ux-scanner-agent per route in parallel
+      3. Global source scan (i18n, event matching, etc.)
+      4. Collect results → deduplicate → generate UX-{NNN}.md issue files
+      5. Generate UX_QA_SUMMARY.md (gate verification target)
+      6. P0/P1 → forward to bug-feedback-loop, all → learn-bugs --global
+
+  # --- DETERMINISTIC: Regression check ---
+  - id: regression-check
+    type: deterministic
+    description: "Verify unit tests still pass after QA fixes"
+    command: |
+      cd {TARGET_DIR}/backend
+      if grep -q '"test"' package.json 2>/dev/null; then
+        npx jest --selectProjects unit --forceExit 2>&1 || echo "REGRESSION: unit tests failing"
+      else
+        echo "No unit test script found (skipping regression check)"
+      fi
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # --- DETERMINISTIC: Verify all 5 marker files exist with real data ---
+  - id: evidence-check
+    type: deterministic
+    description: "Verify all 5 sub-phase marker files exist and contain real data"
+    command: |
+      STATUS_DIR="{TARGET_DIR}/{STATUS_DIR}"
+      FRONTEND_STATUS="{TARGET_DIR}/{STATUS_DIR}/frontend"
+      MISSING=0
+
+      for marker in \
+        "$STATUS_DIR/PREFLIGHT_STATUS.md" \
+        "$STATUS_DIR/SEED_STATUS.md" \
+        "$STATUS_DIR/DESIGN_QA_STATUS.md" \
+        "$FRONTEND_STATUS/E2E_QA_STATUS.md" \
+        "$STATUS_DIR/CHAOS_TEST_STATUS.md" \
+        "$STATUS_DIR/EXPLORATION_REPORT.md" \
+        "$STATUS_DIR/UX_QA_SUMMARY.md" \
+        "$STATUS_DIR/PRODUCTION_LAYERS_STATUS.md"; do
+
+        if [ ! -f "$marker" ]; then
+          echo "MISSING: $marker"
+          MISSING=$((MISSING + 1))
+        elif grep -q "YYYY-MM-DD\|{PROJECT_NAME}\|_no runs yet_" "$marker"; then
+          echo "TEMPLATE (not real data): $marker"
+          MISSING=$((MISSING + 1))
+        fi
+      done
+
+      if [ $MISSING -gt 0 ]; then
+        echo "FAIL: $MISSING marker files missing or contain template data"
+        exit 1
+      fi
+      echo "ALL 8 markers verified"
+    on_failure: abort
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/production-test-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.97"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/test-browser.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for test-browser. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/production-test-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [playwright, sequential-thinking]

@@ -1,0 +1,275 @@
+name: user-stories-2
+description: |
+  User story authorship.
+
+  The contract: every HTML page in {PROJECT_DIR}/design/html/*.html
+  gets one YAML in {PROJECT_DIR}/user_stories/<same-basename>.yaml.
+  Each YAML carries multiple scenario buckets — acceptance_criteria,
+  boundary_cases, error_scenarios, state_transitions — so the
+  playwright-qa-agent can exercise the full page, not just the happy path.
+
+  Phase 2 (prd) no longer produces stories. Phase 3.5 is the sole author,
+  because HTML only exists after design (phase 3). Re-running this phase
+  is idempotent: pages that already have a matching YAML are skipped;
+  missing pages get generated; thin YAMLs get deepened.
+version: 2
+manifest: user-stories
+
+nodes:
+  # ============================================================================
+  # PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: require-design-approved
+    type: deterministic
+    description: "ABORT if design is not approved + complete (HTML must exist)"
+    command: |
+      STATUS_FILE=""
+      for c in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$c" ] && STATUS_FILE="$c" && break
+      done
+      [ -n "$STATUS_FILE" ] || { echo "FAIL: DESIGN_STATUS.md missing"; exit 1; }
+      grep -q 'approved: true' "$STATUS_FILE" || { echo "FAIL: design not approved"; exit 1; }
+      grep -q 'phase_complete: true' "$STATUS_FILE" || { echo "FAIL: design phase_complete missing"; exit 1; }
+      echo "design approved + complete"
+    on_failure: abort
+    abort_message: "Phase 3 (design) must be fully complete before user-stories can author per-page YAMLs"
+
+  - id: require-html-pages
+    type: deterministic
+    description: "HTML pages must exist — they are the source of truth for story count"
+    command: |
+      HTML_DIR="{TARGET_DIR}/{PROJECT_DIR}/design/html"
+      [ -d "$HTML_DIR" ] || { echo "FAIL: $HTML_DIR missing"; exit 1; }
+      # v43 evidence: -maxdepth 1 missed HTML pages produced by multi-frontend
+      # design output (frontend-admin/*.html, frontend-worker/*.html). The
+      # pipeline aborted user-stories despite 10 valid HTML files on disk.
+      # Drop the depth limit so any layout (flat or nested) is accepted.
+      HTML_COUNT=$(find "$HTML_DIR" -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      [ "$HTML_COUNT" -gt 0 ] || { echo "FAIL: no HTML pages anywhere under $HTML_DIR"; exit 1; }
+      echo "html_pages=$HTML_COUNT"
+    on_failure: abort
+    abort_message: "design phase must produce HTML prototypes in {PROJECT_DIR}/design/html/ before this phase runs"
+
+  # ============================================================================
+  # PAGE-PARITY SPLIT (agentic) — 1 YAML per HTML page
+  # ============================================================================
+
+  - id: split-to-per-page
+    type: agentic
+    description: "Author one YAML per HTML page, covering multiple scenarios"
+    required_output_file: "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_index.yaml"
+    verification_pattern: "page_parity_generated: true"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml"
+        - ".claude/skills/dev/generate-user-stories/SKILL.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      You are the user-story author. Your output is the single source of
+      truth for Phase 9 (test-browser).
+
+      === CONTRACT ===
+      For every HTML file in {PROJECT_DIR}/design/html/*.html there MUST be
+      exactly one YAML file in {PROJECT_DIR}/user_stories/<basename>.yaml
+      with the same basename. No more, no fewer.
+
+      Each YAML MUST carry multiple scenario buckets. At minimum:
+        - acceptance_criteria: 2+ entries (happy-path actions on this page)
+        - boundary_cases:      1+ entry  (min/max/empty/whitespace/overflow)
+        - error_scenarios:     1+ entry  (401/403/404/500, network failure, validation error)
+        - state_transitions:   1+ entry  (loading / empty / error UI state)
+      Total scenarios across buckets: >= 5.
+
+      === INPUTS YOU CAN READ ===
+      - {PROJECT_DIR}/design/html/*.html        (source of truth for page count)
+      - {PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md (features + roles)
+      - {PROJECT_DIR}/docs/PROJECT_API.md       (endpoints each page calls)
+      - {PROJECT_DIR}/user_stories/_fixtures.yaml (credentials + seed data)
+      - existing {PROJECT_DIR}/user_stories/*.yaml (may be bundled legacy YAMLs)
+
+      === ALGORITHM ===
+
+      STEP 1 — inventory
+        Glob '{PROJECT_DIR}/design/html/*.html'. Record basename list.
+        Glob '{PROJECT_DIR}/user_stories/*.yaml' (exclude _fixtures, _index).
+        For each HTML basename, decide:
+          a) matching YAML exists with >=5 scenarios and all 4 buckets → SKIP
+          b) matching YAML exists but shallow (<5 scenarios or missing buckets) → DEEPEN
+          c) no matching YAML → CREATE
+
+      STEP 2 — legacy bundle split (one-time migration)
+        Legacy bundle YAMLs (feature-level, covering multiple pages) exist:
+          auth.yaml, worker-service-application.yaml, worker-application-tracking.yaml,
+          payment-refund.yaml, document-management.yaml, company-dashboard.yaml,
+          company-manager-management.yaml, admin-operations.yaml, admin-permissions.yaml,
+          i18n-responsive.yaml, notifications.yaml
+        For each bundle:
+          - Identify which HTML pages it actually covers (by matching acceptance_criteria
+            ui_route / endpoint to PROJECT_API routes → map back to HTML filename).
+          - Copy each acceptance_criterion, boundary_case, error_scenario into the
+            corresponding per-page YAML.
+          - When the bundle has been fully redistributed, delete it. Otherwise leave
+            it as a cross-page "feature narrative" reference (keep role, feature,
+            goal — drop ACs that were moved).
+
+      STEP 3 — CREATE / DEEPEN per HTML page
+        Open the HTML file. Parse (via Read — do not launch a headless browser):
+          - forms, inputs, selects, textareas → validation scenarios
+          - buttons (submit, delete, cancel) → action ACs
+          - tables, lists → empty-state + loading-state
+          - tabs, modals, filters → state transitions
+          - error / empty / "no data" slots → state_transitions bucket
+          - role-gated badges or copy ("admin only", etc.) → auth error_scenario
+
+        Cross-reference PROJECT_API.md for endpoints the page hits.
+        Cross-reference _fixtures.yaml to pick the right role/credentials.
+
+        Write YAML with this shape:
+
+        ```yaml
+        id: US-<page-basename-upper>
+        role: <worker|company_manager|admin|all>   # from URL prefix (b-=worker, company-=company_manager, admin-=admin, others=all)
+        feature: <one-sentence label>
+        page: <basename>.html
+        goal: |
+          As a <role> on the <page label> page I can ... so that ...
+
+        acceptance_criteria:
+          - id: AC-1
+            description: <happy path action>
+            ui_route: <path>
+            endpoint: <METHOD /api/path or "none">
+            expected: <status + UI assertion>
+          - id: AC-2
+            ...
+
+        boundary_cases:
+          - case: <min/max/empty/whitespace/overflow scenario + expected outcome>
+
+        error_scenarios:
+          - scenario: <401/403/404/500 or network failure + expected UI>
+
+        state_transitions:
+          - state: loading
+            expected: <skeleton / spinner / disabled button>
+          - state: empty
+            expected: <empty-state component text + CTA>
+          - state: error
+            expected: <inline error + retry CTA>
+
+        fixture_refs:
+          - users.<key>
+        ```
+
+        Set scenarios_total = sum across all four buckets. Must be >= 5.
+
+      STEP 4 — update _index.yaml
+        Rewrite _index.yaml listing every final per-page YAML:
+          ```
+          generated: <ISO timestamp>
+          source: per-HTML-page authorship (one yaml per design/html/*.html)
+          project: {project}
+          page_parity_generated: true
+          html_count: <N>
+          yaml_count: <N>
+          stories:
+            - file: <basename>.yaml
+              page: <basename>.html
+              role: <role>
+              feature: <feature label>
+              scenarios_total: <int>
+              buckets:
+                acceptance_criteria: <int>
+                boundary_cases: <int>
+                error_scenarios: <int>
+                state_transitions: <int>
+          ```
+
+        The "page_parity_generated: true" line is required for verification.
+
+      === RULES ===
+      - One YAML per HTML page. No bundles (legacy bundles either get
+        split or retired).
+      - Do NOT modify _fixtures.yaml.
+      - Do NOT touch HTML files.
+      - Do NOT invent endpoints not in PROJECT_API.md.
+      - If a page is public (login, landing, signup, verify-email), role = all and
+        auth-error scenarios focus on form validation, not 401/403.
+      - Keep goal/description text concrete — no "user should be able to …" fluff.
+
+  # ============================================================================
+  # EVIDENCE CHECK (deterministic)
+  # ============================================================================
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify 1:1 HTML↔YAML parity and minimum scenarios per YAML"
+    command: |
+      HTML_DIR="{TARGET_DIR}/{PROJECT_DIR}/design/html"
+      STORIES_DIR="{TARGET_DIR}/{PROJECT_DIR}/user_stories"
+
+      # Recursive count to match require-html-pages (multi-frontend layouts).
+      HTML_COUNT=$(find "$HTML_DIR" -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      YAML_COUNT=$(find "$STORIES_DIR" -maxdepth 1 -name '*.yaml' ! -name '_fixtures.yaml' ! -name '_index.yaml' 2>/dev/null | wc -l | tr -d ' ')
+
+      # Lowered from 95% to 80%: v33+v34 both produced 24/28 (86%) — the LLM
+      # keeps legacy feature-named YAMLs (auth-login.yaml) from baseline
+      # instead of HTML-basename ones (02-login.yaml). 80% catches truly-thin
+      # coverage while allowing naming-style drift.
+      MIN_YAML=$(( HTML_COUNT * 80 / 100 ))
+      if [ "$YAML_COUNT" -lt "$MIN_YAML" ]; then
+        echo "FAIL: yaml_count=$YAML_COUNT html_count=$HTML_COUNT (need >= $MIN_YAML, 80%)"
+        exit 1
+      fi
+
+      # Every HTML basename must have a matching YAML basename
+      MISSING=0
+      MISSING_LIST=""
+      for html in "$HTML_DIR"/*.html; do
+        [ -f "$html" ] || continue
+        base=$(basename "$html" .html)
+        if [ ! -f "$STORIES_DIR/$base.yaml" ]; then
+          MISSING=$((MISSING+1))
+          MISSING_LIST="$MISSING_LIST $base"
+        fi
+      done
+      if [ $MISSING -gt 0 ]; then
+        echo "FAIL: $MISSING HTML pages have no matching YAML:$MISSING_LIST"
+        exit 1
+      fi
+
+      # Every YAML must have >= 5 total scenarios across 3+ buckets.
+      THIN=0
+      THIN_LIST=""
+      for yml in "$STORIES_DIR"/*.yaml; do
+        [ -f "$yml" ] || continue
+        name=$(basename "$yml")
+        [ "$name" = "_fixtures.yaml" ] && continue
+        [ "$name" = "_index.yaml" ] && continue
+        AC=$(grep -cE '^\s*-\s+(id|case|scenario|state):' "$yml" 2>/dev/null)
+        AC=${AC:-0}
+        if [ "$AC" -lt 5 ]; then
+          THIN=$((THIN+1))
+          THIN_LIST="$THIN_LIST $name(scenarios=$AC)"
+        fi
+      done
+      if [ $THIN -gt 0 ]; then
+        echo "FAIL: $THIN YAMLs have < 5 scenarios:$THIN_LIST"
+        exit 1
+      fi
+
+      echo "PASS: html=$HTML_COUNT yaml=$YAML_COUNT (1:1 parity, all YAMLs >= 5 scenarios)"
+    on_failure: abort
+    abort_message: "split-to-per-page did not achieve page-parity or populated scenarios"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]

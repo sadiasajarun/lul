@@ -1,0 +1,150 @@
+# Few-shot calibration examples for the test-browser evaluator.
+# Functional correctness only — no UX heuristics.
+
+examples:
+
+  - criterion: page_loads
+    correct_score: 0.2
+    excerpt: |
+      // STORY_QA_REPORT.md excerpt:
+      // Routes attempted: 18
+      // Routes successful (HTTP 200 + DOM rendered): 4
+      //   - /login                    OK
+      //   - /signup                   OK
+      //   - /                         OK (landing)
+      //   - /forgot-password          OK
+      //
+      // Routes failed:
+      //   - /worker/home              500 from /api/auth/me; white screen
+      //   - /worker/applications      Cannot read property 'map' of undefined
+      //   - /admin                    bundle 404 on /assets/admin-bundle.js
+      //   - 11 more routes            various crashes
+    rationale: >
+      Auth pages load but the actual app behind login is broken. 14 of 18
+      routes fail. Bundle 404 indicates build mis-configured. Most pages
+      can't load at all.
+
+  - criterion: page_loads
+    correct_score: 0.95
+    excerpt: |
+      // STORY_QA_REPORT.md excerpt:
+      // Routes attempted: 23
+      // Routes successful: 23
+      // Console errors total: 0
+      // Network 4xx/5xx on initial load: 0
+      // Bundle parse errors: 0
+      // Locale files (KO + EN): both 200
+      //
+      // Screenshots: every route shows rendered content with the
+      // expected role-scoped layout (worker/company/admin).
+    rationale: >
+      Every route loads cleanly. No console errors. All resources 200.
+      Screenshots confirm rendered content per route.
+
+  - criterion: flow_completion
+    correct_score: 0.3
+    excerpt: |
+      // STORY_QA_REPORT.md
+      // story: worker-creates-application
+      //   step 1: login           PASS
+      //   step 2: navigate /home  PASS
+      //   step 3: click "New App" PASS (modal opened)
+      //   step 4: fill wizard 1   PASS
+      //   step 5: click "Next"    FAIL — button stuck, no navigation
+      //   verdict: FAIL
+      //
+      // story: admin-confirms-deposit
+      //   step 1: login (admin)   PASS
+      //   step 2: navigate        PASS
+      //   step 3: click "Confirm" FAIL — request 500
+      //   verdict: FAIL
+    rationale: >
+      Primary flows dead-end. Worker can't get past wizard step 1.
+      Admin's confirm button hits a 500. Mutations don't persist
+      because they don't even reach the server successfully.
+
+  - criterion: flow_completion
+    correct_score: 0.95
+    excerpt: |
+      // STORY_QA_REPORT.md
+      // story: worker-creates-application
+      //   step 1: login                    PASS  screenshot: /home rendered
+      //   step 2: click "New App"          PASS  screenshot: wizard step 1
+      //   step 3-6: complete wizard        PASS  screenshot: each step
+      //   step 7: confirm submission       PASS  screenshot: success page
+      //   step 8: return to /applications  PASS  screenshot: new entry visible
+      //   verdict: PASS
+      //
+      // story: admin-confirms-deposit
+      //   step 1-5: login → app → confirm  PASS  screenshot: status="입금확인"
+      //   step 6: re-fetch as worker       PASS  screenshot: worker sees update
+      //   verdict: PASS
+    rationale: >
+      Both primary flows complete end-to-end. Mutations persist
+      (worker sees admin's status change on re-fetch). Screenshots
+      validate every step shows expected UI.
+
+  - criterion: interactive_elements_work
+    correct_score: 0.3
+    excerpt: |
+      // BUG_FIX_REPORT.md
+      // P0: "Save" button on profile edit has no onClick — element
+      //     visible, click event has no effect (RULE-F2 violation
+      //     missed by gate)
+      // P0: Modal "Confirm" button submits the wrong form, posts to /
+      // P1: Language toggle buttons render but don't change locale —
+      //     useTranslation() call missing
+      // P1: 4 of 12 dropdown selects don't open on click in Safari
+    rationale: >
+      Critical path dead buttons (Save, Confirm). Language toggle
+      that doesn't toggle. Multiple selects broken on a major
+      browser. App appears interactive but isn't.
+
+  - criterion: interactive_elements_work
+    correct_score: 0.9
+    excerpt: |
+      // BUG_FIX_REPORT.md
+      // Bugs found total: 3
+      //   P2: Dashboard "Refresh" button has 200ms debounce so rapid
+      //       clicks feel unresponsive (UX nit, not broken)
+      //   P2: Dropdown chevron icon doesn't rotate on open
+      //
+      // Stories: every click action in story-runner triggered the
+      //   expected network request or navigation. No "click had no
+      //   effect" entries.
+    rationale: >
+      No critical-path dead elements. Everything that should respond
+      to a click does. Two minor cosmetic issues, no functional bugs.
+
+  - criterion: error_resilience
+    correct_score: 0.2
+    excerpt: |
+      // BUG_FIX_REPORT.md
+      // P0: Submitting login form with wrong password crashes the
+      //     /login page (TypeError: Cannot read property 'data' of undefined)
+      // P0: 401 from /api/me leaves user stuck on stale page;
+      //     no redirect to /login
+      // P0: Network drop during file upload shows "[object Object]"
+      //     in toast
+      // No error-path stories were run — story-runner only ran happy
+      // paths.
+    rationale: >
+      Any deviation from happy path crashes the app. Login wrong
+      password → page crash. Expired token → silent breakage. Error
+      paths weren't even tested by story-runner.
+
+  - criterion: error_resilience
+    correct_score: 0.9
+    excerpt: |
+      // STORY_QA_REPORT.md error stories:
+      //   - login-wrong-password  PASS  field error "비밀번호가 일치하지 않습니다"
+      //   - 401-on-protected-page PASS  redirected to /login + toast "다시 로그인해주세요"
+      //   - network-drop-on-mutation PASS  retry banner shown, request retried
+      //   - expired-token-on-fetch PASS  silent refresh + retry, user undisturbed
+      //
+      // BUG_FIX_REPORT.md: 0 P0 / 1 P1 / 2 P2 — all fixed and re-tested.
+    rationale: >
+      Error paths explicitly tested. Wrong password → field error in
+      Korean (per i18n default). 401 → graceful redirect. Network drop
+      → retry banner. Token expiry → silent refresh. App stays usable
+      across the realistic failure modes.

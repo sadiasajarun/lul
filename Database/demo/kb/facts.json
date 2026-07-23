@@ -1,0 +1,531 @@
+{
+  "version": "demo-mru7iaot",
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "facts": [
+    {
+      "id": "kpi.students.total",
+      "category": "kpi",
+      "subject": "enrolment",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "The programme serves 4,000 enrolled learners across 3 programmes.",
+      "value": 4000,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "students",
+        "total",
+        "enrolment",
+        "learners",
+        "count"
+      ]
+    },
+    {
+      "id": "kpi.teachers.total",
+      "category": "kpi",
+      "subject": "teachers",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "There are 200 teachers.",
+      "value": 200,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "teachers",
+        "total",
+        "staff",
+        "educators"
+      ]
+    },
+    {
+      "id": "kpi.mainstream.rate",
+      "category": "kpi",
+      "subject": "mainstreaming",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "15% of learners have been mainstreamed into formal school (601 of 4,000).",
+      "value": 15,
+      "unit": "%",
+      "source": "Database/demo",
+      "tags": [
+        "mainstream",
+        "mainstreamed",
+        "rate",
+        "formal",
+        "school"
+      ]
+    },
+    {
+      "id": "kpi.attendance.mean",
+      "category": "kpi",
+      "subject": "attendance",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "Average recorded attendance is 74.97% across 4,000 learners (100% coverage in the demo dataset).",
+      "value": 74.97,
+      "unit": "%",
+      "coverage": 1,
+      "source": "Database/demo",
+      "tags": [
+        "attendance",
+        "average",
+        "present",
+        "coverage"
+      ]
+    },
+    {
+      "id": "centers.grade.mean",
+      "category": "kpi",
+      "subject": "centres",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "Across 40 centres the mean M&E score is 2.9 (of 4).",
+      "value": 2.9,
+      "unit": "score",
+      "source": "Database/demo",
+      "tags": [
+        "centre",
+        "center",
+        "score",
+        "m&e",
+        "evaluation",
+        "quality"
+      ]
+    },
+    {
+      "id": "equity.gender.girls",
+      "category": "win",
+      "subject": "gender",
+      "lens": "win",
+      "severity": "info",
+      "statement": "51.1% of learners are girls (2,045 of 4,000) — at or above parity.",
+      "value": 51.1,
+      "unit": "%",
+      "source": "Database/demo",
+      "tags": [
+        "girls",
+        "gender",
+        "parity",
+        "equity",
+        "female"
+      ]
+    },
+    {
+      "id": "program.abal.students",
+      "category": "context",
+      "subject": "abal",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "ABAL has 1,400 students (674 boys, 726 girls).",
+      "value": 1400,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "abal",
+        "abal",
+        "students",
+        "enrolment",
+        "boys",
+        "girls",
+        "gender"
+      ]
+    },
+    {
+      "id": "program.abal.mainstream",
+      "category": "issue",
+      "subject": "abal",
+      "lens": "issue",
+      "severity": "warn",
+      "statement": "ABAL has mainstreamed 15.8% of its learners (221 of 1,400).",
+      "value": 15.8,
+      "unit": "%",
+      "source": "Database/demo",
+      "tags": [
+        "abal",
+        "abal",
+        "mainstream",
+        "mainstreamed",
+        "rate"
+      ]
+    },
+    {
+      "id": "program.abal.attendance",
+      "category": "quality",
+      "subject": "abal",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "ABAL attendance averages 74.83% (fully recorded).",
+      "value": 74.83,
+      "unit": "%",
+      "coverage": 1,
+      "source": "Database/demo",
+      "tags": [
+        "abal",
+        "abal",
+        "attendance",
+        "present"
+      ]
+    },
+    {
+      "id": "dropout.abal.top",
+      "category": "issue",
+      "subject": "abal",
+      "lens": "issue",
+      "severity": "watch",
+      "statement": "In ABAL, the leading dropout reason is Poverty (51 learners).",
+      "value": 51,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "abal",
+        "abal",
+        "dropout",
+        "leave",
+        "reason",
+        "poverty"
+      ]
+    },
+    {
+      "id": "learning.abal.weakest",
+      "category": "action",
+      "subject": "abal",
+      "lens": "action",
+      "severity": "watch",
+      "statement": "ABAL's weakest subject is Life Skills, averaging 34.47.",
+      "value": 34.47,
+      "unit": "score",
+      "source": "Database/demo",
+      "tags": [
+        "abal",
+        "abal",
+        "subject",
+        "marks",
+        "weakest",
+        "learning",
+        "life skills"
+      ]
+    },
+    {
+      "id": "program.catchup.students",
+      "category": "context",
+      "subject": "catchup",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "Catchup has 2,500 students (1234 boys, 1266 girls).",
+      "value": 2500,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "catchup",
+        "catchup",
+        "students",
+        "enrolment",
+        "boys",
+        "girls",
+        "gender"
+      ]
+    },
+    {
+      "id": "program.catchup.mainstream",
+      "category": "issue",
+      "subject": "catchup",
+      "lens": "issue",
+      "severity": "warn",
+      "statement": "Catchup has mainstreamed 14.5% of its learners (362 of 2,500).",
+      "value": 14.5,
+      "unit": "%",
+      "source": "Database/demo",
+      "tags": [
+        "catchup",
+        "catchup",
+        "mainstream",
+        "mainstreamed",
+        "rate"
+      ]
+    },
+    {
+      "id": "program.catchup.attendance",
+      "category": "quality",
+      "subject": "catchup",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "Catchup attendance averages 75% (fully recorded).",
+      "value": 75,
+      "unit": "%",
+      "coverage": 1,
+      "source": "Database/demo",
+      "tags": [
+        "catchup",
+        "catchup",
+        "attendance",
+        "present"
+      ]
+    },
+    {
+      "id": "dropout.catchup.top",
+      "category": "issue",
+      "subject": "catchup",
+      "lens": "issue",
+      "severity": "watch",
+      "statement": "In Catchup, the leading dropout reason is Poverty (75 learners).",
+      "value": 75,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "catchup",
+        "catchup",
+        "dropout",
+        "leave",
+        "reason",
+        "poverty"
+      ]
+    },
+    {
+      "id": "learning.catchup.weakest",
+      "category": "action",
+      "subject": "catchup",
+      "lens": "action",
+      "severity": "watch",
+      "statement": "Catchup's weakest subject is Life Skills, averaging 34.62.",
+      "value": 34.62,
+      "unit": "score",
+      "source": "Database/demo",
+      "tags": [
+        "catchup",
+        "catchup",
+        "subject",
+        "marks",
+        "weakest",
+        "learning",
+        "life skills"
+      ]
+    },
+    {
+      "id": "program.innovation.students",
+      "category": "context",
+      "subject": "innovation",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "Innovation has 100 students (47 boys, 53 girls).",
+      "value": 100,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "innovation",
+        "innovation",
+        "students",
+        "enrolment",
+        "boys",
+        "girls",
+        "gender"
+      ]
+    },
+    {
+      "id": "program.innovation.mainstream",
+      "category": "issue",
+      "subject": "innovation",
+      "lens": "issue",
+      "severity": "warn",
+      "statement": "Innovation has mainstreamed 18% of its learners (18 of 100).",
+      "value": 18,
+      "unit": "%",
+      "source": "Database/demo",
+      "tags": [
+        "innovation",
+        "innovation",
+        "mainstream",
+        "mainstreamed",
+        "rate"
+      ]
+    },
+    {
+      "id": "program.innovation.attendance",
+      "category": "quality",
+      "subject": "innovation",
+      "lens": "kpi",
+      "severity": "info",
+      "statement": "Innovation attendance averages 76.03% (fully recorded).",
+      "value": 76.03,
+      "unit": "%",
+      "coverage": 1,
+      "source": "Database/demo",
+      "tags": [
+        "innovation",
+        "innovation",
+        "attendance",
+        "present"
+      ]
+    },
+    {
+      "id": "dropout.innovation.top",
+      "category": "issue",
+      "subject": "innovation",
+      "lens": "issue",
+      "severity": "watch",
+      "statement": "In Innovation, the leading dropout reason is Poverty (4 learners).",
+      "value": 4,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "innovation",
+        "innovation",
+        "dropout",
+        "leave",
+        "reason",
+        "poverty"
+      ]
+    },
+    {
+      "id": "learning.innovation.weakest",
+      "category": "action",
+      "subject": "innovation",
+      "lens": "action",
+      "severity": "watch",
+      "statement": "Innovation's weakest subject is Life Skills, averaging 33.93.",
+      "value": 33.93,
+      "unit": "score",
+      "source": "Database/demo",
+      "tags": [
+        "innovation",
+        "innovation",
+        "subject",
+        "marks",
+        "weakest",
+        "learning",
+        "life skills"
+      ]
+    },
+    {
+      "id": "dropout.network.top",
+      "category": "issue",
+      "subject": "dropout",
+      "lens": "issue",
+      "severity": "warn",
+      "statement": "Poverty is the leading dropout reason network-wide — 130 learners (46.9% of 277 dropouts).",
+      "value": 130,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "dropout",
+        "leave",
+        "poverty",
+        "reason",
+        "cash",
+        "income"
+      ]
+    },
+    {
+      "id": "centers.grade.dist",
+      "category": "action",
+      "subject": "centres",
+      "lens": "action",
+      "severity": "watch",
+      "statement": "7 centres score Poor (below 2 of 4), 10 Fair and 23 Good — field support should go to the Poor centres first.",
+      "value": 7,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "centre",
+        "center",
+        "poor",
+        "visit",
+        "support",
+        "quality",
+        "score"
+      ]
+    },
+    {
+      "id": "centers.worst-attendance",
+      "category": "action",
+      "subject": "centres",
+      "lens": "action",
+      "severity": "warn",
+      "statement": "0 centres are flagged for low attendance and need a visit.",
+      "value": 0,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "centre",
+        "center",
+        "attendance",
+        "visit",
+        "worst",
+        "low"
+      ]
+    },
+    {
+      "id": "geography.top",
+      "category": "context",
+      "subject": "divisions",
+      "lens": "context",
+      "severity": "info",
+      "statement": "Dhaka holds the most learners (500); enrolment spans all 8 divisions.",
+      "value": 500,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "division",
+        "district",
+        "geography",
+        "location",
+        "dhaka"
+      ]
+    },
+    {
+      "id": "equity.disability",
+      "category": "context",
+      "subject": "equity",
+      "lens": "context",
+      "severity": "watch",
+      "statement": "255 learners have a recorded disability (6.4% of enrolment).",
+      "value": 255,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "disability",
+        "disabled",
+        "equity",
+        "special",
+        "needs"
+      ]
+    },
+    {
+      "id": "equity.nutrition.bad",
+      "category": "issue",
+      "subject": "nutrition",
+      "lens": "issue",
+      "severity": "watch",
+      "statement": "101 learners are recorded with \"Bad\" nutrition status.",
+      "value": 101,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "nutrition",
+        "health",
+        "bad",
+        "food",
+        "welfare"
+      ]
+    },
+    {
+      "id": "risk.atrisk",
+      "category": "action",
+      "subject": "risk",
+      "lens": "action",
+      "severity": "warn",
+      "statement": "178 active learners are High or Critical risk of dropping out (from attendance, scores and missed cash).",
+      "value": 178,
+      "unit": "count",
+      "source": "Database/demo",
+      "tags": [
+        "risk",
+        "dropout",
+        "may",
+        "leave",
+        "early",
+        "warning",
+        "at-risk"
+      ]
+    }
+  ]
+}

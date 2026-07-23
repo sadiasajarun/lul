@@ -1,0 +1,170 @@
+# Rubric for grading test-browser-phase output (real-browser functional QA).
+#
+# IMPORTANT — narrowed scope per project owner: this evaluator ONLY judges
+# whether the running app actually works in a real browser. It does NOT
+# do UX heuristic analysis (visual hierarchy, color contrast, copy tone).
+# A user can browse, log in, complete primary flows, and not hit crashes
+# = pass. A pretty UI that crashes on click = fail.
+#
+# Reads STORY_QA_REPORT.md + BUG_FIX_REPORT.md from the existing
+# Playwright runs and grades whether the reports show real walkable
+# flows, not just zero-error boilerplate.
+
+name: test-browser-evaluation
+version: 1
+
+scope: >
+  Outputs of the test-browser phase: STORY_QA_REPORT.md (per-story
+  pass/fail from playwright-qa-agent), BUG_FIX_REPORT.md (P0/P1/P2
+  bugs found and whether they were fixed), and the screenshots /
+  artifacts under .claude-project/qa/. Graded against the user-story
+  YAMLs to confirm the reports actually reflect real browser execution.
+  The evaluator does NOT perform UX heuristic checks — only functional
+  correctness in a real browser.
+
+criteria:
+
+  page_loads:
+    weight: 0.25
+    question: >
+      Does every declared page actually load in a real browser without
+      console errors, network 4xx/5xx on initial fetch, or "Cannot read
+      property of undefined" crashes? Does the report show every route
+      from routes.ts being hit at least once with a 200 response?
+    anchors:
+      - score: 1.0
+        description: >
+          Every route declared in routes.ts navigated successfully in
+          the Playwright run. Zero console errors on initial page load.
+          Zero unhandled promise rejections. All critical resources
+          (JS bundle, CSS, locale files) returned 200. Screenshots show
+          rendered content, not blank pages or error overlays.
+      - score: 0.7
+        description: >
+          Most routes load cleanly. 1-2 routes have benign console
+          warnings (deprecated API, missing favicon). No crashes. All
+          critical resources load.
+      - score: 0.4
+        description: >
+          Several pages crash on first load (undefined.map errors,
+          missing context provider). Some routes return 500 from
+          backend on initial fetch. Console errors on multiple pages.
+      - score: 0.1
+        description: >
+          Most pages don't load. White screens. Console flooded with
+          errors. Bundle 404s or fails to parse. Backend not running
+          or misconfigured.
+
+  flow_completion:
+    weight: 0.30
+    question: >
+      Do the user-story flows in STORY_QA_REPORT.md show end-to-end
+      completion? Login → primary action → confirmation → return to
+      list → see persisted change. Are screenshots at every step
+      showing the expected UI state, not error overlays or
+      half-rendered DOM?
+    anchors:
+      - score: 1.0
+        description: >
+          Every primary user-story flow in STORY_QA_REPORT.md shows
+          PASS with all steps green. Screenshots at create / detail /
+          edit / list-after-mutation show the expected state. Mutations
+          actually persist (re-fetched lists show new entity).
+          Multi-step wizards complete from step 1 to confirmation.
+      - score: 0.7
+        description: >
+          Primary flows complete. 1-2 secondary stories partially fail
+          (one wizard step has a stuck button, recoverable by retry).
+          Mutations persist. Mostly green screenshots.
+      - score: 0.4
+        description: >
+          Login + browse work but mutations fail or don't persist.
+          Wizard flows dead-end midway. Several stories report PASS
+          but screenshots show error overlays — report inflated.
+      - score: 0.1
+        description: >
+          Even login fails. Or stories report PASS while screenshots
+          plainly show the test never reached the assertion. Reports
+          are fiction.
+
+  interactive_elements_work:
+    weight: 0.25
+    question: >
+      Do buttons trigger their intended actions? Forms submit? Links
+      navigate? Selects open and accept selection? Modals open and
+      dismiss? Or do interactive elements render but do nothing
+      (RULE-F2 dead buttons sneaking past)?
+    anchors:
+      - score: 1.0
+        description: >
+          Every button in story-runner click events triggered the
+          expected network request or navigation. Forms submitted
+          successfully. Links produced a navigation event. Modals
+          opened, focused, and dismissed. No "click had no effect"
+          assertions in the report.
+      - score: 0.7
+        description: >
+          Most interactive elements work. 1-2 buttons require double-
+          click or have a visible flicker before responding. No truly
+          dead elements on critical paths.
+      - score: 0.4
+        description: >
+          Several interactive elements don't respond. Forms submit
+          but show no feedback (success/error invisible). Modals open
+          but Escape key doesn't dismiss them. Critical-path dead
+          buttons present.
+      - score: 0.1
+        description: >
+          Most clicks no-op. Forms submit and reload page (browser
+          default behavior — not handled). Buttons render but have no
+          handlers. Story-runner reports many "element clicked, no
+          effect observed."
+
+  error_resilience:
+    weight: 0.20
+    question: >
+      Does the app handle expected error conditions without crashing?
+      Bad form input → field-level error, not crash. 401 from API →
+      redirect to login, not white screen. Network failure → retry UI,
+      not "[object Object]". Does BUG_FIX_REPORT show the error paths
+      were tested AND fixed?
+    anchors:
+      - score: 1.0
+        description: >
+          Stories explicitly test error conditions: invalid form →
+          field error rendered, 401 → redirect to /login, network
+          dropped → retry banner, expired session → graceful logout.
+          BUG_FIX_REPORT shows P0/P1 bugs in error paths were caught
+          and fixed.
+      - score: 0.7
+        description: >
+          Most error paths handled. 1-2 specific cases (network drop,
+          stale token) cause minor UX glitches but no crashes.
+      - score: 0.4
+        description: >
+          Happy path works but errors crash the app. Bad form input
+          shows generic alert or breaks render. 401 leaves user on
+          a stale page. Network failure shows raw error object.
+      - score: 0.1
+        description: >
+          Any deviation from the happy path crashes the app. White
+          screens on bad input. Browser back button breaks state.
+          App is brittle to anything but the scripted demo path.
+
+output_format:
+  type: json
+  required_fields:
+    - overall_score
+    - weighted_breakdown
+    - blockers
+    - rationale
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    P0 = unshippable: pages don't load, login fails, mutations don't
+    persist, app crashes on basic navigation. P1 = should fix: dead
+    buttons on critical paths, form errors invisible, mutations succeed
+    but UI doesn't reflect. P2 = nice-to-fix.
+
+    Excluded from scope (per project owner): visual design quality,
+    color contrast, copy tone, accessibility heuristics, performance
+    metrics. This is "does it work" only.

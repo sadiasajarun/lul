@@ -1,0 +1,96 @@
+name: spec-phase
+description: Specification phase — PRD gap analysis + Ouroboros interview + seed generation
+version: 2
+manifest: spec
+
+nodes:
+  # --- DETERMINISTIC: PRD → split into 400-line chunk files (A-02 enforcement) ---
+  # Blocks the pattern where agent says "PRD file is large" then does partial read
+  # Deterministic split via bash → orchestrator injects via agentic node additional_read
+  # → Full PRD is in context before agent starts → no chance for agent to decide on Read
+  - id: split-prd-chunks
+    type: deterministic
+    description: "Split PRD into 400-line chunks (auto-detect .md/.pdf)"
+    command: |
+      CHUNK_DIR="{TARGET_DIR}/{PROJECT_DIR}/context"
+      mkdir -p "$CHUNK_DIR"
+      rm -f "$CHUNK_DIR"/PRD_chunk_*.md
+
+      # PRD file search (--prd path first, then standard locations)
+      PRD_FILE=""
+      for c in \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.md \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.pdf \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd/PRD.md"; do
+        [ -f "$c" ] && PRD_FILE="$c" && break
+      done
+
+      if [ -z "$PRD_FILE" ]; then
+        echo "No PRD file found — running in full interview mode"
+        exit 0
+      fi
+
+      echo "PRD found: $PRD_FILE"
+
+      # PDF → text conversion
+      TMP="$CHUNK_DIR/prd_raw.txt"
+      if [[ "$PRD_FILE" == *.pdf ]]; then
+        if command -v pdftotext &>/dev/null; then
+          pdftotext -layout "$PRD_FILE" "$TMP"
+          echo "PDF converted via pdftotext"
+        else
+          # fallback: save marker so agent reads directly via Read tool + pages parameter
+          echo "[PDF_FALLBACK] ORIGINAL_PATH=$PRD_FILE" > "$CHUNK_DIR/PRD_chunk_00.md"
+          echo "pdftotext not available — PDF_FALLBACK marker written"
+          exit 0
+        fi
+      else
+        cp "$PRD_FILE" "$TMP"
+      fi
+
+      # Split into 400-line units → PRD_chunk_00.md, PRD_chunk_01.md, ...
+      split -l 400 -d --additional-suffix=.md "$TMP" "$CHUNK_DIR/PRD_chunk_"
+      rm -f "$TMP"
+
+      COUNT=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+      echo "PRD split into $COUNT chunks (400 lines each) → will be pre-injected into agent context"
+    on_failure: ignore
+
+  # --- AGENTIC: Spec interview + seed generation ---
+  # PRD_chunk_*.md are expanded by orchestrator via additional_read glob, then each is Read
+  # (each chunk <=400 lines → always fully read) → full PRD is already in context when agent starts
+  - id: spec
+    type: agentic
+    skill: ".claude/spec/commands/ouroboros/interview.md"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/seed-*.yaml"
+    prompt: |
+      Run the spec phase following 00-spec.md instructions.
+
+      PRD handling:
+      - PRD content is pre-loaded above as PRD_chunk_*.md files (in order: 00, 01, 02...)
+      - Read chunks sequentially — together they form the complete PRD
+      - If chunk_00 contains [PDF_FALLBACK] → use Read tool with pages parameter on the ORIGINAL_PATH listed
+      - If no chunks exist → run full interview mode (Phase 0.3)
+
+      Follow 00-spec.md: Phase 0.2 + Phase 0a for PRD-provided mode, Phase 0.3 for interview mode.
+
+  - id: update-pipeline-status
+    type: agentic
+    prompt: |
+      Update PIPELINE_STATUS.md for spec phase.
+      NOTE: No gate script exists for spec — use evaluation fallback score.
+      Update Progress Table row (Status, Score from evaluation, Output).
+      Append Execution Log row.
+      Update last_run timestamp.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{STATUS_DIR}/**"
+
+tool_profile:
+  allow: [Read, Write, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

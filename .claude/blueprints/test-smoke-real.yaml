@@ -1,0 +1,64 @@
+name: test-smoke-real
+description: Real smoke test using claude-agent-runner — demonstrates artifact-enforced agentic execution
+version: 1
+
+nodes:
+  - id: smoke-test-all-routes
+    type: agentic
+    description: "Visit a sample of routes via curl, verify they respond, write structured report"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{STATUS_DIR}/routes.yaml"
+    prompt: |
+      You are running a smoke test for a web application.
+
+      The application has a frontend at http://localhost:5173 and backend at http://localhost:3000.
+
+      Task:
+      1. Read the routes list from {STATUS_DIR}/routes.yaml (provided in context above)
+      2. Pick 5 PUBLIC routes (those with auth: none) and 3 WORKER routes (auth: foreign_worker)
+      3. For each route:
+         - Run: curl -s -o /dev/null -w "%{http_code}" http://localhost:5173<path>
+         - Capture the HTTP status code
+      4. Test the backend health:
+         - Run: curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api
+         - Run: curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health
+      5. Write a structured report to {STATUS_DIR}/hrm/SMOKE_TEST_REAL.md
+
+      The report MUST use this EXACT format:
+      ```
+      # Smoke Test Report (Real Agent Execution)
+
+      timestamp: <ISO timestamp>
+      backend_status: <status code for /api/health>
+      frontend_reachable: <true or false>
+
+      ## Route Results
+
+      | route | auth | status | reachable |
+      |-------|------|--------|-----------|
+      | /login | none | 200 | yes |
+      ...
+
+      total_routes_tested: <number>
+      total_reachable: <number>
+      ```
+
+      The "total_routes_tested: N" line is required for verification.
+
+      Use Bash and Read tools. Do NOT attempt to start/stop servers — just probe them.
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/hrm/SMOKE_TEST_REAL.md"
+    verification_pattern: "total_routes_tested: [0-9]+"
+    tool_profile:
+      allow:
+        - "Read"
+        - "Write"
+        - "Glob"
+        - "Bash(curl:*)"
+        - "Bash(cat:*)"
+        - "Bash(head:*)"
+        - "Bash(grep:*)"
+      deny:
+        - "WebSearch"
+        - "WebFetch"
+        - "Edit"

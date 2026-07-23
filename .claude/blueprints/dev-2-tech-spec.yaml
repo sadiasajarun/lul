@@ -1,0 +1,200 @@
+name: dev-2-tech-spec
+description: Dev-track tech spec — derive PROJECT_KNOWLEDGE/API/DATABASE.md from PRD + design-intent.yaml
+version: 1
+manifest: dev-2-tech-spec
+
+nodes:
+  # --- DETERMINISTIC: Compute current input hashes, decide regeneration ---
+  - id: check-spec-freshness
+    type: deterministic
+    description: "Compare current PRD+intent hashes to existing doc frontmatter hashes"
+    command: |
+      DOCS_DIR="{TARGET_DIR}/{PROJECT_DIR}/docs"
+      PRD_FILE="$DOCS_DIR/PRD.md"
+      INTENT_FILE="{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+
+      [ -f "$PRD_FILE" ] || { echo "FAIL: PRD missing at $PRD_FILE"; exit 1; }
+      [ -f "$INTENT_FILE" ] || { echo "FAIL: design-intent.yaml missing at $INTENT_FILE — run D1-init first"; exit 1; }
+
+      mkdir -p "$DOCS_DIR"
+
+      CURRENT_PRD_HASH=$(sed -e 's/[[:space:]]*$//' "$PRD_FILE" | tr -d '\r' | sha256sum | awk '{print $1}')
+      CURRENT_INTENT_HASH=$(sha256sum "$INTENT_FILE" | awk '{print $1}')
+
+      PRIOR_PRD_HASH=""
+      PRIOR_INTENT_HASH=""
+      if [ -f "$DOCS_DIR/PROJECT_KNOWLEDGE.md" ]; then
+        PRIOR_PRD_HASH=$(awk '/^prd_hash:/{print; exit}' "$DOCS_DIR/PROJECT_KNOWLEDGE.md" | sed 's/.*"\([a-f0-9]\{64\}\)".*/\1/')
+        PRIOR_INTENT_HASH=$(awk '/^intent_hash:/{print; exit}' "$DOCS_DIR/PROJECT_KNOWLEDGE.md" | sed 's/.*"\([a-f0-9]\{64\}\)".*/\1/')
+      fi
+
+      echo "CURRENT_PRD_HASH=$CURRENT_PRD_HASH"
+      echo "CURRENT_INTENT_HASH=$CURRENT_INTENT_HASH"
+
+      if [ "$CURRENT_PRD_HASH" = "$PRIOR_PRD_HASH" ] && [ "$CURRENT_INTENT_HASH" = "$PRIOR_INTENT_HASH" ]; then
+        echo "TECH_SPEC_UP_TO_DATE"
+        echo "SKIP_REGEN=1"
+      else
+        echo "TECH_SPEC_STALE"
+        echo "SKIP_REGEN=0"
+      fi
+    on_failure: fail
+
+  # --- DETERMINISTIC: Split PRD into chunks for A-02 prevention ---
+  - id: split-prd-chunks
+    type: deterministic
+    depends_on: [check-spec-freshness]
+    description: "Split PRD into 400-line chunks for safe agentic Read"
+    command: |
+      CHUNK_DIR="{TARGET_DIR}/{PROJECT_DIR}/context"
+      PRD_FILE="{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"
+      mkdir -p "$CHUNK_DIR"
+
+      # Clear any prior chunks to ensure freshness
+      rm -f "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null
+
+      LINES=$(wc -l < "$PRD_FILE")
+      if [ "$LINES" -le 400 ]; then
+        cp "$PRD_FILE" "$CHUNK_DIR/PRD_chunk_00.md"
+        echo "PRD fits in 1 chunk (${LINES} lines)"
+      else
+        split -l 400 -d --additional-suffix=.md "$PRD_FILE" "$CHUNK_DIR/PRD_chunk_" 2>/dev/null || \
+          awk -v prefix="$CHUNK_DIR/PRD_chunk_" 'BEGIN{n=0} NR%400==1{if(f)close(f); f=sprintf("%s%02d.md",prefix,n++); } {print > f}' "$PRD_FILE"
+        COUNT=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+        echo "PRD split into $COUNT chunks (${LINES} lines)"
+      fi
+    on_failure: fail
+
+  # --- AGENTIC: Generate PROJECT_KNOWLEDGE.md from PRD + intent ---
+  - id: generate-knowledge
+    type: agentic
+    depends_on: [split-prd-chunks]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+        - ".claude/$BACKEND/guides/workflow-convert-prd-to-knowledge.md"
+    prompt: |
+      Execute Phase D2 Step D2.3 — generate PROJECT_KNOWLEDGE.md.
+
+      Input:
+      - PRD (pre-split into PRD_chunk_*.md — read all chunks in order)
+      - design-intent.yaml (screens, endpoints_inferred, forms_inferred, roles_summary, realtime_hints)
+
+      Follow workflow-convert-prd-to-knowledge.md skill, with these augmentations from intent:
+      - Each intent screen → a feature area (link to HTML file path)
+      - roles_summary → User Types section
+      - realtime_hints → Real-time Features section
+
+      Output: {TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md
+
+      MANDATORY frontmatter at top of file:
+      ---
+      prd_hash: "<current PRD sha256>"
+      intent_hash: "<current intent.yaml sha256>"
+      generated_at: "<ISO8601 now>"
+      generator: dev-2-tech-spec
+      ---
+
+      Use the hashes from the previous check-spec-freshness node output (CURRENT_PRD_HASH, CURRENT_INTENT_HASH).
+
+      Do NOT touch PROJECT_API.md or PROJECT_DATABASE.md in this node.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+
+  # --- AGENTIC: Generate PROJECT_API.md with Screen↔Endpoints + Role×Endpoint ---
+  - id: generate-api
+    type: agentic
+    depends_on: [generate-knowledge]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - ".claude/$BACKEND/guides/workflow-convert-prd-to-knowledge.md"
+    prompt: |
+      Execute Phase D2 Step D2.4 — generate PROJECT_API.md.
+
+      Follow dev-2-tech-spec.md layout. Required sections (in order):
+
+      1. Frontmatter (prd_hash, intent_hash, generated_at, generator)
+      2. Section A — Endpoints (flat spec, one block per unique endpoint)
+         - Dedupe across screens by (method, path)
+         - For each: method, path, roles (from which screens reference it), request schema (from form fields), response schema (from PRD or TBD), auth requirement, used-in-screens list
+      3. Section B — Screen → Endpoints (markdown table)
+      4. Section C — Endpoint → Screens (reverse, for impact analysis)
+      5. Section D — Role × Endpoint authz matrix (markdown matrix)
+      6. Section E — Real-time endpoints (from realtime_hints)
+      7. Section F — TBD (aggregated from screens[].tbd)
+
+      Input hashes must match check-spec-freshness node output. Write to:
+      {TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+
+  # --- AGENTIC: Generate PROJECT_DATABASE.md with form-derived fields ---
+  - id: generate-database
+    type: agentic
+    depends_on: [generate-api]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/design-intent.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+        - ".claude/$BACKEND/guides/workflow-convert-prd-to-knowledge.md"
+    prompt: |
+      Execute Phase D2 Step D2.5 — generate PROJECT_DATABASE.md.
+
+      Follow dev-2-tech-spec.md. Derive entities from PRD + augment with form-inferred fields from intent:
+      - For each forms_inferred across all screens:
+        - Infer target entity (form name mapping: 'ban-user' → UserBan, 'create-order' → Order)
+        - Form field → entity column (name, type inferred, NOT NULL from required, pattern → validation)
+
+      Required frontmatter (same 4 fields as other 2 docs).
+
+      Body sections:
+      - Entities (each with fields, types, constraints, relationships)
+      - Indexes
+      - Migrations strategy
+      - "Form-derived fields" table (map form → entity → fields) — engineers review and adjust
+
+      Write to: {TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+
+  # --- DETERMINISTIC: Gate ---
+  - id: gate
+    type: deterministic
+    depends_on: [generate-database]
+    command: "bash {CLAUDE_DIR}/gates/dev-2-tech-spec-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.9"
+
+  # --- AGENTIC: Update PIPELINE_STATUS.md with row key D2-tech-spec ---
+  - id: update-pipeline-status
+    type: agentic
+    depends_on: [gate]
+    prompt: |
+      Update {TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md for phase D2-tech-spec.
+
+      IMPORTANT: Use row key "D2-tech-spec".
+
+      Progress Table row:
+        Status: Complete
+        Score: (from gate proof)
+        Output: "3 PROJECT_*.md regenerated (prd_hash + intent_hash recorded)"
+
+      Execution Log: append with ISO8601 timestamp.
+      Config: update last_run.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{STATUS_DIR}/**"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

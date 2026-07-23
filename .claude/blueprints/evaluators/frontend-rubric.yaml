@@ -1,0 +1,161 @@
+# Rubric for grading frontend-phase output (HTML→React conversion).
+#
+# Consumed by lib/evaluator.js. Runs as an INDEPENDENT subprocess after the
+# frontend phase's existing design-fidelity-check (which is itself an LLM
+# but self-evaluates the same agent's output — a classic self-eval bias risk
+# the article calls out). This evaluator looks at the same artifacts with a
+# different rubric and a fresh context, providing the external check.
+#
+# Same anchored-score + few-shot calibration pattern as design-rubric.yaml.
+
+name: frontend-evaluation
+version: 1
+
+scope: >
+  Generated React/TypeScript components under frontend/app/ (pages, layouts,
+  shared atoms, guards) — RR7 framework mode uses `app/` as the source root,
+  not `src/`. Graded against the source HTML prototypes at
+  .claude-project/design/html/*.html and the DESIGN_SYSTEM.md token table.
+  The evaluator does not check whether the code compiles (build/typecheck
+  gates already do that) — only whether the converted React faithfully
+  reflects the design source, follows token discipline, extracts shared
+  components properly, and includes the UX completeness elements declared
+  in the frontend rules (logo home link, 404 catch-all, role guards, empty
+  + loading states, no dead buttons, no mock data).
+
+criteria:
+
+  fidelity:
+    weight: 0.30
+    question: >
+      Does each React page reflect its source HTML 1:1 in content, structure,
+      and visual elements? Every text block, form field, button, status chip,
+      and decorative element from the HTML must appear in the corresponding
+      TSX (RULE-F7). Layout structure (sections, grids, sidebar/main) must
+      match.
+    anchors:
+      - score: 1.0
+        description: >
+          Every HTML page has a matching React component. All visible text,
+          form fields (same names + types + placeholders), buttons (same
+          labels + count), interactive elements, and decorative/structural
+          elements present in the HTML appear in the React. No omissions.
+      - score: 0.7
+        description: >
+          The vast majority of pages match. 1-3 pages have small omissions
+          (a status chip missing, one form field renamed, one decorative
+          element dropped). Layout structure intact across the board.
+      - score: 0.4
+        description: >
+          Several pages diverge from HTML. Form fields missing or renamed
+          significantly. Buttons removed. Layout restructured without
+          justification. Reads as "inspired by the HTML" not "converted
+          from the HTML."
+      - score: 0.1
+        description: >
+          React pages bear little resemblance to the HTML source. Missing
+          pages, structural rewrites, large blocks of HTML content not
+          represented in the TSX.
+
+  token_discipline:
+    weight: 0.25
+    question: >
+      Do the converted React components use DESIGN_SYSTEM.md tokens
+      (color palette, type scale, spacing, component variants) consistently?
+      Or do they introduce ad-hoc Tailwind classes that don't appear in
+      the token table?
+    anchors:
+      - score: 1.0
+        description: >
+          Every visible style class resolves to a DESIGN_SYSTEM token. No
+          raw hex, no arbitrary tailwind values outside the declared scale.
+          Buttons use declared variants (primary/secondary/etc.). Status
+          badges use the declared status color mappings.
+      - score: 0.7
+        description: >
+          Tokens dominate. A small number of pages have 1-2 ad-hoc values
+          for legitimate reasons (unique pixel-perfect spec from RULE-F8).
+          No systemic deviation.
+      - score: 0.4
+        description: >
+          Mixed token + ad-hoc throughout. Multiple pages with raw Tailwind
+          color classes, custom font sizes outside the type scale,
+          inconsistent component variants.
+      - score: 0.1
+        description: >
+          Tokens largely ignored. Each page uses its own ad-hoc values.
+          DESIGN_SYSTEM.md might as well not exist.
+
+  componentization:
+    weight: 0.20
+    question: >
+      Are shared elements (Layouts, navigation, status badges, modals,
+      guards) extracted into reusable components per the frontend file
+      organization rules (RULE-F1, components/ structure)? Or are they
+      duplicated inline across pages?
+    anchors:
+      - score: 1.0
+        description: >
+          Every shared element is a component: Layouts in components/layouts/,
+          status badges as atoms, modals in components/modals/, route guards
+          in components/guards/. Pages are thin compositions, not 500-line
+          monoliths. Same Navbar/Footer code appears in exactly one place.
+      - score: 0.7
+        description: >
+          Most shared elements extracted. 1-2 components inlined where they
+          should be shared (e.g., status badge duplicated on 3 pages instead
+          of one StatusBadge atom).
+      - score: 0.4
+        description: >
+          Some extraction but a lot of duplication. Layout markup repeated
+          across pages. Status badge logic copy-pasted. Pages are bloated.
+      - score: 0.1
+        description: >
+          Almost no componentization. Each page is a self-contained monolith.
+          Changes to a shared element require editing N files.
+
+  completeness:
+    weight: 0.25
+    question: >
+      Are the required UX patterns + role guards + state UIs present?
+      - Logo/brand wrapped in <Link to="/"> (RULE-F4)
+      - 404 catch-all route present (RULE-F4)
+      - Role-scoped pages have ProtectedRoute or role checks (RULE-F5)
+      - Empty/loading states for async data (RULE-F4)
+      - No dead buttons (RULE-F2 — every button has handler/type/disabled/aria)
+      - No hardcoded mock data (RULE-F6 — empty arrays/zero defaults instead)
+    anchors:
+      - score: 1.0
+        description: >
+          Every required pattern is present in every applicable file. Logo
+          links home in every Layout. 404 route declared. Every role-scoped
+          page has a guard. Empty + loading states designed for every list
+          page. No dead buttons. No mock arrays.
+      - score: 0.7
+        description: >
+          Most patterns present. 1-2 specific misses (e.g., 1 admin page
+          without a role guard, or 1 list page missing its empty state).
+          No dead buttons, no mock data.
+      - score: 0.4
+        description: >
+          Multiple gaps. Several role-scoped pages have no guard. Empty
+          states missing across the board. Some buttons render but don't
+          do anything. Hardcoded mock arrays in 1-2 pages.
+      - score: 0.1
+        description: >
+          Patterns largely missing. Logo not linkified. No 404. No role
+          guards on protected pages. Dead buttons everywhere. Mock data
+          baked into the rendered output.
+
+output_format:
+  type: json
+  required_fields:
+    - overall_score
+    - weighted_breakdown
+    - blockers
+    - rationale
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    overall_score = sum(criterion_score * criterion_weight) rounded to 3 dp.
+    P0 = unshippable (e.g., no role guards on protected pages, broken
+    fidelity on >50% of pages). P1 = should fix before ship. P2 = nice-to-fix.

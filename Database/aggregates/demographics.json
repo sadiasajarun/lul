@@ -1,0 +1,137 @@
+{
+  "generated_by": "scripts/aggregate.mjs",
+  "source": "Database/*.csv + summary_dataset.json",
+  "by_program": {
+    "abal": {
+      "rows": 55199,
+      "gender": {
+        "Boy": 24868,
+        "Girl": 30322,
+        "Other": 9
+      },
+      "disability": {
+        "Not Applicable": 42051,
+        "Vision": 94,
+        "Speech": 242,
+        "-": 12068,
+        "Mental": 132,
+        "Physical": 482,
+        "Hearing": 55,
+        "Other": 57,
+        "Multiple": 18
+      },
+      "ethnicity": {
+        "Not Applicable": 43090,
+        "-": 12023,
+        "Others": 84,
+        "Chakma": 2
+      },
+      "religion": {
+        "Islam": 53033,
+        "-": 628,
+        "Hindu": 1526,
+        "Christian": 9,
+        "Buddhist": 3
+      },
+      "nutrition": {
+        "Good": 45484,
+        "Not so good": 1718,
+        "-": 7907,
+        "Bad": 90
+      },
+      "division": {
+        "Dhaka": 25469,
+        "Chattogram": 10733,
+        "Mymensingh": 18989,
+        "Rangpur": 8
+      }
+    },
+    "catchup": {
+      "rows": 191409,
+      "gender": {
+        "Girl": 106946,
+        "Boy": 84417,
+        "Other": 46
+      },
+      "disability": {
+        "Not Applicable": 161122,
+        "-": 29346,
+        "Physical": 331,
+        "Speech": 169,
+        "Other": 172,
+        "Vision": 89,
+        "Mental": 101,
+        "Multiple": 23,
+        "Hearing": 56
+      },
+      "ethnicity": {
+        "Not Applicable": 158869,
+        "-": 25607,
+        "Others": 6124,
+        "Garo": 72,
+        "Chakma": 86,
+        "Kuki": 1,
+        "Marma": 650
+      },
+      "religion": {
+        "Islam": 181666,
+        "Hindu": 6899,
+        "-": 916,
+        "Christian": 416,
+        "Buddhist": 1512
+      },
+      "nutrition": {
+        "Good": 157071,
+        "-": 29415,
+        "Not so good": 4677,
+        "Bad": 246
+      },
+      "division": {
+        "Dhaka": 82707,
+        "Chattogram": 46379,
+        "Mymensingh": 62320,
+        "Sylhet": 3
+      }
+    },
+    "innovation": {
+      "rows": 3877,
+      "gender": {
+        "Girl": 1895,
+        "Boy": 1981,
+        "Other": 1
+      },
+      "disability": {
+        "Not Applicable": 2259,
+        "Speech": 1,
+        "-": 1581,
+        "Multiple": 2,
+        "Other": 33,
+        "Physical": 1
+      },
+      "ethnicity": {
+        "Not Applicable": 250,
+        "Others": 2678,
+        "-": 780,
+        "Marma": 166,
+        "Chakma": 3
+      },
+      "religion": {
+        "Islam": 1676,
+        "Hindu": 11,
+        "Christian": 709,
+        "Buddhist": 1284,
+        "-": 195,
+        "Unknown": 2
+      },
+      "nutrition": {
+        "Good": 3094,
+        "-": 783
+      },
+      "division": {
+        "Dhaka": 150,
+        "Mymensingh": 59,
+        "Chattogram": 3668
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+version: 1
+agent: happy-path-writer
+total_learnings: 4
+learnings:
+  - id: LRN-001
+    source: GP-004
+    missed: >
+      Did not cover the case where numeric columns (membersCount, projectsCount, etc.) in CRUD list
+      page stories all display 0 or "—" and are passed as success. Failed to detect the bug where
+      backend does not return ORM computed field (_count), always showing 0.
+    rule: >
+      When generating Tier 5 (CRUD Operations) or Tier 7 (Empty & Error States) list stories:
+      If table has numeric/count columns, must add the following assertion:
+      "Verify at least 1 row has a non-zero count column value"
+      Example: "Verify first row's membersCount > 0"
+      FAIL if all rows are 0 or have identical values — suspect missing API response.
+    date: "2026-03-18"
+
+  - id: LRN-002
+    source: stub_button-001
+    missed: >
+      Failed to verify stub buttons in happy path stories where buttons exist in JSX
+      but have no onClick handler. Passed after button click with no side effect (network request, modal, navigation).
+    rule: >
+      In Tier 1/2 (Core Actions) stories, after every button click step,
+      must assert at least 1 side effect:
+      network request fired, modal opened, state changed, or page navigation.
+      "Button click -> no change" is always treated as FAIL.
+    date: "2026-03-19"
+
+  - id: LRN-003
+    source: session_lifecycle-002
+    missed: >
+      Did not include direct URL access or page refresh scenarios for protected pages in happy path.
+      Only tested post-login SPA navigation, failing to detect in-memory token loss case.
+    rule: >
+      Include the following step in Tier 1 stories for all auth-required pages:
+      "After page refresh (reload), verify content displays normally within 5 seconds"
+      FAIL if blank screen persists for more than 2 seconds.
+    date: "2026-03-19"
+
+  - id: LRN-004
+    source: image_url-001
+    missed: >
+      Did not verify image rendering on pages containing images. Even when img src is
+      empty string or relative path, only a broken image icon is displayed while
+      test passes as page load success.
+    rule: >
+      In Tier 1 stories for pages displaying images (viewer, gallery, profile, card thumbnails),
+      assert "image actually loads (naturalWidth > 0)" or "placeholder image is displayed".
+      FAIL if img src is empty string.
+    date: "2026-03-19"
+
+# Learnings are added by bug-feedback-loop when a bug is traced to this agent
+# Schema per learning:
+#   - id: LRN-001
+#     source: BUG-003
+#     missed: "what this agent should have caught"
+#     rule: "new rule to follow in future generations"
+#     date: "YYYY-MM-DD"

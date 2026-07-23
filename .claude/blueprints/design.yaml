@@ -1,0 +1,233 @@
+name: design-phase
+description: Design Guide + 3 Variations + Client Confirmation (MANDATORY) + Full HTML Generation
+version: 1
+manifest: design
+
+nodes:
+  # --- AGENTIC: Step 1.5 — Domain & Reference Research ---
+  - id: domain-research
+    type: agentic
+    skill: ".claude/skills/design/prd-to-design-guide/SKILL.md"
+    prompt: |
+      Run PHASE 2.5 ONLY — Domain & Reference Research:
+      1. Extract industry/domain, competitors, and design references from PRD
+      2. Research UI patterns of top 3-5 competitors via WebSearch
+      3. Derive standard sections/elements per page type (Landing, Dashboard, Detail)
+      4. Deep research into actual latest UI patterns of PRD-specified references
+      5. Save results to {PROJECT_DIR}/design/{PROJECT}_DomainResearch.md
+
+      These research results will be injected as context in subsequent steps (Design Guide + HTML generation).
+      DO NOT generate Design Guide or DESIGN_SYSTEM in this step.
+    tool_profile:
+      allow: [Read, Write, Bash, Grep, Glob, WebSearch, WebFetch]
+
+  # --- AGENTIC: Step 3a + 3b + 3c — Design Guide + 3 variations + 9 preview HTML ---
+  - id: design-variations
+    type: agentic
+    skill: ".claude/skills/design/prd-to-design-guide/SKILL.md"
+    depends_on: [domain-research]
+    prompt: |
+      Run Phase 3 Steps 3a → 3b → 3c:
+      FIRST read {PROJECT_DIR}/design/{PROJECT}_DomainResearch.md (from previous step)
+      3a: Generate Design Guide + 3 DESIGN_SYSTEM variants (A, B, C) — incorporating domain research findings
+      3b: Generate representative page prompts (3 pages × 3 styles)
+      3c: Generate 9 preview HTML files (A/B/C × landing/dashboard/detail)
+
+      CRITICAL VARIATION RULES (MUST comply):
+      - The 3 variations MUST have **different background color themes** (e.g., dark + cream + white)
+      - Do NOT apply PRD color tokens **identically** across all 3
+      - PRD primary color must be **interpreted differently** in each variation (gradient glow vs pastel+accent colors vs sparse accent)
+      - Assign a **different design company reference** to each variation (e.g., Linear vs Notion vs Apple)
+      - Select 3 from the Variation Archetype Library in 03-design.md, but **Themes must not overlap**
+      - **5 or more of the 7 items** in the PHASE 3.5 differentiation verification checklist in prd-to-design-guide SKILL.md **must differ**
+      - If the checklist does not pass, swap archetypes and regenerate
+
+      Output: {PROJECT_DIR}/design/variations/{A|B|C}-0{1|2|3}-{page}.html
+      DO NOT proceed to Step 3d or 3e — stop after 9 HTML files are generated.
+
+  # --- DETERMINISTIC: Validate design HTML meets all MANDATORY requirements ---
+  - id: validate-design-output
+    type: deterministic
+    description: "Validate design HTML meets all MANDATORY requirements"
+    command: |
+      DIR="{TARGET_DIR}/{PROJECT_DIR}/design/variations"
+      ERRORS=0
+
+      # 1. Phone Frame check (mobile pages must have phone-frame class)
+      for f in "$DIR"/*-0[1-3]-*.html; do
+        if [ -f "$f" ]; then
+          # Check if this page should be mobile (based on content/structure)
+          if ! grep -q 'phone-frame\|max-width.*1440' "$f" 2>/dev/null; then
+            echo "FAIL: $f missing device frame (phone-frame or desktop max-width)"
+            ERRORS=$((ERRORS+1))
+          fi
+        fi
+      done
+
+      # 2. No position:fixed in mobile pages (except var-nav-bar)
+      for f in "$DIR"/*-0[1-3]-*.html; do
+        if [ -f "$f" ] && grep -q 'phone-frame' "$f"; then
+          FIXED_COUNT=$(grep -c 'position:fixed\|position: fixed' "$f" 2>/dev/null || echo 0)
+          NAV_COUNT=$(grep -c 'var-nav-bar' "$f" 2>/dev/null || echo 0)
+          if [ "$FIXED_COUNT" -gt "$NAV_COUNT" ]; then
+            echo "FAIL: $f has position:fixed elements outside nav bar"
+            ERRORS=$((ERRORS+1))
+          fi
+        fi
+      done
+
+      # 3. Showcase exists
+      if [ ! -f "$DIR/showcase-ALL.html" ]; then
+        echo "FAIL: showcase-ALL.html missing"
+        ERRORS=$((ERRORS+1))
+      fi
+
+      # 4. In-page navigation exists in all variation HTML files
+      for f in "$DIR"/[A-Z]-0*.html; do
+        if [ -f "$f" ] && ! grep -q 'var-nav-bar' "$f" 2>/dev/null; then
+          echo "FAIL: $f missing in-page variation navigation"
+          ERRORS=$((ERRORS+1))
+        fi
+      done
+
+      # 5. Generation method not exposed in showcase
+      if grep -qi 'claude\|gemini\|openai\|anthropic' "$DIR/showcase-ALL.html" 2>/dev/null; then
+        echo "WARN: showcase-ALL.html may expose generation method"
+      fi
+
+      if [ $ERRORS -gt 0 ]; then
+        echo "DESIGN_VALIDATION_FAILED: $ERRORS errors found"
+        exit 1
+      fi
+      echo "DESIGN_VALIDATION_PASSED"
+    on_failure: fail
+
+  # --- DETERMINISTIC: Generate showcase pages for easy comparison ---
+  - id: generate-showcases
+    type: deterministic
+    description: "Generate variation-centric showcase page with visual differentiation per variation"
+    depends_on: [validate-design-output]
+    command: |
+      DIR="{TARGET_DIR}/{PROJECT_DIR}/design/variations"
+      # Showcase generation is handled by the LLM agent following the Step 3c.5 specification
+      # The specification defines: variation-centric layout, visual differentiation, platform-aware preview sizing
+      # Validation of the generated showcase is done by validate-design-output
+      echo "SHOWCASE_GENERATED"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: 3d PAUSE enforcement — ABORT if no variation selected ---
+  # If this node FAILs, the pipeline stops and requires user selection
+  # Blocks all bypass attempts including --skip-review, agent arbitrary progression, etc.
+  - id: require-variation-selection
+    type: deterministic
+    description: "ABORT if approved: true is missing from DESIGN_STATUS.md — user must select a variation"
+    command: |
+      STATUS_FILE=""
+      for candidate in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$candidate" ] && STATUS_FILE="$candidate" && break
+      done
+
+      if [ -z "$STATUS_FILE" ]; then
+        echo "FAIL: DESIGN_STATUS.md not found — Step 3d (client confirmation) has not run"
+        exit 1
+      fi
+
+      if ! grep -q 'approved: true' "$STATUS_FILE" 2>/dev/null; then
+        VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" 2>/dev/null | sed 's/.*: *//')
+        echo "FAIL: Design not approved by client."
+        echo "  DESIGN_STATUS.md exists but approved: true is missing."
+        echo "  selected_variation: ${VARIATION:-'(not set)'}"
+        echo ""
+        echo "  → Show the 3 design variations (A/B/C) to the user and get their selection."
+        echo "  → After selection, record approved: true in DESIGN_STATUS.md."
+        exit 1
+      fi
+
+      VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" | sed 's/.*: *//' | tr -d ' "')
+      echo "Design approved: variation ${VARIATION} selected by client"
+    on_failure: abort
+    abort_message: |
+      ⏸ DESIGN REVIEW REQUIRED
+
+      You must share the 3 design variations (A/B/C) x 3 pages with the user and get their selection.
+      After the user selects, record approved: true in DESIGN_STATUS.md and re-run /fullstack.
+
+      This step cannot be bypassed by any flag, including --skip-review.
+
+  # --- AGENTIC: Step 3e + 3f + 3g — Full HTML generation + QA ---
+  - id: design-full-generation
+    type: agentic
+    skill: ".claude/skills/design/generate-html/SKILL.md"
+    prompt: |
+      Run Phase 3 Steps 3e → 3f → 3g:
+      3e: Full HTML generation for ALL PRD pages using confirmed variation DESIGN_SYSTEM
+      3f: Design QA — generate DESIGN_SYSTEM_{variation}.md
+      3g: Upload all HTML files to client
+
+      The confirmed variation is already set in DESIGN_STATUS.md (approved: true).
+      Follow 03-design.md Step 3e instructions exactly.
+
+      When ALL steps (3e + 3f + 3g) are complete, append to DESIGN_STATUS.md:
+        phase_complete: true
+
+  # --- DETERMINISTIC: Phase 3 completion marker check ---
+  # Verify that design-full-generation recorded phase_complete: true
+  # Without this marker, Phase 3.5 (user-stories) cannot start
+  - id: mark-design-complete
+    type: deterministic
+    description: "Verify 3e+3f+3g completion — FAIL if phase_complete: true is missing"
+    command: |
+      STATUS_FILE=""
+      for candidate in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$candidate" ] && STATUS_FILE="$candidate" && break
+      done
+
+      if ! grep -q 'phase_complete: true' "$STATUS_FILE" 2>/dev/null; then
+        echo "FAIL: phase_complete: true not found in DESIGN_STATUS.md"
+        echo "  Steps 3e (full HTML), 3f (QA), 3g (upload) must all complete before Phase 3 is done."
+        exit 1
+      fi
+
+      HTML_COUNT=$(find "{TARGET_DIR}/{PROJECT_DIR}/design" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
+      echo "Phase 3 complete: phase_complete=true, $HTML_COUNT HTML files generated"
+    on_failure: abort
+    abort_message: |
+      ⏸ PHASE 3 INCOMPLETE
+
+      Steps 3e (full HTML generation) → 3f (Design QA) → 3g (upload) have not completed.
+      phase_complete: true marker is missing from DESIGN_STATUS.md.
+
+      Phase 3.5 (user-stories) CANNOT start until Phase 3 is fully done.
+      → Re-run: /fullstack {project} --phase design
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/design-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.9"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/design.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for design. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/design-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking, playwright]

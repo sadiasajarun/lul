@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "description": "Operations skill triggers - PRD generation and project management",
+  "skills": {
+    "input-classifier": {
+      "type": "guardrail",
+      "enforcement": "block",
+      "priority": "critical",
+      "file": "client/prd/input-classifier/SKILL.md",
+      "fileTriggers": {
+        "pathPatterns": [".claude-project/prd/*_PRD_*.md"]
+      },
+      "blockMessage": "BLOCKED: Input classification required before PRD modification.\n\nRun input-classifier skill first to analyze the input file.\nThis ensures proper handling of Q&A answers vs scope changes."
+    }
+  }
+}

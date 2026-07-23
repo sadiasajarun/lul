@@ -1,0 +1,19 @@
+{
+  "purpose": "CLAIM",
+  "description": "LIVE smoke test — to be cancelled immediately via 계약의 해제",
+  "supplied": {
+    "identificationNumber": "3218603271",
+    "organizationName": "주식회사 케이톡",
+    "representativeName": "신동섭",
+    "managers": [{ "email": "admin@ktalk.live" }]
+  },
+  "items": [
+    {
+      "name": "Live 연동 검증 (즉시 취소 예정)",
+      "unitPrice": 1000,
+      "quantity": 1,
+      "supplyCost": 1000,
+      "tax": 100
+    }
+  ]
+}

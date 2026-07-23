@@ -1,0 +1,175 @@
+# Rubric for grading backend-phase output (NestJS API + tests).
+#
+# Backend has many deterministic gates (Swagger, class-validator, base
+# classes, no-any-types, infrastructure modules, seed scripts) — those
+# catch mechanical correctness. This evaluator grades dimensions that
+# can't be regex'd: REST API design quality, business logic depth,
+# error specificity, and whether tests cover edge cases or just the
+# happy path.
+#
+# The phase already has a `review` agentic node that grades its own
+# implementation — same self-eval bias risk as elsewhere. This evaluator
+# runs in a fresh subprocess on the same files for the independent check.
+
+name: backend-evaluation
+version: 1
+
+scope: >
+  NestJS modules under backend/src/modules/* (controllers, services,
+  entities, DTOs) and e2e tests under backend/test/, graded against
+  the API spec in PROJECT_API.md and the domain in PROJECT_KNOWLEDGE.md.
+  The evaluator does not check whether code compiles or tests pass —
+  those are deterministic gates. It grades whether the API is well-
+  designed, business logic complete, errors specific, and tests
+  meaningful.
+
+criteria:
+
+  api_design:
+    weight: 0.25
+    question: >
+      Does the API follow REST conventions consistently? Resource paths
+      kebab/plural, verbs map to HTTP methods correctly (GET/POST/PATCH/
+      DELETE), status codes appropriate (201 on create, 204 on delete,
+      not 200 for everything), pagination + filtering on list endpoints,
+      idempotency where it matters? Or is it RPC-shaped masquerading as
+      REST?
+    anchors:
+      - score: 1.0
+        description: >
+          Resource paths use plural kebab-case (/applications, /document-
+          uploads). Methods match: GET for reads, POST for create, PATCH
+          for partial update, DELETE for remove. 201 on create with
+          Location header, 204 on delete, 404 on missing. Pagination
+          query params consistent (?page=&limit=). Sort params consistent.
+      - score: 0.7
+        description: >
+          Mostly RESTful. 1-2 verbs misused (PUT instead of PATCH, or
+          POST /resources/:id/delete instead of DELETE). One inconsistent
+          status code. Pagination present but inconsistent param names
+          across endpoints.
+      - score: 0.4
+        description: >
+          REST shape but multiple violations. POST used for reads. Status
+          codes default to 200 everywhere. No pagination on list endpoints
+          (will break at scale). Resource paths inconsistent (singular
+          and plural mixed).
+      - score: 0.1
+        description: >
+          RPC pretending to be REST. /api/getApplicationsByUser and
+          similar verb-paths. Everything POSTs. Status code is 200 OK
+          regardless of outcome. No pagination.
+
+  business_logic_completeness:
+    weight: 0.30
+    question: >
+      Do services actually implement the domain rules described in PRD/
+      PROJECT_KNOWLEDGE.md, or are they CRUD shells that delegate
+      everything to the repository? For each declared business rule
+      (e.g. "admin must confirm bank-transfer before status changes",
+      "an application cannot be cancelled after deposit confirmation"),
+      is the rule visibly enforced in service code?
+    anchors:
+      - score: 1.0
+        description: >
+          Every domain rule from PRD has a corresponding service method
+          that enforces it. State transitions guarded ("can't cancel after
+          deposit"). Permissions checked at service layer, not just
+          controllers. Cross-entity invariants (e.g. application total
+          == sum(line_items)) maintained in transactions.
+      - score: 0.7
+        description: >
+          Core domain rules enforced. 1-2 stretch rules implemented as
+          TODOs or simplified to the happy path. State transitions guarded
+          for primary flows; secondary state machines (refund, dispute)
+          partially modeled.
+      - score: 0.4
+        description: >
+          Services are mostly thin CRUD wrappers. Domain rules referenced
+          in PRD aren't enforced in code — services accept any state
+          transition, any role does any operation. Side effects fire
+          regardless of business state.
+      - score: 0.1
+        description: >
+          Pure CRUD shell. Service methods are findById / findAll /
+          create / update / remove with no domain logic. Business rules
+          from PRD don't appear anywhere in source.
+
+  error_handling_specificity:
+    weight: 0.20
+    question: >
+      Are errors specific NestJS exceptions (NotFoundException,
+      ConflictException, ForbiddenException, BadRequestException) with
+      meaningful messages, or generic 500 / "Internal server error"
+      everywhere? Do mutations produce useful field-level validation
+      errors? Are concurrency conflicts handled?
+    anchors:
+      - score: 1.0
+        description: >
+          Specific exception per failure mode. 404 with resource id,
+          409 with what conflicted, 403 with required role, 400 with
+          field-level validation. Error responses include a code field
+          for client-side i18n. Concurrency conflicts (optimistic locks
+          / unique constraint races) caught and translated.
+      - score: 0.7
+        description: >
+          Most failures use specific exceptions. 1-2 paths still throw
+          generic Error. Validation errors mostly returned per-field but
+          some concatenate into one string. Concurrency mostly handled.
+      - score: 0.4
+        description: >
+          Specific exceptions for not-found and validation but everything
+          else is a generic 500. No field-level errors — just a top-level
+          message. Concurrency conflicts crash with database driver
+          errors leaking to client.
+      - score: 0.1
+        description: >
+          Bare try/catch with `throw new Error(message)` everywhere.
+          Status code is 500 by default. No structured error response.
+          Database errors propagate raw (PostgreSQL constraint names
+          surface to API consumers).
+
+  test_meaningfulness:
+    weight: 0.25
+    question: >
+      Do e2e tests cover edge cases (auth required, validation failures,
+      conflicts, missing resources, role permissions) or just the happy
+      path? Are assertions specific (status code + response shape +
+      side-effect verification) or just `expect(response.status).toBe(200)`?
+    anchors:
+      - score: 1.0
+        description: >
+          Each endpoint has at minimum: happy path, 401 unauthenticated,
+          403 wrong role, 400 validation failure, 404 missing resource,
+          409 conflict where applicable. Assertions verify response shape
+          AND side effects (was the entity actually persisted? did the
+          email send?). Test fixtures cleaned up.
+      - score: 0.7
+        description: >
+          Happy + auth + 1-2 negative paths covered per endpoint. Most
+          assertions check shape, some still bare-status. Side effects
+          mostly checked. Cleanup mostly correct.
+      - score: 0.4
+        description: >
+          Happy path only on most endpoints. A few negative tests on
+          auth. No 403 / 409 / 400 coverage. Assertions are toBe(200) /
+          toBe(201) without shape checks.
+      - score: 0.1
+        description: >
+          Single happy-path test per endpoint. Status code only.
+          No edge cases. Tests pass even when the implementation is
+          obviously broken (e.g. returning empty array always).
+
+output_format:
+  type: json
+  required_fields:
+    - overall_score
+    - weighted_breakdown
+    - blockers
+    - rationale
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    P0 = unshippable: domain rule from PRD not implemented (e.g. payment
+    flow is a stub), authentication completely missing, tests passing
+    for broken code. P1 = should fix: REST violations, generic errors,
+    happy-path-only tests on critical endpoints. P2 = nice-to-fix.

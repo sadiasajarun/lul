@@ -1,0 +1,90 @@
+{
+  "version": "demo-mru7iaot",
+  "kpis": [
+    {
+      "id": "kpi.students.total",
+      "statement": "The programme serves 4,000 enrolled learners across 3 programmes.",
+      "value": 4000,
+      "unit": "count"
+    },
+    {
+      "id": "kpi.teachers.total",
+      "statement": "There are 200 teachers.",
+      "value": 200,
+      "unit": "count"
+    },
+    {
+      "id": "kpi.mainstream.rate",
+      "statement": "15% of learners have been mainstreamed into formal school.",
+      "value": 15,
+      "unit": "%"
+    },
+    {
+      "id": "centers.grade.mean",
+      "statement": "Across 40 centres the mean M&E score is 2.9 (of 4).",
+      "value": 2.9,
+      "unit": "score"
+    }
+  ],
+  "wins": [
+    {
+      "id": "equity.gender",
+      "statement": "Girls are at or above parity network-wide (51.1% girls)."
+    },
+    {
+      "id": "attendance.coverage",
+      "statement": "Attendance is fully recorded (100% coverage) and joins to each learner."
+    }
+  ],
+  "issues": [
+    {
+      "id": "mainstream.abal",
+      "statement": "ABAL has mainstreamed only 15.8% of its learners.",
+      "severity": "warn"
+    },
+    {
+      "id": "mainstream.catchup",
+      "statement": "Catchup has mainstreamed only 14.5% of its learners.",
+      "severity": "warn"
+    },
+    {
+      "id": "mainstream.innovation",
+      "statement": "Innovation has mainstreamed only 18% of its learners.",
+      "severity": "warn"
+    },
+    {
+      "id": "dropout.poverty",
+      "statement": "Poverty drives 46.9% of dropouts (130 learners).",
+      "severity": "warn"
+    }
+  ],
+  "actions": [
+    {
+      "id": "centers.poor",
+      "statement": "7 centres score Poor (below 2/4) — route field support here first.",
+      "severity": "warn"
+    },
+    {
+      "id": "cash.target",
+      "statement": "Target cash support at the 130 poverty-linked dropouts — the largest addressable driver.",
+      "severity": "watch"
+    },
+    {
+      "id": "learning.weakest",
+      "statement": "Life Skills and Science are the weakest subjects network-wide — concentrate teaching support.",
+      "severity": "watch"
+    }
+  ],
+  "dataQuality": [
+    {
+      "id": "demo.clean",
+      "statement": "Synthetic demo dataset: every table joins on student_id / center_id, attendance & assessments are fully recorded, and all fields are populated.",
+      "severity": "info"
+    },
+    {
+      "id": "demo.synthetic",
+      "statement": "These are generated demonstration figures, not the real programme data.",
+      "severity": "watch"
+    }
+  ]
+}

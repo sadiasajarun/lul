@@ -1,0 +1,81 @@
+# Global Policy Memory
+# Cross-project RL knowledge accumulated across all --loop episodes.
+# Read by infinite-loop.md at generation start to inform phase selection and strategy.
+# Updated after each episode completes.
+#
+# Graduation rule: a pattern enters global memory when observed in 2+ projects
+# with positive reward attribution.
+
+metadata:
+  version: 1
+  created: null          # Set on first episode completion
+  last_updated: null
+  total_episodes: 0
+  total_projects: 0
+  projects_seen: []
+
+# 1. Phase action rewards — which actions yield highest reward per phase
+# Updated after each episode by comparing action → reward pairs
+phase_actions: []
+# Example entry:
+# - phase: backend
+#   action: "Run TDD cycle with strict scope_guard"
+#   avg_reward: 12.5
+#   episodes_observed: 8
+#   projects_observed: ["project-a", "project-b"]
+#   last_updated: "2026-04-09"
+
+# 2. Bug prevention strategies — bug category → best prevention approach
+# Extracted from bugs that were successfully caught early (shift-left wins)
+prevention_strategies: []
+# Example entry:
+# - category: cross_component_gap
+#   strategy: "Add cross-page flow stories in user-stories deepening phase"
+#   success_rate: 0.85
+#   episodes_observed: 5
+#   projects_observed: ["project-a", "project-c"]
+
+# 3. Shift-left success patterns — what catches bugs early
+# Recorded when a bug is caught in phase X that RCA shows would have appeared in phase Y (Y > X)
+shift_left_patterns: []
+# Example entry:
+# - pattern: "Schema validation catches integration bugs"
+#   detection_phase: database
+#   would_have_been: integrate
+#   avg_severity_prevented: "P1"
+#   frequency: 12
+#   projects_observed: ["project-a", "project-b"]
+
+# 4. Stagnation breakers — what works when a phase is stuck
+# Recorded when a stuck phase (3+ generations same score) is unstuck by a specific action
+stagnation_breakers: []
+# Example entry:
+# - phase: test-browser
+#   stuck_at_score_range: [0.80, 0.90]
+#   action: "Deepen user stories to tier 12+ before re-running acceptance"
+#   success_rate: 0.70
+#   episodes_observed: 4
+
+# 5. Phase selection heuristics — context-dependent priority adjustments
+# Learned from reward traces: "in situation X, prioritizing phase Y yields better reward"
+phase_priority_adjustments: []
+# Example entry:
+# - condition: "bug_count.P0 > 0 AND detection_phase == test-browser"
+#   action: "Prioritize re-running origin_phase before test-browser"
+#   avg_reward_improvement: 15.2
+#   episodes_observed: 3
+
+# 6. Production escape log — bugs that escaped to production
+# These have the strongest learning signal (R_escape = -50 × severity)
+# Each escape permanently increases vigilance for similar patterns
+production_escapes: []
+# Example entry:
+# - project: "project-a"
+#   bug_category: "cross_component_gap"
+#   severity: "P0"
+#   origin_phase: "integrate"
+#   should_have_caught_phase: "test-browser"
+#   pattern: "Multi-step form state lost on navigation"
+#   prevention_added: "Add cross-page state persistence story in user-stories"
+#   reward_impact: -500
+#   date: "2026-04-09"

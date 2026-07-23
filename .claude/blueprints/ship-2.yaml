@@ -1,0 +1,262 @@
+name: ship-2
+description: |
+  Production deployment gate — builds, env validation, drift calculation.
+  v2 blueprint with strict artifact contracts.
+version: 2
+manifest: ship
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: require-test-browser-complete
+    type: deterministic
+    description: "Block ship until test-browser phase has PASSed recently"
+    command: |
+      STATUS="{TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md"
+      [ -f "$STATUS" ] || { echo "FAIL: PIPELINE_STATUS.md missing"; exit 1; }
+      if ! grep -q 'test-browser.*Complete' "$STATUS" 2>/dev/null; then
+        echo "FAIL: test-browser phase not marked Complete"
+        exit 1
+      fi
+      echo "test-browser phase is Complete"
+    on_failure: abort
+    abort_message: "Phase 9 (test-browser) must complete before ship"
+
+  - id: require-seed
+    type: deterministic
+    description: "Seed file required for drift calculation"
+    command: |
+      ls {TARGET_DIR}/{STATUS_DIR}/seed*.yaml >/dev/null 2>&1 || { echo "FAIL: no seed file"; exit 1; }
+      echo "Seed file found"
+    on_failure: abort
+
+  # ============================================================================
+  # TIER 1b: PROJECT-ROOT SCAFFOLDS (v78 Tier 3 ops/infra)
+  # ============================================================================
+  # All idempotent / on_failure: ignore — they augment the project without
+  # blocking the ship.
+
+  - id: scaffold-readme
+    type: deterministic
+    description: "v78: project-root README.md derived from PROJECT_KNOWLEDGE.md"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-readme.js \
+        --target "{TARGET_DIR}" \
+        --knowledge "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+    on_failure: ignore
+
+  - id: scaffold-docker-compose
+    type: deterministic
+    description: "v78: project-root docker-compose.yml (postgres + backend + frontend)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-docker-compose.js \
+        --target "{TARGET_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-ci-pipeline
+    type: deterministic
+    description: "v78: .github/workflows/ci.yml (typecheck + test + build for BE + FE)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-ci-pipeline.js \
+        --target "{TARGET_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-sentry-wiring
+    type: deterministic
+    description: "v78: Sentry init for BE (instrument.ts) + FE (lib/sentry.ts) + patch entry files"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-sentry-wiring.js \
+        --target "{TARGET_DIR}"
+    on_failure: ignore
+
+  - id: scaffold-husky-precommit
+    type: deterministic
+    description: "v78: husky pre-commit hook + lint-staged config (prettier on staged files)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-husky-precommit.js \
+        --target "{TARGET_DIR}"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 2: DETERMINISTIC BUILDS
+  # ============================================================================
+
+  - id: backend-build
+    type: deterministic
+    description: "Backend production typecheck + build"
+    command: |
+      cd {TARGET_DIR}/backend
+      # v107: dropped tsconfig.app.json fallback (consistent with v100 backend
+      # + v107 test-api + database). Template never ships tsconfig.app.json.
+      npx tsc --noEmit 2>&1 || exit 1
+      if grep -q '"build"' package.json 2>/dev/null; then
+        npm run build 2>&1 || exit 1
+      fi
+      echo "Backend build OK"
+    on_failure: abort
+    abort_message: "Backend production build failed"
+
+  - id: frontend-build
+    type: deterministic
+    description: "Frontend production build"
+    command: |
+      FRONTEND_DIR=""
+      for c in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$c" ] && FRONTEND_DIR="{TARGET_DIR}/$c" && break
+      done
+      [ -n "$FRONTEND_DIR" ] || { echo "FAIL: no frontend dir"; exit 1; }
+      cd "$FRONTEND_DIR"
+      npm run build 2>&1 || exit 1
+      echo "Frontend build OK"
+    on_failure: abort
+    abort_message: "Frontend production build failed"
+
+  - id: env-example-check
+    type: deterministic
+    description: "Verify .env.example exists and no .env is committed"
+    command: |
+      FAIL=0
+      [ -f "{TARGET_DIR}/.env.example" ] || [ -f "{TARGET_DIR}/{BACKEND_DIR}/.env.example" ] || [ -f "{TARGET_DIR}/{FRONTEND_DIR}/.env.example" ] || { echo "FAIL: no .env.example found"; FAIL=1; }
+      cd {TARGET_DIR} && git ls-files | grep -E '(^|/)\.env$' && { echo "FAIL: .env committed to git"; FAIL=1; }
+      [ "$FAIL" -eq 1 ] && exit 1
+      echo "Env safety OK"
+    on_failure: abort
+
+  - id: no-weak-secrets
+    type: deterministic
+    description: "Scan for default/weak secrets in source"
+    command: |
+      cd {TARGET_DIR}
+      HITS=$(grep -rE "(password|secret|api_?key)\s*[:=]\s*['\"](default|changeme|password|123456|secret|admin|test)['\"]" \
+        --include='*.ts' --include='*.tsx' --include='*.js' backend/src frontend/src 2>/dev/null | wc -l | tr -d ' ')
+      [ "$HITS" -gt 0 ] && { echo "FAIL: $HITS weak/default secret(s) in source"; exit 1; }
+      echo "No weak secrets"
+    on_failure: abort
+
+  - id: no-console-logs
+    type: deterministic
+    description: "Scan for console.log in production source"
+    command: |
+      cd {TARGET_DIR}
+      HITS=$(grep -rn 'console\.log' --include='*.ts' --include='*.tsx' \
+        backend/src frontend/src 2>/dev/null | grep -v 'test\|spec\|__tests__' | wc -l | tr -d ' ')
+      [ "$HITS" -gt 5 ] && { echo "FAIL: $HITS console.log calls in production source (> 5)"; exit 1; }
+      echo "Console.log count: $HITS (acceptable)"
+    on_failure: abort
+
+  # ============================================================================
+  # TIER 3: AGENTIC — drift calculation + ship report
+  # ============================================================================
+
+  - id: calculate-drift
+    type: agentic
+    description: "Calculate spec drift from seed.yaml and write ship decision"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/SHIP_REPORT.md"
+    verification_pattern: "drift_score:\\s*[0-9.]+"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{STATUS_DIR}/seed*.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Calculate drift from the original seed.yaml and write the ship decision report.
+
+      DRIFT FORMULA:
+        drift = 0.5 * goal_drift + 0.3 * constraint_drift + 0.2 * ontology_drift
+
+        goal_drift:       does the built product still serve the seed goal?
+        constraint_drift: were any hard constraints violated?
+        ontology_drift:   are the key ontology terms still as defined?
+
+      Each sub-score is 0.0 (perfect) to 1.0 (completely drifted).
+
+      SHIP DECISION:
+      - drift <= 0.2 → ship_decision: GO
+      - drift > 0.2  → ship_decision: NO_GO
+
+      REPORT FILE: {STATUS_DIR}/SHIP_REPORT.md
+      Required fields (regex-verifiable):
+        phase: ship
+        drift_score: <float 0.0-1.0>
+        goal_drift: <float>
+        constraint_drift: <float>
+        ontology_drift: <float>
+        ship_decision: (GO|NO_GO)
+        backend_build: PASS
+        frontend_build: PASS
+        env_example: PASS
+        weak_secrets: PASS
+        reasoning: <one paragraph>
+
+  # ============================================================================
+  # TIER 4: FINAL GATE (deterministic)
+  # ============================================================================
+
+  - id: enforce-ship-decision
+    type: deterministic
+    description: "FAIL if ship_decision != GO"
+    command: |
+      REPORT="{TARGET_DIR}/{STATUS_DIR}/SHIP_REPORT.md"
+      DECISION=$(grep '^ship_decision:' "$REPORT" | head -1 | sed 's/.*:\s*//' | tr -d ' ')
+      [ "$DECISION" = "GO" ] || { echo "FAIL: ship_decision=$DECISION"; exit 1; }
+      echo "SHIP GO"
+    on_failure: abort
+    abort_message: "Drift too high — ship aborted"
+
+  # ============================================================================
+  # TIER 5: LLM EVALUATOR — VETO MODE
+  # ============================================================================
+  #
+  # Ship is the highest-stakes phase: production deploys are hard to roll
+  # back. Per the article §5, this evaluator uses VETO blend strategy —
+  # either the deterministic gate OR the evaluator can refuse to ship.
+  # Higher bar than other phases.
+  #
+  # Crucial here because calculate-drift above is itself an LLM that
+  # decides GO/NO_GO based on its own self-graded drift math. Independent
+  # second opinion catches over-confident GO decisions.
+  #
+  # Unlike other phases, on_failure: abort — a broken/missing evaluator
+  # blocks the ship. We don't ship without the second opinion.
+
+  - id: ship-evaluator
+    type: evaluator
+    description: "Veto-mode evaluator: shippability + drift validation + ops + rollback readiness"
+    rubric_file: ".claude/blueprints/evaluators/ship-rubric.yaml"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/ship-evaluation.json"
+    verification_pattern: '"overall_score"\s*:\s*[0-9.]+'
+    tool_profile:
+      allow: [Read, Grep, Glob, Bash, Write]
+      deny: [Edit, NotebookEdit, WebFetch, WebSearch]
+    inputs:
+      artifacts:
+        - "{TARGET_DIR}/{BACKEND_DIR}/dist/**/*.js"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/dist/assets/index-*.js"
+        - "{TARGET_DIR}/{BACKEND_DIR}/src/main.ts"
+        - "{TARGET_DIR}/{BACKEND_DIR}/src/database/migrations/*.ts"
+        - "{TARGET_DIR}/.env.example"
+        - "{TARGET_DIR}/{BACKEND_DIR}/.env.example"
+        - "{TARGET_DIR}/{FRONTEND_DIR}/.env.example"
+      references:
+        - "{TARGET_DIR}/{STATUS_DIR}/seed.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/SHIP_REPORT.md"
+      max_files: 30
+      max_chars_per_file: 6000
+    blend:
+      strategy: veto
+      min_evaluator_score: 0.7
+    calibration:
+      examples_file: ".claude/blueprints/evaluators/ship-examples.yaml"
+    on_failure: abort
+    abort_message: "Ship evaluator unavailable — refusing to deploy without independent second opinion"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]

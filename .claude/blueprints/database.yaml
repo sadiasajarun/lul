@@ -1,0 +1,88 @@
+name: database-phase
+description: Design database schema with deterministic validation gates
+version: 2
+manifest: database
+
+outputs:
+  - type: entity_files
+    glob: "backend/src/**/*.entity.ts"
+  - type: migration_files
+    glob: "backend/src/database/migrations/*.ts"
+
+nodes:
+  # --- DETERMINISTIC: Pre-check ---
+  - id: pre-check
+    type: deterministic
+    description: "Verify PRD docs exist before designing schema"
+    command: |
+      test -f {TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md && \
+      test -f {TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md
+    on_failure: abort
+    abort_message: "Phase 2 (prd) must complete first — PROJECT_KNOWLEDGE.md and PROJECT_DATABASE.md required"
+
+  # --- AGENTIC: Schema design ---
+  - id: design-schema
+    type: agentic
+    skill: "$BACKEND/guides/workflow-design-database.md"
+    context:
+      # Backward compat: 'must_read' also accepted
+      additional_read:
+        - "{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+        - ".claude/$BACKEND/guides/architecture-overview.md"
+        - ".claude/$BACKEND/guides/database-patterns.md"
+    prompt: "Design and implement the database schema based on PROJECT_DATABASE.md"
+
+  # --- DETERMINISTIC: TypeScript compile ---
+  - id: typecheck
+    type: deterministic
+    description: "Verify entity files compile"
+    command: |
+      cd {TARGET_DIR}/backend && \
+      npx tsc --noEmit 2>&1
+    # v107: dropped `tsc --project tsconfig.app.json` fallback (same as
+    # backend-2.yaml + test-api-2.yaml fixes). tsconfig.app.json doesn't
+    # ship in the backend template; the fallback was harmless here because
+    # of `on_failure: route_to_agent`, but cleaner to drop the noise.
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # --- DETERMINISTIC: Evidence check (Layer 3) ---
+  - id: evidence-check
+    type: deterministic
+    description: "Verify database phase produced actual artifacts before gate"
+    command: |
+      ENTITY_COUNT=$(find {TARGET_DIR}/backend/src -name '*.entity.ts' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$ENTITY_COUNT" -eq 0 ]; then
+        echo "FAIL: No *.entity.ts files found — database phase did not create entities"
+        exit 1
+      fi
+      echo "PASS: $ENTITY_COUNT entity files found"
+    on_failure: abort
+    abort_message: "Database phase must produce at least 1 entity file. Re-run the phase."
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/database-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.8"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/database.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for database. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/database-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

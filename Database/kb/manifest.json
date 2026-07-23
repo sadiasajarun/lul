@@ -1,0 +1,12 @@
+{
+  "version": "631801009bf8",
+  "generated_from": "summary_dataset.json + Database/aggregates/*",
+  "counts": {
+    "facts": 34,
+    "kpis": 4,
+    "wins": 3,
+    "issues": 8,
+    "actions": 7,
+    "dataQuality": 7
+  }
+}

@@ -1,0 +1,144 @@
+name: user-stories-phase
+description: User story depth enrichment — requires design approval, reads HTML prototypes or TSX
+version: 1
+manifest: user-stories
+
+nodes:
+  # --- DETERMINISTIC: Design approval check — ABORT if missing ---
+  # Phase 3.5 can only run after design confirmation
+  - id: require-design-approved
+    type: deterministic
+    description: "ABORT if approved: true is missing from DESIGN_STATUS.md — cannot run user story depth analysis without design approval"
+    command: |
+      STATUS_FILE=""
+      for candidate in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$candidate" ] && STATUS_FILE="$candidate" && break
+      done
+
+      if [ -z "$STATUS_FILE" ]; then
+        echo "FAIL: DESIGN_STATUS.md not found — Phase 3 design has not run"
+        exit 1
+      fi
+
+      if ! grep -q 'approved: true' "$STATUS_FILE" 2>/dev/null; then
+        echo "FAIL: Design not approved yet (approved: true missing)."
+        echo "  → Complete Phase 3d: show 3 variations to client and get selection."
+        exit 1
+      fi
+
+      if ! grep -q 'phase_complete: true' "$STATUS_FILE" 2>/dev/null; then
+        echo "FAIL: Phase 3 not fully complete (phase_complete: true missing)."
+        echo "  approved: true exists — client selected a variation."
+        echo "  BUT steps 3e (full HTML) + 3f (QA) + 3g (upload) are still pending or in progress."
+        echo ""
+        echo "  Phase 3.5 CANNOT run in parallel with Phase 3e."
+        echo "  HTML prototypes must be fully generated BEFORE user story depth analysis."
+        exit 1
+      fi
+
+      VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" | sed 's/.*: *//' | tr -d ' "')
+      echo "Design fully complete: variation ${VARIATION}, phase_complete=true"
+    on_failure: abort
+    abort_message: |
+      ⏸ PHASE 3 NOT COMPLETE
+
+      Phase 3.5 requires Phase 3 to be FULLY done — including full HTML generation (3e), QA (3f), and upload (3g).
+
+      approved: true = client selected variation ✓
+      phase_complete: true = full HTML generated ✗ ← MISSING
+
+      Phase 3.5 can only start after Phase 3e (full HTML generation) is complete.
+      User story depth analysis is not possible without HTML.
+
+      → Wait for Phase 3 to finish completely.
+      → Then re-run: /fullstack {project} --phase user-stories
+
+  # --- DETERMINISTIC: UI source check — HTML prototypes required if TSX not available ---
+  - id: require-ui-source
+    type: deterministic
+    description: "UI source check — at least one of TSX (Phase 6+) or HTML prototypes (Phase 3+) must exist"
+    command: |
+      TSX_COUNT=$(find "{TARGET_DIR}/frontend/app/pages" -name "*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+      HTML_COUNT=$(find "{TARGET_DIR}/{PROJECT_DIR}/design/variations" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
+
+      if [ "$TSX_COUNT" -gt 0 ]; then
+        echo "UI source: TSX components found ($TSX_COUNT files) — will use React components for depth analysis"
+        exit 0
+      fi
+
+      if [ "$HTML_COUNT" -gt 0 ]; then
+        echo "UI source: HTML prototypes found ($HTML_COUNT files) — will use design HTML for depth analysis"
+        exit 0
+      fi
+
+      echo "FAIL: No UI source found."
+      echo "  TSX components: $TSX_COUNT (frontend/app/pages/**/*.tsx)"
+      echo "  HTML prototypes: $HTML_COUNT ({PROJECT_DIR}/design/variations/**/*.html)"
+      echo ""
+      echo "  Phase 3.5 requires at least HTML prototypes from Phase 3."
+      echo "  → Verify Phase 3 design generation completed and HTML files exist."
+      exit 1
+    on_failure: abort
+    abort_message: |
+      ⏸ UI SOURCE MISSING
+
+      Phase 3.5 needs UI source files to analyze for depth tiers (boundary, error, state, keyboard).
+      Expected HTML prototypes at: {PROJECT_DIR}/design/variations/**/*.html
+
+      → Verify Phase 3 completed successfully (design-variations node generated 9 HTML files)
+      → Re-run: /fullstack {project} --phase design
+
+  # --- AGENTIC: User story depth enrichment ---
+  - id: deepen-user-stories
+    type: agentic
+    skill: ".claude/skills/dev/deepen-user-stories/SKILL.md"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/prd-failure-cases.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/variations/**/*.html"
+        - "{TARGET_DIR}/{STATUS_DIR}/routes.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/user_stories/*.yaml"
+    prompt: |
+      Run Phase 3.5: deepen user story coverage following 03.5-user-stories.md.
+
+      PRD failure cases are pre-loaded in prd-failure-cases.md above.
+      HTML prototypes are pre-loaded from {PROJECT_DIR}/design/variations/.
+      Run Phase 0.3 first: cross-reference prd-failure-cases.md against existing stories
+      to find uncovered failure scenarios before proceeding to the gap analysis algorithm.
+
+      UI Source priority:
+      1. If frontend/app/pages/**/*.tsx exists → use TSX for depth element inventory
+      2. If TSX does not exist → use HTML prototypes (pre-loaded above)
+
+      DO NOT skip routes because TSX is missing.
+      Run the full deepen algorithm until convergence or max iterations.
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/user-stories-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.75"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/user-stories.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for user-stories. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/user-stories-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

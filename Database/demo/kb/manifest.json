@@ -1,0 +1,15 @@
+{
+  "version": "demo-mru7iaot",
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "generated_at_note": "demo",
+  "students": 4000,
+  "centers": 40,
+  "teachers": 200,
+  "tables": [
+    "students",
+    "attendance",
+    "assessments",
+    "centers",
+    "teachers"
+  ]
+}

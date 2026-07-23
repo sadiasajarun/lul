@@ -1,0 +1,156 @@
+# Rubric for grading design-phase output (HTML prototypes).
+#
+# Consumed by lib/evaluator.js. Injected into the evaluator agent prompt as
+# structured grading criteria. Each criterion has a weight and a set of
+# numeric anchors so 0.7 means the same thing across runs and across phases.
+#
+# Weights MUST sum to 1.0. Anchors MUST be sorted descending by score.
+# Scores are floats in [0.0, 1.0]. Anchor descriptions are the *concrete*
+# test for that score — generic praise is not acceptable.
+
+name: design-evaluation
+version: 1
+
+# Describe what the evaluator is grading and the inputs it will receive.
+scope: >
+  Generated HTML prototype files under .claude-project/design/html/*.html,
+  evaluated against the project's DESIGN_SYSTEM.md (token system, typography,
+  spacing, component variants) and DOMAIN_RESEARCH.md (users, competitors,
+  mental-model baseline). The evaluator does not judge code quality — only
+  visual design decisions and whether they fit the stated domain.
+
+criteria:
+
+  coherence:
+    weight: 0.25
+    question: >
+      Do the generated HTML pages consistently apply DESIGN_SYSTEM.md tokens
+      across every page? Are colors, typography, spacing, and component
+      variants drawn from the token table, or are they ad-hoc?
+    anchors:
+      - score: 1.0
+        description: >
+          Every visible color, font-size, spacing value, and component variant
+          resolves to a DESIGN_SYSTEM token. No raw hex outside the token
+          table. Typography uses the declared scale. Buttons use the declared
+          variants. Status badges use the declared status color mappings.
+      - score: 0.7
+        description: >
+          Tokens dominate across all pages. 1-2 pages use 1-2 ad-hoc values
+          for legitimate reasons (e.g., unique hero treatment). No systemic
+          deviation. Color palette stays within the declared range.
+      - score: 0.4
+        description: >
+          Tokens used but inconsistently. Multiple pages contain ad-hoc
+          colors, custom font sizes, or arbitrary spacing. Palette drifts —
+          some pages look like a different app. Component variants diverge
+          from the declared set.
+      - score: 0.1
+        description: >
+          No recognizable system applied. Each page looks like it was built
+          by a different designer. Tokens listed in DESIGN_SYSTEM.md barely
+          appear in the HTML. Palette, type, and spacing are all over the map.
+
+  originality:
+    weight: 0.25
+    question: >
+      Does the design reflect concrete decisions from DOMAIN_RESEARCH.md, or
+      could it be swapped for any other SaaS template with a find-and-replace?
+      Does layout, copy, iconography, and information architecture carry the
+      domain's mental model?
+    anchors:
+      - score: 1.0
+        description: >
+          Domain vocabulary appears in page copy, labels, and navigation.
+          Layout choices visibly answer domain constraints documented in
+          DOMAIN_RESEARCH (e.g., multi-passenger patterns for travel; status
+          chains specific to the domain; compliance/trust cues if the domain
+          requires them). Competitors referenced in DOMAIN_RESEARCH are
+          visibly improved upon, not copied.
+      - score: 0.5
+        description: >
+          Page structure is generic SaaS (sidebar + top bar + card grid), but
+          copy, status states, and form field names are domain-specific.
+          Reads as "a CRUD app built for this domain" rather than "the domain".
+      - score: 0.2
+        description: >
+          Could be swapped for any CRUD/dashboard app with a search-and-
+          replace. No domain vocabulary visible in the design. Status states
+          are generic ("Active", "Pending") rather than the declared ones.
+          Competitor lessons from DOMAIN_RESEARCH are not applied.
+
+  craft:
+    weight: 0.25
+    question: >
+      Typography hierarchy, spacing rhythm, color harmony, and visual
+      polish. Does it look like someone who cared made this?
+    anchors:
+      - score: 1.0
+        description: >
+          Clear hierarchy: H1 > H2 > body ratios are readable and
+          consistent. Spacing follows a rhythm (tokens used as a scale, not
+          arbitrary values). Color harmony: accents used sparingly, neutrals
+          carry the layout. Icons consistently sized. Empty states, loading
+          states, and edge states are visually considered.
+      - score: 0.7
+        description: >
+          Hierarchy generally works. Spacing mostly rhythmic. Colors mostly
+          harmonious. 1-3 specific polish misses (e.g., one card has a
+          different shadow, one section has awkward padding, one icon is
+          oversized). Edge states present but minimal.
+      - score: 0.4
+        description: >
+          Hierarchy weak — H1 and body differ by only 1-2px; sections run
+          together visually. Spacing feels arbitrary. Accent colors
+          overused; page feels loud or flat. Icons inconsistent. Empty/
+          loading states missing from most pages.
+      - score: 0.1
+        description: >
+          No visible hierarchy. Everything the same size. Spacing chaotic.
+          Colors clash or are monotonous. Looks like the first draft of a
+          weekend hackathon project.
+
+  functionality:
+    weight: 0.25
+    question: >
+      Can a representative user complete the core task paths without
+      friction, using only the designed pages? Are required pages present,
+      navigation sensible, and key flows walkable end-to-end?
+    anchors:
+      - score: 1.0
+        description: >
+          Every user role from PROJECT_KNOWLEDGE/PRD has a complete walkable
+          flow: entry → core action → confirmation. Navigation is obvious
+          from every page. Forms show field labels, helper text, and error
+          placement. Confirmation/success states exist. Multi-step flows
+          show progress.
+      - score: 0.7
+        description: >
+          Core flows walkable but with friction: one missing back button,
+          one unclear CTA, one missing confirmation. At least one minor
+          role's flow is incomplete. Most forms are well-labeled.
+      - score: 0.4
+        description: >
+          Major friction: core flows have dead ends, missing pages, or
+          ambiguous CTAs. Navigation unclear on at least one role. Forms
+          missing labels or error placement. User would get stuck.
+      - score: 0.1
+        description: >
+          Flows are broken or missing. Pages exist but don't connect. Core
+          actions have no entry point. Users cannot complete primary tasks
+          using only the designed pages.
+
+# Constrain the output the evaluator produces so the orchestrator can parse
+# it deterministically. Any deviation = the node fails verification.
+output_format:
+  type: json
+  required_fields:
+    - overall_score          # float 0..1; weighted sum of criterion scores
+    - weighted_breakdown     # { criterion_name: float }
+    - blockers               # [ { severity, criterion, location, issue, suggestion } ]
+    - rationale              # 2-4 sentences tying scores to specific observations
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    overall_score = sum(criterion_score * criterion_weight) rounded to 3 dp.
+    The orchestrator re-derives this and warns on mismatch > 0.02.
+    P0 blockers force phase FAIL regardless of overall_score.

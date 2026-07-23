@@ -1,0 +1,54 @@
+version: 1
+agent: edge-case-writer
+total_learnings: 4
+learnings:
+  - id: LRN-001
+    source: session_lifecycle-001
+    missed: >
+      Did not cover the case where httpOnly cookies persist after logout.
+      Only client state was reset while server-side session/cookies remained.
+    rule: >
+      In Tier 10 (Auth) logout stories, assert "server /auth/logout API was called
+      after logout" + "refresh_token cookie is deleted (or set to expired)".
+      Client state reset alone is insufficient — must verify server API call.
+    date: "2026-03-19"
+
+  - id: LRN-002
+    source: cross_tab_sync-001
+    missed: >
+      Did not consider multi-tab scenarios of the same app at all.
+      Did not verify the impact of state changes (settings modification, logout) in one tab on other tabs.
+    rule: >
+      In multi-tenant/SaaS apps, include in Tier 12 (State-dependent) stories:
+      "After changing [settings/profile/tenant] in one tab, verify changes are reflected in another tab"
+      or "After logging out in one tab, verify behavior in another tab".
+    date: "2026-03-19"
+
+  - id: LRN-003
+    source: tenant_context-001
+    missed: >
+      Did not verify the edge case in multi-tenant apps when URL lacks tenant context.
+      Bookmarked/shared URLs displaying wrong tenant data.
+    rule: >
+      In multi-tenant apps, include in Tier 6 (URL/Navigation) stories:
+      "Copy current URL and open in new tab — same tenant data is displayed"
+      + "After switching to another tenant, URL changes accordingly".
+    date: "2026-03-19"
+
+  - id: LRN-004
+    source: accessibility-003
+    missed: >
+      Did not cover crashes when null/undefined/empty string data is passed to
+      string methods (.toUpperCase(), [0], etc.).
+    rule: >
+      In Tier 9 (Boundary) stories, for components displaying string data like user names
+      or organization names, include the case: "when the field is empty string/null,
+      page displays without crash (shows placeholder or '?')".
+    date: "2026-03-19"
+# Learnings are added by bug-feedback-loop when a bug is traced to this agent
+# Schema per learning:
+#   - id: LRN-001
+#     source: BUG-003
+#     missed: "what this agent should have caught"
+#     rule: "new rule to follow in future generations"
+#     date: "YYYY-MM-DD"

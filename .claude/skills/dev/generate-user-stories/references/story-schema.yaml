@@ -1,0 +1,111 @@
+# User Story YAML Schema
+# All story files must conform to this schema
+
+schema_version: 1
+
+story_fields:
+  required:
+    name:
+      type: string
+      description: "Present tense, descriptive story name"
+      example: "Login with valid credentials navigates to dashboard"
+      constraints:
+        - "Must be unique across all story files"
+        - "Present tense"
+        - "Descriptive of action and expected result"
+
+    url:
+      type: string
+      description: "Target page URL for testing"
+      example: "http://localhost:5173/products"
+      constraints:
+        - "Always use http://localhost:5173 as base"
+        - "Must match a route in routes.yaml"
+        - "Never set to /login unless testing login page itself"
+
+    auth:
+      type: enum
+      values: [none, user, admin]
+      description: "Authentication level required"
+      constraints:
+        - "none: public pages"
+        - "user: regular user login (playwright-qa-agent handles login)"
+        - "admin: admin login (playwright-qa-agent handles login)"
+        - "NEVER include login steps in workflow"
+
+    tags:
+      type: array[string]
+      description: "Categorization tags for filtered runs"
+      tier_mapping:
+        1: [smoke]
+        2: [interaction, form]
+        3: [validation, form]
+        4: [interaction, filter]
+        5: [interaction, crud]
+        6: [interaction, pagination]
+        7: [validation, state]
+        8: [navigation, flow]
+        9: [negative, boundary]
+        10: [negative, auth]
+        11: [negative, network]
+        12: [state, dependent]
+        13: [accessibility, keyboard]
+        14: [proactive, bug-pattern]
+
+    workflow:
+      type: string (multiline)
+      description: "Plain English test steps, one action per line, imperative mood"
+      constraints:
+        - "Use ONLY canonical verbs"
+        - "One action per line"
+        - "No conditional if/else logic"
+        - "No login steps"
+
+  optional:
+    viewport:
+      type: enum
+      values: [desktop, mobile, tablet]
+      default: desktop
+      dimensions:
+        desktop: "1440x900"
+        mobile: "375x812"
+        tablet: "768x1024"
+
+canonical_verbs:
+  actions:
+    - "Navigate to {path}"
+    - "Fill {field} with \"{value}\""
+    - "Click {element}"
+    - "Wait for {condition}"
+    - "Scroll to {element}"
+    - "Press Enter in {field}"
+    - "Press Tab to focus {field}"
+    - "Fill {field} with {n} characters of text"
+    - "Select \"{value}\" from {dropdown}"
+    - "Scroll {element} left"
+    - "Scroll {element} right"
+
+  assertions:
+    - "Verify {element} is visible"
+    - "Verify text \"{text}\" appears"
+    - "Verify URL is {path}"
+    - "Verify {element} is not visible"
+    - "Verify console has no errors"
+    - "Verify {element} has value \"{value}\""
+    - "Verify {element} is disabled"
+    - "Verify {element} is enabled"
+    - "Verify URL contains \"{substring}\""
+    - "Verify {element} has maximum length {n}"
+    - "Count {elements} and verify between {min} and {max}"
+    - "Verify network request to \"{url}\" succeeded"
+    - "Verify {dropdown/list} has more than {n} options"
+
+  forbidden:
+    - "Verify ... exists → use 'is visible'"
+    - "Verify ... is displayed → use 'is visible'"
+    - "Verify ... is shown → use 'is visible'"
+    - "Verify ... loads → use 'is visible'"
+    - "Verify URL changes to → use 'Verify URL is'"
+    - "If [condition] → use Verify assertion"
+    - "Login as ... → use auth field"
+    - "Check console → use 'Verify console has no errors'"

@@ -1,0 +1,24 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo",
+  "students": {
+    "Dhaka": 500,
+    "Chattogram": 500,
+    "Rajshahi": 500,
+    "Khulna": 500,
+    "Barishal": 500,
+    "Sylhet": 500,
+    "Rangpur": 500,
+    "Mymensingh": 500
+  },
+  "teachers": {
+    "Dhaka": 25,
+    "Chattogram": 25,
+    "Rajshahi": 25,
+    "Khulna": 25,
+    "Barishal": 25,
+    "Sylhet": 25,
+    "Rangpur": 25,
+    "Mymensingh": 25
+  }
+}

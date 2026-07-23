@@ -1,0 +1,102 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo",
+  "months": [
+    {
+      "month": "2025-08",
+      "label": "Aug 25",
+      "overall": 67.9,
+      "ABAL": 67.7,
+      "Catchup": 67.9,
+      "Innovation": 68.6
+    },
+    {
+      "month": "2025-09",
+      "label": "Sep 25",
+      "overall": 69.1,
+      "ABAL": 69,
+      "Catchup": 69.2,
+      "Innovation": 70.7
+    },
+    {
+      "month": "2025-10",
+      "label": "Oct 25",
+      "overall": 70.5,
+      "ABAL": 70.5,
+      "Catchup": 70.4,
+      "Innovation": 71.5
+    },
+    {
+      "month": "2025-11",
+      "label": "Nov 25",
+      "overall": 71.7,
+      "ABAL": 71.6,
+      "Catchup": 71.8,
+      "Innovation": 72.7
+    },
+    {
+      "month": "2025-12",
+      "label": "Dec 25",
+      "overall": 73,
+      "ABAL": 72.8,
+      "Catchup": 73,
+      "Innovation": 74
+    },
+    {
+      "month": "2026-01",
+      "label": "Jan 26",
+      "overall": 74.3,
+      "ABAL": 74.2,
+      "Catchup": 74.4,
+      "Innovation": 75.6
+    },
+    {
+      "month": "2026-02",
+      "label": "Feb 26",
+      "overall": 75.6,
+      "ABAL": 75.4,
+      "Catchup": 75.6,
+      "Innovation": 76.3
+    },
+    {
+      "month": "2026-03",
+      "label": "Mar 26",
+      "overall": 76.8,
+      "ABAL": 76.7,
+      "Catchup": 76.9,
+      "Innovation": 78.5
+    },
+    {
+      "month": "2026-04",
+      "label": "Apr 26",
+      "overall": 78.2,
+      "ABAL": 78,
+      "Catchup": 78.2,
+      "Innovation": 79.2
+    },
+    {
+      "month": "2026-05",
+      "label": "May 26",
+      "overall": 79.4,
+      "ABAL": 79.4,
+      "Catchup": 79.4,
+      "Innovation": 80.3
+    },
+    {
+      "month": "2026-06",
+      "label": "Jun 26",
+      "overall": 80.7,
+      "ABAL": 80.5,
+      "Catchup": 80.8,
+      "Innovation": 82
+    },
+    {
+      "month": "2026-07",
+      "label": "Jul 26",
+      "overall": 81.9,
+      "ABAL": 81.7,
+      "Catchup": 82,
+      "Innovation": 82.8
+    }
+  ]
+}

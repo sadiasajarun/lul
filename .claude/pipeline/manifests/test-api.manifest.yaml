@@ -1,0 +1,55 @@
+name: test-api
+display_name: "Smoke Test + Backend API Tests"
+phase_number: 8
+
+prerequisites:
+  phases: [integrate]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/test-api.rules.md"
+  - ".claude/rules/stacks/{$BACKEND}.rules.md"
+
+pre_hydrate:
+  phase_docs:
+    - glob: ".claude/{$BACKEND}/guides/*.md"
+      exclude: "workflow-*.md"
+      purpose: "Backend patterns for test fixing"
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/routes.yaml"
+  current_state:
+    - glob: "{TARGET_DIR}/.claude-project/status/backend/API_IMPLEMENTATION_STATUS.md"
+  test_patterns:
+    - glob: "{TARGET_DIR}/backend/test/e2e/*.e2e-spec.ts"
+      sample: 1
+      optional: true
+      purpose: "Existing backend test patterns"
+
+skills:
+  pre_step:
+    - ".claude/skills/dev/ensure-servers/SKILL.md"
+  primary: ".claude/skills/qa/test-smoke/SKILL.md"
+  secondary:
+    - ".claude/{$BACKEND}/guides/workflow-generate-e2e-tests.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking, playwright]
+
+gate:
+  script: ".claude/gates/test-api-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: smoke_test_pass
+      description: "All routes load without runtime errors"
+    - name: backend_tests_pass
+      description: "All backend API e2e tests pass"
+    - name: no_flaky
+      description: "Tests pass 3/3 consecutive runs"
+
+loop:
+  - skill: smoke-test
+    trigger: "Step 1: smoke test all routes"
+  - skill: backend-e2e
+    trigger: "Step 3: fix backend failures"

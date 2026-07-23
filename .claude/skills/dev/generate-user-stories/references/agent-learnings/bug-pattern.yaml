@@ -1,0 +1,73 @@
+version: 1
+agent: bug-pattern-writer
+total_learnings: 5
+learnings:
+  - id: LRN-001
+    source: GP-001
+    missed: >
+      Did not cover the bug where numeric values (MRR, user count, etc.) on Admin KPI/statistics
+      pages are displayed as hardcoded mock data, mismatching actual DB values.
+    rule: >
+      If admin dashboard/statistics page has KPI cards or table numeric columns,
+      generate Tier 14 preventive story:
+      Must include "if all numeric values are identical or obviously fake (e.g., fixed value 12,345),
+      verify API response + assert match with actual DB count".
+      Verification: confirm KPI values are non-zero and dynamically loaded from API.
+    date: "2026-03-18"
+
+  - id: LRN-002
+    source: GP-008
+    missed: >
+      Did not cover the case where Playwright tests in i18n apps (default locale != en)
+      use English-only selectors, causing test failures in Korean/multilingual environments.
+    rule: >
+      If app uses i18n and default locale is not English,
+      specify selector strategy in Tier 14 preventive stories:
+      Priority 1: Use data-testid (language-independent)
+      Priority 2: Bilingual regex — /Submit|제출/i
+      Prohibit English-only :has-text("Submit") pattern in story workflows.
+      Must check default locale in src/i18n/index.ts (or i18n config file) before generating stories.
+    date: "2026-03-18"
+
+  - id: LRN-003
+    source: stub_button-001
+    missed: >
+      Failed to detect stub buttons without onClick handlers in Tier 14 preventive stories.
+      15+ buttons existed only in JSX and were deployed without event bindings.
+    rule: >
+      When generating Tier 14 preventive stories, for pages with N+ buttons in the UI,
+      include "verify all button clicks produce at least 1 side effect (API call, modal,
+      navigation, toast)" verification. Auto-apply when stub_button category code_signals:
+      ["<button", "onClick", "handleClick"] match.
+    date: "2026-03-19"
+
+  - id: LRN-004
+    source: rbac_ui-001
+    missed: >
+      Did not verify role-specific UI rendering differences in Tier 14.
+      Action buttons that should not be visible to lower roles were exposed.
+    rule: >
+      In multi-role apps, include in Tier 14 preventive stories: "verify admin-only buttons
+      (create/delete/settings) are not rendered when logged in as lower role (member/viewer)".
+      Auto-apply when rbac_ui category code_signals: ["role", "isAdmin", "canCreate"] match.
+    date: "2026-03-19"
+
+  - id: LRN-005
+    source: kpi_data_integrity-001
+    missed: >
+      Did not include data consistency verification between dashboard KPI card values and
+      detail table on the same page. Inconsistencies like card showing "0 items" while table has 3 rows.
+    rule: >
+      If admin/dashboard page has both KPI cards and detail table,
+      include "verify KPI card numbers match table row count" in Tier 14 preventive stories.
+      Auto-apply when kpi_data_integrity category code_signals:
+      ["KPI", "card", "table", "count", "dashboard"] match.
+    date: "2026-03-19"
+
+# Learnings are added by bug-feedback-loop when a bug is traced to this agent
+# Schema per learning:
+#   - id: LRN-001
+#     source: BUG-003
+#     missed: "what this agent should have caught"
+#     rule: "new rule to follow in future generations"
+#     date: "YYYY-MM-DD"

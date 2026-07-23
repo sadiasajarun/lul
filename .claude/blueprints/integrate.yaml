@@ -1,0 +1,322 @@
+name: integrate-phase
+description: Wire frontend to backend APIs with validation gates
+version: 2
+manifest: integrate
+
+outputs:
+  - type: api_services
+    glob: "frontend/app/services/**/*.ts"
+  - type: api_hooks
+    glob: "frontend/app/hooks/api/**/*.ts"
+
+nodes:
+  # --- DETERMINISTIC: Pre-check ---
+  - id: pre-check
+    type: deterministic
+    description: "Verify both backend and frontend are built"
+    command: |
+      # Check backend controllers exist
+      CTRL_COUNT=$(find {TARGET_DIR}/backend/src -name '*.controller.ts' 2>/dev/null | wc -l)
+      [ "$CTRL_COUNT" -gt 0 ] || { echo "No backend controllers found"; exit 1; }
+
+      # Check frontend pages exist
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+      [ -n "$FRONTEND_DIR" ] || { echo "No frontend directory found"; exit 1; }
+
+      PAGE_COUNT=$(find "$FRONTEND_DIR/src" -path '*/pages/*' -name '*.tsx' 2>/dev/null | wc -l)
+      [ "$PAGE_COUNT" -gt 0 ] && echo "Backend: $CTRL_COUNT controllers, Frontend: $PAGE_COUNT pages" || exit 1
+    on_failure: abort
+    abort_message: "Phases 5 (backend) and 6 (frontend) must complete first"
+
+  # --- DETERMINISTIC: Extract backend API routes for integration reference ---
+  - id: api-contract-check
+    type: deterministic
+    description: "Extract backend controller routes into PROJECT_API_ROUTES.md so the integration agent uses real paths"
+    command: |
+      BACKEND_DIR="{TARGET_DIR}/backend"
+      [ -d "$BACKEND_DIR/src" ] || BACKEND_DIR="{TARGET_DIR}/server"
+      OUTPUT="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API_ROUTES.md"
+      mkdir -p "$(dirname "$OUTPUT")"
+
+      echo "# Backend API Routes (Auto-generated)" > "$OUTPUT"
+      echo "" >> "$OUTPUT"
+      echo "> Auto-extracted from @Controller + @Get/@Post/@Put/@Patch/@Delete decorators." >> "$OUTPUT"
+      echo "> Frontend API calls MUST use these exact paths." >> "$OUTPUT"
+      echo "" >> "$OUTPUT"
+      echo "| Controller | Decorator | Full Path |" >> "$OUTPUT"
+      echo "|---|---|---|" >> "$OUTPUT"
+
+      ROUTE_COUNT=0
+      for f in $(find "$BACKEND_DIR/src" -name '*.controller.ts' 2>/dev/null); do
+        CTRL=$(basename "$f" .controller.ts)
+        PREFIX=$(grep -o "@Controller('[^']*')" "$f" 2>/dev/null | head -1 | sed "s/@Controller('\(.*\)')/\1/")
+        [ -z "$PREFIX" ] && continue
+
+        # Add controller base route
+        echo "| $CTRL | @Controller | /$PREFIX |" >> "$OUTPUT"
+        ROUTE_COUNT=$((ROUTE_COUNT + 1))
+
+        # Add method routes
+        grep -n "@Get\|@Post\|@Put\|@Patch\|@Delete" "$f" 2>/dev/null | while IFS= read -r line; do
+          METHOD=$(echo "$line" | grep -o '@[A-Za-z]*' | head -1)
+          SUB=$(echo "$line" | sed -n "s/.*@[A-Za-z]*('\([^']*\)').*/\1/p")
+          if [ -n "$SUB" ]; then
+            FULL="/$PREFIX/$SUB"
+          else
+            FULL="/$PREFIX"
+          fi
+          FULL=$(echo "$FULL" | sed 's|//|/|g; s|/$||')
+          echo "| $CTRL | $METHOD | $FULL |" >> "$OUTPUT"
+          ROUTE_COUNT=$((ROUTE_COUNT + 1))
+        done
+      done
+
+      echo "" >> "$OUTPUT"
+      echo "Total: $ROUTE_COUNT routes" >> "$OUTPUT"
+      echo "Generated $ROUTE_COUNT route entries in PROJECT_API_ROUTES.md"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: Start dev-watch (both servers for real-time integration feedback) ---
+  - id: start-dev-watch
+    type: deterministic
+    description: "Start both backend and frontend dev servers for real-time error feedback during integration"
+    command: |
+      cd {TARGET_DIR}
+
+      # Detect backend directory (multiple indicators, not just src/)
+      BACKEND_DIR=""
+      for candidate in backend server api; do
+        if [ -d "$candidate" ]; then
+          [ -f "$candidate/package.json" ] || [ -d "$candidate/src" ] || \
+          [ -f "$candidate/manage.py" ] || [ -f "$candidate/go.mod" ] && \
+          BACKEND_DIR="$candidate" && break
+        fi
+      done
+
+      # Detect frontend directory (require package.json)
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "$candidate" ] && [ -f "$candidate/package.json" ] && FRONTEND_DIR="$candidate" && break
+      done
+
+      # Detect dev scripts from package.json
+      detect_script() {
+        local dir=$1 role=$2
+        [ ! -f "$dir/package.json" ] && echo "" && return
+        if [ "$role" = "backend" ]; then
+          node -e "const s=Object.keys(require('./$dir/package.json').scripts||{});for(const p of['start:dev','dev','start','serve']){if(s.includes(p)){console.log(p);process.exit()}}console.log('')" 2>/dev/null
+        else
+          node -e "const s=Object.keys(require('./$dir/package.json').scripts||{});for(const p of['dev','start','serve','develop']){if(s.includes(p)){console.log(p);process.exit()}}console.log('')" 2>/dev/null
+        fi
+      }
+
+      BACKEND_SCRIPT=""
+      [ -n "$BACKEND_DIR" ] && BACKEND_SCRIPT=$(detect_script "$BACKEND_DIR" "backend")
+      FRONTEND_SCRIPT=""
+      [ -n "$FRONTEND_DIR" ] && FRONTEND_SCRIPT=$(detect_script "$FRONTEND_DIR" "frontend")
+
+      # Read PM2 prefix
+      PREFIX=""
+      if [ -f ecosystem.config.js ]; then
+        PREFIX=$(node -e "const c=require('./ecosystem.config.js');const a=c.apps?.[0];console.log(a?.name?.split('-')[0]||'')" 2>/dev/null)
+      fi
+      [ -z "$PREFIX" ] && PREFIX=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+      # Read ports from ecosystem.config.js, .env, package.json scripts, or defaults
+      BACKEND_PORT=""
+      if [ -f ecosystem.config.js ]; then
+        BACKEND_PORT=$(node -e "const c=require('./ecosystem.config.js');const a=(c.apps||[]).find(a=>(a.name||'').includes('backend')||(a.name||'').includes('server')||(a.name||'').includes('api'));console.log(a?.env?.PORT||'')" 2>/dev/null)
+      fi
+      [ -z "$BACKEND_PORT" ] && [ -n "$BACKEND_DIR" ] && BACKEND_PORT=$(grep '^PORT=' "$BACKEND_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d ' "')
+      [ -z "$BACKEND_PORT" ] && BACKEND_PORT=3000
+
+      FRONTEND_PORT=""
+      if [ -f ecosystem.config.js ]; then
+        FRONTEND_PORT=$(node -e "const c=require('./ecosystem.config.js');const a=(c.apps||[]).find(a=>(a.name||'').includes('frontend')||(a.name||'').includes('web')||(a.name||'').includes('client'));console.log(a?.env?.PORT||(a?.args?.match(/--port\s+(\d+)/)?.[1])||'')" 2>/dev/null)
+      fi
+      [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=$(grep '^PORT=' "$FRONTEND_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d ' "')
+      [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=5173
+
+      # Helper to check PM2 status
+      check_running() {
+        local name=$1
+        if command -v pm2 &>/dev/null; then
+          pm2 jlist 2>/dev/null | node -e "
+            let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+              try{const r=JSON.parse(d).find(p=>p.name==='${name}'&&p.pm2_env.status==='online');console.log(r?'yes':'no')}catch(e){console.log('no')}
+            })" 2>/dev/null || echo "no"
+        else
+          echo "no"
+        fi
+      }
+
+      # Start backend if not running and script detected
+      if [ -n "$BACKEND_DIR" ] && [ -n "$BACKEND_SCRIPT" ]; then
+        BACKEND_RUNNING=$(check_running "${PREFIX}-backend")
+        if [ "$BACKEND_RUNNING" = "yes" ]; then
+          echo "Backend already running (${PREFIX}-backend)"
+        else
+          lsof -ti:${BACKEND_PORT} | xargs kill -9 2>/dev/null || true
+          sleep 1
+          if command -v pm2 &>/dev/null; then
+            cd "$BACKEND_DIR" && PORT=$BACKEND_PORT pm2 start npm --name "${PREFIX}-backend" -- run $BACKEND_SCRIPT 2>&1 && cd ..
+          else
+            cd "$BACKEND_DIR" && PORT=$BACKEND_PORT nohup npm run $BACKEND_SCRIPT > /tmp/dev-watch-${PREFIX}-backend.log 2>&1 & echo $! > /tmp/dev-watch-${PREFIX}-backend.pid && cd ..
+          fi
+        fi
+      fi
+
+      # Start frontend if not running and script detected
+      if [ -n "$FRONTEND_DIR" ] && [ -n "$FRONTEND_SCRIPT" ]; then
+        FRONTEND_RUNNING=$(check_running "${PREFIX}-frontend")
+        if [ "$FRONTEND_RUNNING" = "yes" ]; then
+          echo "Frontend already running (${PREFIX}-frontend)"
+        else
+          lsof -ti:${FRONTEND_PORT} | xargs kill -9 2>/dev/null || true
+          sleep 1
+          if command -v pm2 &>/dev/null; then
+            cd "$FRONTEND_DIR" && PORT=$FRONTEND_PORT pm2 start npm --name "${PREFIX}-frontend" -- run $FRONTEND_SCRIPT 2>&1 && cd ..
+          else
+            cd "$FRONTEND_DIR" && PORT=$FRONTEND_PORT nohup npm run $FRONTEND_SCRIPT > /tmp/dev-watch-${PREFIX}-frontend.log 2>&1 & echo $! > /tmp/dev-watch-${PREFIX}-frontend.pid && cd ..
+          fi
+        fi
+      fi
+
+      sleep 5
+
+      # Health checks — accept any non-connection-refused response
+      for i in 1 2 3; do
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${BACKEND_PORT} 2>/dev/null)
+        [ "$STATUS" != "000" ] && echo "Backend healthy on port ${BACKEND_PORT} (HTTP $STATUS)" && break
+        [ "$i" -eq 3 ] && echo "Backend health check failed — continuing anyway"
+        sleep 3
+      done
+      for i in 1 2 3; do
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${FRONTEND_PORT} 2>/dev/null)
+        [ "$STATUS" != "000" ] && echo "Frontend healthy on port ${FRONTEND_PORT} (HTTP $STATUS)" && break
+        [ "$i" -eq 3 ] && echo "Frontend health check failed — continuing anyway"
+        sleep 3
+      done
+
+      # Write sentinel
+      mkdir -p {STATUS_DIR}
+      cat > {STATUS_DIR}/DEV_WATCH_ACTIVE.md <<SENTINEL
+      DEV_WATCH=true
+      PREFIX=${PREFIX}
+      LAYER=both
+      BACKEND_PM2=${PREFIX}-backend
+      FRONTEND_PM2=${PREFIX}-frontend
+      BACKEND_PORT=${BACKEND_PORT}
+      FRONTEND_PORT=${FRONTEND_PORT}
+      CHECK_BACKEND=pm2 logs ${PREFIX}-backend --lines 30 --nostream 2>/dev/null
+      CHECK_FRONTEND=pm2 logs ${PREFIX}-frontend --lines 30 --nostream 2>/dev/null
+      CHECK_ALL=pm2 logs --lines 30 --nostream 2>/dev/null
+      CHECK_STATUS=pm2 jlist 2>/dev/null
+      SENTINEL
+      echo "Dev-watch active: both servers running (backend: $BACKEND_SCRIPT, frontend: $FRONTEND_SCRIPT)"
+    on_failure: ignore
+
+  # --- AGENTIC: API integration ---
+  - id: integrate
+    type: agentic
+    skill: "$FRONTEND/skills/api-integration/SKILL.md"
+    context:
+      # Backward compat: 'must_read' also accepted
+      additional_read:
+        - "{PROJECT_DIR}/docs/PROJECT_API.md"
+        - "{PROJECT_DIR}/docs/PROJECT_API_INTEGRATION.md"
+        - "{PROJECT_DIR}/docs/PROJECT_API_ROUTES.md"
+        - ".claude/$FRONTEND/docs/api-integration.md"
+        - ".claude/$FRONTEND/docs/data-fetching.md"
+        - ".claude/$FRONTEND/docs/authentication.md"
+        - ".claude/$FRONTEND/docs/authentication-architecture.md"
+        - ".claude/$FRONTEND/docs/loading-and-error-states.md"
+        # Dev-watch — real-time error feedback
+        - "{STATUS_DIR}/DEV_WATCH_ACTIVE.md"
+        - ".claude/skills/dev/dev-watch/prompt-fragment.md"
+    prompt: |
+      Wire all frontend pages to their backend API endpoints. IMPORTANT: Use exact paths from PROJECT_API_ROUTES.md — do NOT guess paths from PRD role names.
+
+      DEV-WATCH: If {STATUS_DIR}/DEV_WATCH_ACTIVE.md exists, both dev servers are running.
+      After EACH file you create or modify, check for errors using the protocol in prompt-fragment.md.
+      Fix errors immediately before proceeding to the next file.
+
+  # --- DETERMINISTIC: TypeScript compile ---
+  - id: typecheck
+    type: deterministic
+    description: "Verify integration code compiles"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+      [ -n "$FRONTEND_DIR" ] && cd "$FRONTEND_DIR" && npx tsc --noEmit 2>&1
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # --- DETERMINISTIC: Stop dev-watch (cleanup servers — keep if test phase follows) ---
+  - id: stop-dev-watch
+    type: deterministic
+    description: "Stop dev servers or keep them running if test phase follows immediately"
+    command: |
+      cd {TARGET_DIR}
+      [ ! -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md ] && echo "No dev-watch active" && exit 0
+      PREFIX=$(grep '^PREFIX=' {STATUS_DIR}/DEV_WATCH_ACTIVE.md 2>/dev/null | head -1 | sed 's/.*=//' | tr -d ' ')
+      [ -z "$PREFIX" ] && { rm -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md; exit 0; }
+
+      # In pipeline mode, test-api (Phase 8) follows integrate (Phase 7).
+      # Keep servers running — ensure-servers in Phase 8 will detect and reuse them.
+      # Only remove sentinel so dev-watch prompt stops being injected.
+      echo "Dev-watch: keeping servers running for test phase (${PREFIX}-backend, ${PREFIX}-frontend)"
+      rm -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md
+      echo "Dev-watch sentinel removed — servers still running for reuse by ensure-servers"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: Evidence check (Layer 3) ---
+  - id: evidence-check
+    type: deterministic
+    description: "Verify integration produced API hook/service files"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+
+      API_FILES=$(find "$FRONTEND_DIR/src" \( -path '*/api/*' -o -path '*/services/*' -o -path '*/hooks/*' \) \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$API_FILES" -eq 0 ]; then
+        echo "FAIL: No API hook/service files found in frontend/app/{api,services,hooks}/"
+        echo "Integration phase must create API connection files."
+        exit 1
+      fi
+      echo "PASS: $API_FILES API/service/hook files found"
+    on_failure: abort
+    abort_message: "Integration phase must produce API hook/service files. Re-run the phase."
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/integrate-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.8"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/integrate.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for integrate. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/integrate-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

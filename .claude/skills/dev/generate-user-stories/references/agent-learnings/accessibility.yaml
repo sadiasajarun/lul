@@ -1,0 +1,54 @@
+version: 1
+agent: accessibility-writer
+total_learnings: 4
+learnings:
+  - id: LRN-001
+    source: accessibility-001
+    missed: >
+      Did not verify global focus indicator. outline: none was globally applied,
+      making it impossible to identify current position during keyboard navigation, yet marked as PASS.
+    rule: >
+      In Tier 13 (Keyboard) stories, must assert "Tab through 3+ interactive elements
+      and verify each element displays a visual focus indicator (outline or ring)".
+      FAIL if :focus-visible or equivalent style is missing.
+    date: "2026-03-19"
+
+  - id: LRN-002
+    source: accessibility-002
+    missed: >
+      Did not verify the case where Tab key focus escapes outside the modal while modal is open.
+    rule: >
+      In Tier 13 stories for pages with modals:
+      "Modal opens -> Tab key cycles only through elements inside modal -> Cannot reach elements outside modal"
+      + "Escape key closes modal -> Focus returns to the trigger that opened the modal"
+      Both cases are required.
+    date: "2026-03-19"
+
+  - id: LRN-003
+    source: accessibility-003
+    missed: >
+      Did not verify the case where clickable areas implemented with <div onClick> pattern
+      are not keyboard accessible.
+    rule: >
+      In Tier 13 stories for pages with clickable cards, rows, or tiles,
+      assert "Tab key can reach the element + Enter/Space can activate it".
+      FAIL if only <div onClick> exists without role/tabIndex/onKeyDown.
+    date: "2026-03-19"
+
+  - id: LRN-004
+    source: truncation-001
+    missed: >
+      Did not cover the case where truncated text (ellipsis) has no title attribute,
+      making it impossible to see the full text.
+    rule: >
+      In Tier 13 stories, if table/card/sidebar has elements with text-overflow: ellipsis,
+      verify "after entering long text, the element displays full text via title attribute
+      or tooltip". FAIL if text is truncated without title.
+    date: "2026-03-19"
+# Learnings are added by bug-feedback-loop when a bug is traced to this agent
+# Schema per learning:
+#   - id: LRN-001
+#     source: BUG-003
+#     missed: "what this agent should have caught"
+#     rule: "new rule to follow in future generations"
+#     date: "YYYY-MM-DD"

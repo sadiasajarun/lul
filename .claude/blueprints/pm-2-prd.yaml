@@ -1,0 +1,104 @@
+name: pm-2-prd
+description: PM-track PRD generation (PRD-only; no PROJECT_*.md derivation, no user stories)
+version: 1
+manifest: pm-2-prd
+
+nodes:
+  # --- DETERMINISTIC: Ensure output directories exist ---
+  - id: ensure-dirs
+    type: deterministic
+    description: "Ensure {PROJECT_DIR}/prd and {PROJECT_DIR}/docs exist"
+    command: |
+      mkdir -p "{TARGET_DIR}/{PROJECT_DIR}/prd/history"
+      mkdir -p "{TARGET_DIR}/{PROJECT_DIR}/docs"
+      echo "dirs ready"
+    on_failure: fail
+
+  # --- AGENTIC: Generate OR validate PRD ---
+  - id: prd-generate
+    type: agentic
+    skill: ".claude/skills/dev/generate-prd/SKILL.md"
+    depends_on: [ensure-dirs]
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{STATUS_DIR}/seed-*.yaml"
+        - "{TARGET_DIR}/{PROJECT_DIR}/prd/*.md"
+    prompt: |
+      Execute Phase P2 (pm-2-prd.md) Step P2.2 ONLY:
+
+      - If --prd <path> provided: apply A-02 chunk-read rules, copy to {PROJECT_DIR}/prd/{PROJECT_NAME}_PRD.md AND {PROJECT_DIR}/docs/PRD.md (canonical)
+      - If existing PRD found in {PROJECT_DIR}/prd/*.md or docs/PRD.md: validate sections, ensure docs/PRD.md is canonical copy
+      - If no PRD: read generate-prd skill resources, use seed as input, follow skill workflow, write to both locations
+
+      Output paths (MANDATORY):
+        1. {PROJECT_DIR}/prd/{PROJECT_NAME}_PRD.md  (archive)
+        2. {PROJECT_DIR}/docs/PRD.md                (canonical handoff — this is what /fullstack-dev reads)
+
+      DO NOT:
+      - Generate PROJECT_KNOWLEDGE.md, PROJECT_API.md, PROJECT_DATABASE.md (that's D2-tech-spec)
+      - Generate user_stories/*.yaml (that's D3-user-stories)
+      - Touch CLAUDE.md, backend/, frontend/ (that's D1-init)
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{PROJECT_DIR}/prd/**"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"
+
+  # --- DETERMINISTIC: Record PRD version snapshot with hash ---
+  - id: snapshot-prd
+    type: deterministic
+    description: "Hash PRD and record versioned snapshot in prd/history/"
+    depends_on: [prd-generate]
+    command: |
+      PRD_FILE="{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"
+      HISTORY_DIR="{TARGET_DIR}/{PROJECT_DIR}/prd/history"
+      mkdir -p "$HISTORY_DIR"
+
+      if [ ! -f "$PRD_FILE" ]; then
+        echo "FAIL: canonical PRD at $PRD_FILE not found"
+        exit 1
+      fi
+
+      # Normalize: strip trailing whitespace, force LF, drop final newline variance
+      PRD_HASH=$(sed -e 's/[[:space:]]*$//' "$PRD_FILE" | tr -d '\r' | sha256sum | awk '{print $1}')
+
+      LAST_VER=$(ls "$HISTORY_DIR"/PRD_v*.hash 2>/dev/null | sed 's/.*PRD_v\([0-9]*\)\.hash/\1/' | sort -n | tail -1)
+      LAST_HASH=""
+      [ -n "$LAST_VER" ] && [ -f "$HISTORY_DIR/PRD_v${LAST_VER}.hash" ] && LAST_HASH=$(cat "$HISTORY_DIR/PRD_v${LAST_VER}.hash")
+
+      if [ "$PRD_HASH" = "$LAST_HASH" ]; then
+        echo "PRD unchanged since v${LAST_VER} — no new snapshot"
+      else
+        NEXT_VER=$((${LAST_VER:-0} + 1))
+        cp "$PRD_FILE" "$HISTORY_DIR/PRD_v${NEXT_VER}.md"
+        echo "$PRD_HASH" > "$HISTORY_DIR/PRD_v${NEXT_VER}.hash"
+        echo "PRD snapshot recorded: v${NEXT_VER} ($PRD_HASH)"
+      fi
+    on_failure: fail
+
+  # --- AGENTIC: Update PIPELINE_STATUS.md using logical row key P2-prd ---
+  - id: update-pipeline-status
+    type: agentic
+    depends_on: [snapshot-prd]
+    prompt: |
+      Update {TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md for phase P2-prd.
+
+      IMPORTANT: Use row key "P2-prd" (not "prd" or "2-prd"). This is the PM-track logical name.
+      If the row doesn't exist yet, add it.
+
+      Progress Table row (P2-prd):
+        Status: Complete
+        Score: (from evaluation, default 0.9 if PRD has all sections)
+        Output: {PROJECT_DIR}/docs/PRD.md
+
+      Execution Log: append a row with ISO8601 timestamp.
+      Config: update last_run, recalculate pipeline_score.
+
+      Do NOT update any other phase's row. Do NOT touch Dev-track (D*) rows.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{STATUS_DIR}/**"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

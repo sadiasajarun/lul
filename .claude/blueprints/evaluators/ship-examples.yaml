@@ -1,0 +1,129 @@
+# Few-shot calibration examples for the ship evaluator.
+# Hand-written seeds. Calibration leans STRICT — ship is veto mode.
+
+examples:
+
+  - criterion: shippability
+    correct_score: 0.2
+    excerpt: |
+      // .env.example present but built JS contains:
+      const API_BASE = process.env.VITE_API_URL || 'http://localhost:3000';
+
+      // backend/src/main.ts:
+      const TOKEN_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+
+      // frontend/dist/assets/index-*.js: contains "TODO: implement payment"
+
+      // backend/dist/main.js: contains
+      console.log('User logged in:', user.email, user.password);
+    rationale: >
+      Localhost fallback baked into bundle. JWT secret falls back to a
+      hardcoded string when env missing. Critical feature ("payment") still
+      a TODO in built artifact. Logging passwords in production. Multiple
+      P0 violations.
+
+  - criterion: shippability
+    correct_score: 0.95
+    excerpt: |
+      // No localhost references in dist/
+      // No TODO/FIXME/stub in built JS
+      // backend/src/main.ts:
+      const TOKEN_SECRET = process.env.JWT_SECRET;
+      if (!TOKEN_SECRET) throw new Error('JWT_SECRET is required');
+
+      // .env.example covers every process.env.* reference in source
+      // No password / secret strings literally in source
+    rationale: >
+      Strict env-required guard, zero localhost in dist, zero TODOs in
+      built artifact. Env example complete. Nothing leaked to logs.
+
+  - criterion: drift_validation
+    correct_score: 0.2
+    excerpt: |
+      // SHIP_REPORT.md claims:
+      //   drift_score: 0.12
+      //   ship_decision: GO
+      //   reasoning: "All declared features delivered."
+      //
+      // seed.yaml goals included:
+      //   - "Quadrilingual support (KO/EN/RU/VI), Korean default"
+      //   - "Manual bank-transfer payment with admin confirmation flow"
+      //   - "5 distinct user roles with per-menu permissions"
+      //
+      // Reality:
+      //   - Frontend is English-only. No locale files in dist.
+      //   - Payment uses Stripe stub, no bank-transfer flow exists.
+      //   - 2 of 5 roles wired; admin sub-roles absent.
+    rationale: >
+      Report is fiction. Three primary seed promises broken: i18n, payment
+      flow, role coverage. Honest drift would be > 0.5 with NO_GO. P0
+      drift validation failure.
+
+  - criterion: drift_validation
+    correct_score: 0.9
+    excerpt: |
+      // SHIP_REPORT.md claims:
+      //   drift_score: 0.18
+      //   ship_decision: GO
+      //   reasoning: "All seed goals delivered. Audit log viewer
+      //     descoped (noted in PROJECT_KNOWLEDGE.md). Quadrilingual
+      //     fully wired (KO default), bank-transfer flow complete with
+      //     admin confirmation, 5 roles + permissions implemented."
+      //
+      // Reality:
+      //   - 4 locale files in dist, KO default verified.
+      //   - Bank-transfer flow walkable; admin confirmation tested.
+      //   - 5 roles, ProtectedRoute on every admin path.
+      //   - Audit log viewer absent (descope acknowledged).
+    rationale: >
+      Drift score within 0.05 of independent reading. Descope is honestly
+      named, not buried. GO is justified.
+
+  - criterion: operational_readiness
+    correct_score: 0.3
+    excerpt: |
+      // No /health endpoint defined.
+      // backend/src/main.ts logs via console.log everywhere.
+      // No error tracking SDK installed.
+      // Migrations directory empty — schema relies on TypeORM
+      //   synchronize: true in production (data-loss risk).
+      // No graceful shutdown — process.on('SIGTERM') absent.
+    rationale: >
+      No /health endpoint = load balancer can't probe liveness. console.log
+      only = no structured search in production. synchronize:true in prod
+      is a data-loss landmine. No SIGTERM handler = in-flight requests
+      dropped on rolling deploy. P0 operability failure.
+
+  - criterion: rollback_readiness
+    correct_score: 0.2
+    excerpt: |
+      // Latest migration:
+      //   ALTER TABLE users DROP COLUMN legacy_username;
+      //   ALTER TABLE users ALTER COLUMN email SET NOT NULL;
+      //   No down() method.
+      //
+      // No feature flags — new payment flow replaces old in single deploy.
+      // Old /api/v1/payments removed in same release as new /api/v2/payments.
+      // No backwards-compat window.
+    rationale: >
+      Two destructive ALTERs with no down migration. Old payment route
+      killed in same deploy as the new one — any in-flight client traffic
+      breaks. Rolling back requires a code revert + DB restore from backup.
+      Catastrophic rollback story.
+
+  - criterion: rollback_readiness
+    correct_score: 0.9
+    excerpt: |
+      // Migrations:
+      //   - Adds new column with default (additive, reversible)
+      //   - Backfills new column from old (reversible)
+      //   - Reads new column behind feature flag PAYMENT_V2_ENABLED
+      //   - Old column kept until next release (backwards-compat window)
+      //
+      // PAYMENT_V2_ENABLED defaults to false; can flip per-tenant via
+      // admin panel. Rolling back = flip flag, no code change.
+      // /api/v1/payments still serves traffic (will retire in N+2).
+    rationale: >
+      Additive migration, backwards-compat preserved, feature flag controls
+      cutover, old endpoint kept alive for one release. Rollback is a
+      one-click flip, not a redeploy.

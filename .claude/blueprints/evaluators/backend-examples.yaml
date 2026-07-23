@@ -1,0 +1,190 @@
+# Few-shot calibration examples for the backend evaluator.
+
+examples:
+
+  - criterion: api_design
+    correct_score: 0.3
+    excerpt: |
+      @Controller('user')
+      export class UserController {
+        @Post('getUsers')
+        async getUsers() { ... }     // POST for read
+
+        @Get('user/:id/applicationDelete')
+        async deleteApp(@Param('id') id: string) { ... }  // verb in path
+
+        @Post(':id/update')
+        async update() { ... }       // POST for update, returns 200
+
+        // No pagination params, no sort params anywhere.
+      }
+    rationale: >
+      Singular resource path, POST used for reads, verbs in URL paths,
+      "delete" implemented as POST returning 200. Status codes default
+      everywhere. No pagination. RPC pretending to be REST.
+
+  - criterion: api_design
+    correct_score: 0.95
+    excerpt: |
+      @Controller('applications')
+      export class ApplicationsController {
+        @Get()
+        @ApiOperation({ summary: 'List applications' })
+        list(@Query() q: ListApplicationsDto) { /* ?page=&limit=&sort= */ }
+
+        @Get(':id')
+        find(@Param('id', ParseUUIDPipe) id: string) { /* 404 if missing */ }
+
+        @Post()
+        @HttpCode(201)
+        create(@Body() dto: CreateApplicationDto) { /* Location header */ }
+
+        @Patch(':id')
+        update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateApplicationDto) { }
+
+        @Delete(':id')
+        @HttpCode(204)
+        remove(@Param('id', ParseUUIDPipe) id: string) { }
+      }
+    rationale: >
+      Plural kebab path. Methods match purpose (GET/POST/PATCH/DELETE).
+      201 on create, 204 on delete. UUID validation. Pagination + sort.
+      Field-level DTOs for create vs update.
+
+  - criterion: business_logic_completeness
+    correct_score: 0.3
+    excerpt: |
+      // PRD: "An application cannot be cancelled once deposit is confirmed"
+      // PRD: "Admin must confirm bank-transfer to advance status to '입금확인'"
+
+      // application.service.ts:
+      async cancel(id: string) {
+        const app = await this.repository.findOne({ id });
+        app.status = 'cancelled';
+        return this.repository.save(app);
+      }
+
+      async confirmDeposit(id: string) {
+        return this.repository.update(id, { status: 'deposit_confirmed' });
+      }
+    rationale: >
+      Both PRD rules ignored. cancel() doesn't check current status —
+      will happily cancel after deposit. confirmDeposit() doesn't check
+      caller is admin or that previous state was 'awaiting_deposit'. Pure
+      CRUD shell.
+
+  - criterion: business_logic_completeness
+    correct_score: 0.9
+    excerpt: |
+      async cancel(id: string, currentUser: User) {
+        const app = await this.findByIdOrFail(id);
+        if (app.status === ApplicationStatus.DEPOSIT_CONFIRMED ||
+            app.status === ApplicationStatus.IN_PROGRESS) {
+          throw new ConflictException(
+            'application_cannot_cancel_after_deposit_confirmed'
+          );
+        }
+        if (app.userId !== currentUser.id && !currentUser.isAdmin()) {
+          throw new ForbiddenException('not_application_owner');
+        }
+        return this.repository.update(id, {
+          status: ApplicationStatus.CANCELLED,
+          cancelledBy: currentUser.id,
+          cancelledAt: new Date(),
+        });
+      }
+    rationale: >
+      State transition guarded. Owner or admin permission enforced.
+      Audit fields populated. Specific Conflict/Forbidden exceptions
+      with i18n-friendly codes. Matches the PRD rule directly.
+
+  - criterion: error_handling_specificity
+    correct_score: 0.2
+    excerpt: |
+      try {
+        const result = await this.repository.save(entity);
+        return result;
+      } catch (e) {
+        throw new Error(e.message);
+      }
+      // Returns:
+      //   500 Internal Server Error
+      //   { "statusCode": 500, "message": "duplicate key value violates unique constraint \"users_email_key\"" }
+    rationale: >
+      Generic Error. 500 for what should be 409 Conflict. Postgres
+      constraint name surfaces to API consumer. No structured error code.
+      Client can't translate this to user-facing copy.
+
+  - criterion: error_handling_specificity
+    correct_score: 0.95
+    excerpt: |
+      try {
+        const result = await this.repository.save(entity);
+        return result;
+      } catch (e) {
+        if (e instanceof QueryFailedError && e.code === '23505') {
+          throw new ConflictException({
+            code: 'email_already_registered',
+            field: 'email',
+            message: 'A user with this email already exists',
+          });
+        }
+        throw e;
+      }
+    rationale: >
+      Specific exception class (409 Conflict). Structured response with
+      code (i18n-friendly), field (form-error placement), human message
+      (fallback). Database constraint name kept inside the service layer.
+
+  - criterion: test_meaningfulness
+    correct_score: 0.2
+    excerpt: |
+      describe('POST /applications', () => {
+        it('creates an application', async () => {
+          const res = await request(app).post('/applications').send({});
+          expect(res.status).toBe(201);
+        });
+      });
+      // Single test. No auth check. No validation check. Empty body
+      // returns 201 — would pass even if the endpoint accepted any junk.
+    rationale: >
+      Single happy-ish path. No auth coverage. No validation coverage.
+      No 404 / 403 / 409 paths. Empty body shouldn't return 201 but the
+      test would pass either way. Tests pass for broken code.
+
+  - criterion: test_meaningfulness
+    correct_score: 0.9
+    excerpt: |
+      describe('POST /applications', () => {
+        it('creates an application (happy)', async () => {
+          const res = await as(worker).post('/applications').send(valid);
+          expect(res.status).toBe(201);
+          expect(res.headers.location).toMatch(/^\/applications\/[a-f0-9-]+$/);
+          expect(res.body).toMatchObject({ status: 'received', userId: worker.id });
+
+          const persisted = await db.find('applications', { id: res.body.id });
+          expect(persisted).toBeTruthy();
+        });
+
+        it('rejects unauthenticated', async () => {
+          const res = await request(app).post('/applications').send(valid);
+          expect(res.status).toBe(401);
+        });
+
+        it('rejects invalid serviceType', async () => {
+          const res = await as(worker).post('/applications').send({ ...valid, serviceType: 'bogus' });
+          expect(res.status).toBe(400);
+          expect(res.body.fieldErrors.serviceType).toBeDefined();
+        });
+
+        it('rejects when worker already has 5 active applications', async () => {
+          await seed.applications(worker.id, 5);
+          const res = await as(worker).post('/applications').send(valid);
+          expect(res.status).toBe(409);
+          expect(res.body.code).toBe('max_active_applications_exceeded');
+        });
+      });
+    rationale: >
+      Happy path checks status + location + shape + persistence. 401, 400
+      with field-level error, 409 conflict for the business-rule limit.
+      Tests would catch regressions across the relevant failure modes.

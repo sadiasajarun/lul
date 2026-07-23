@@ -1,0 +1,73 @@
+name: dev-1-init
+display_name: "Dev Init (scaffolding + design-intent extraction)"
+phase_id: D1-init
+track: dev
+
+prerequisites:
+  # /fullstack-dev enforces handoff Tier 1/2/3 before any Dev phase — no legacy phase prereq needed
+  phases: []
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  prd:
+    - "{TARGET_DIR}/.claude-project/docs/PRD.md"
+  seed:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/seed-*.yaml"
+      optional: true
+  design_html:
+    - glob: "{TARGET_DIR}/.claude-project/design/html/**/*.html"
+      purpose: "All approved design HTML for intent extraction"
+  design_status:
+    - glob: "{TARGET_DIR}/.claude-project/design/DESIGN_STATUS.md"
+      optional: true
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/DESIGN_STATUS.md"
+      optional: true
+  existing_intent:
+    - glob: "{TARGET_DIR}/.claude-project/design/design-intent.yaml"
+      optional: true
+      purpose: "Detect stale intent via html_bundle_hash comparison"
+  templates:
+    - ".claude/templates/claude.template.md"
+    - ".claude/templates/rules/common.claude-rules.template"
+    - ".claude/templates/PIPELINE_STATUS.template.md"
+
+skills:
+  primary: ".claude/skills/dev/design-intent-extractor/SKILL.md"
+  secondary:
+    - ".claude/skills/dev/init-workspace/SKILL.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  script: ".claude/gates/dev-1-init-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: claude_md_exists
+      description: "CLAUDE.md at TARGET_DIR root"
+    - name: claude_rules
+      description: ".claude-rules (root + backend/frontend if dirs present)"
+    - name: dirs_scaffolded
+      description: "backend/src/, frontend/app/, .claude-project/{docs,memory,status}/ all exist"
+    - name: memory_templates
+      description: "memory/{DECISIONS,LEARNINGS,PREFERENCES}.md present"
+    - name: pipeline_status
+      description: "PIPELINE_STATUS.md exists"
+    - name: intent_exists
+      description: "design/design-intent.yaml exists"
+    - name: intent_valid_yaml
+      description: "intent.yaml parses as YAML"
+    - name: intent_has_screens
+      description: "intent.yaml screens[] non-empty"
+    - name: intent_hash_match
+      description: "intent.source.html_bundle_hash == current bundle hash"
+
+ralph:
+  - workflow: extract-intent
+    trigger: "html_bundle_hash changed"
+    mode: incremental

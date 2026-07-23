@@ -1,0 +1,98 @@
+name: prd-phase
+description: PRD generation + conversion to project docs + user story YAML generation
+version: 1
+manifest: prd
+
+nodes:
+  # --- DETERMINISTIC: PRD → split into 400-line chunk files (A-02 enforcement) ---
+  # Phase 2 is the critical step that reads the PRD and generates PROJECT_KNOWLEDGE/API/DATABASE.md
+  # If this is incomplete, Phases 3-9 all break → full read enforcement is mandatory
+  # If spec.yaml already created chunks, reuse them; otherwise create new ones
+  - id: split-prd-chunks
+    type: deterministic
+    description: "Split PRD into 400-line chunks — reuse existing chunks if available"
+    command: |
+      CHUNK_DIR="{TARGET_DIR}/{PROJECT_DIR}/context"
+      mkdir -p "$CHUNK_DIR"
+
+      # Reuse if spec phase already created chunks
+      EXISTING=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$EXISTING" -gt 0 ]; then
+        echo "PRD chunks already exist ($EXISTING chunks from spec phase) — reusing"
+        exit 0
+      fi
+
+      # No chunks → search for PRD and split
+      PRD_FILE=""
+      for c in \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.md \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.pdf \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"; do
+        [ -f "$c" ] && PRD_FILE="$c" && break
+      done
+
+      if [ -z "$PRD_FILE" ]; then
+        echo "No existing PRD — will be generated in prd-generate node"
+        exit 0
+      fi
+
+      echo "PRD found: $PRD_FILE"
+
+      TMP="$CHUNK_DIR/prd_raw.txt"
+      if [[ "$PRD_FILE" == *.pdf ]]; then
+        if command -v pdftotext &>/dev/null; then
+          pdftotext -layout "$PRD_FILE" "$TMP"
+        else
+          echo "[PDF_FALLBACK] ORIGINAL_PATH=$PRD_FILE" > "$CHUNK_DIR/PRD_chunk_00.md"
+          exit 0
+        fi
+      else
+        cp "$PRD_FILE" "$TMP"
+      fi
+
+      split -l 400 -d --additional-suffix=.md "$TMP" "$CHUNK_DIR/PRD_chunk_"
+      rm -f "$TMP"
+
+      COUNT=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+      echo "PRD split into $COUNT chunks"
+    on_failure: ignore
+
+  # --- AGENTIC: PRD generation + docs conversion + user story YAML ---
+  # PRD_chunk_*.md → orchestrator expands glob then Reads each chunk (each <=400 lines)
+  # → full PRD injected into agent context → agent works with complete PRD
+  - id: prd-generate
+    type: agentic
+    skill: ".claude/skills/dev/generate-prd/SKILL.md"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/seed-*.yaml"
+        - ".claude/$BACKEND/guides/workflow-convert-prd-to-knowledge.md"
+        - ".claude/skills/dev/generate-user-stories/SKILL.md"
+    prompt: |
+      Run Phase 2 following 02-prd.md instructions:
+      Step 2a: Generate PRD if missing, or validate existing PRD
+      Step 2b: Convert PRD to PROJECT_KNOWLEDGE.md, PROJECT_API.md, PROJECT_DATABASE.md
+      Step 2c: Generate user story YAML files
+
+      PRD content is pre-loaded as PRD_chunk_*.md (chunks in order: 00, 01, 02...).
+      Read them sequentially — together they are the complete PRD.
+      If chunk_00 contains [PDF_FALLBACK] → use Read tool with pages parameter on ORIGINAL_PATH.
+      If no chunks exist → PRD will be generated fresh from seed in Step 2a.
+
+  - id: update-pipeline-status
+    type: agentic
+    prompt: |
+      Update PIPELINE_STATUS.md for prd phase.
+      NOTE: No gate script exists for prd — use evaluation fallback score.
+      Update Progress Table row (Status, Score from evaluation, Output).
+      Append Execution Log row.
+      Update last_run timestamp.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{STATUS_DIR}/**"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]

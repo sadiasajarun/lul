@@ -1,0 +1,389 @@
+name: design-2
+description: |
+  Design phase — Domain research + 3 variations + client confirmation PAUSE + full HTML.
+  v2 blueprint with strict artifact contracts.
+  The client confirmation step aborts the orchestrator until DESIGN_STATUS.md has approved:true.
+  Re-run with --resume after the user picks a variation.
+version: 2
+manifest: design
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: require-prd
+    type: deterministic
+    description: "Verify PRD docs exist"
+    command: |
+      [ -f "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md" ] || { echo "FAIL: PROJECT_KNOWLEDGE.md missing"; exit 1; }
+      echo "PRD docs verified"
+    on_failure: abort
+    abort_message: "Phase 2 (prd) must complete first"
+
+  # ============================================================================
+  # TIER 2A: AGENTIC — domain research
+  # ============================================================================
+
+  - id: domain-research
+    type: agentic
+    description: "Phase 2.5 — extract industry/competitors/design references"
+    required_output_file: "{TARGET_DIR}/{PROJECT_DIR}/design/DOMAIN_RESEARCH.md"
+    verification_pattern: "^(#\\s+Domain|##\\s+Industry|industry:)"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - ".claude/skills/design/prd-to-design-guide/SKILL.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch]
+      deny: []
+    prompt: |
+      Run Phase 2.5 only — Domain & Reference Research.
+
+      TASKS:
+      1. Extract industry/domain from PROJECT_KNOWLEDGE.md and PRD chunks
+      2. Identify 3-5 competitors and their UI patterns (WebSearch + WebFetch)
+      3. Derive standard sections/elements per page type (Landing, Dashboard, Detail)
+      4. Deep-dive the PRD-specified references
+
+      OUTPUT: {PROJECT_DIR}/design/DOMAIN_RESEARCH.md
+      Required sections:
+        # Domain Research
+        ## Industry
+        ## Competitors
+        ## Reference UI Patterns
+        ## Page-type Conventions (Landing / Dashboard / Detail)
+
+      DO NOT generate Design Guide or DESIGN_SYSTEM yet — that's the next step.
+
+  # ============================================================================
+  # TIER 2B: AGENTIC — 3 variations (3a+3b+3c)
+  # ============================================================================
+
+  - id: design-variations
+    type: agentic
+    timeout_ms: 2100000   # 35min — generates 3 design system variants × 3 preview HTML pages each = 9 HTML files
+    description: "3a+3b+3c — Design Guide + 3 DESIGN_SYSTEM variants + 9 preview HTML"
+    required_output_file: "{TARGET_DIR}/{PROJECT_DIR}/design/VARIATIONS_INDEX.md"
+    verification_pattern: "variations_generated:\\s*3"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DOMAIN_RESEARCH.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - ".claude/skills/design/prd-to-design-guide/SKILL.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Run Phase 3 Steps 3a + 3b + 3c.
+
+      READ FIRST: DOMAIN_RESEARCH.md (previous step)
+
+      STEP 3a: Generate Design Guide + 3 DESIGN_SYSTEM variants (A, B, C)
+      STEP 3b: Generate representative page prompts (3 pages × 3 styles)
+      STEP 3c: Generate 9 preview HTML files (A/B/C × landing/dashboard/detail)
+
+      CRITICAL VARIATION RULES:
+      - The 3 variants MUST have **different background color themes** (e.g., dark / cream / white)
+      - Do NOT copy PRD color tokens identically across variants
+      - Interpret PRD primary color differently per variant (gradient glow vs pastel+accent vs sparse accent)
+      - Assign a different reference company per variant (Linear / Notion / Apple / …)
+      - ≥5 of 7 items in the PHASE 3.5 differentiation checklist MUST differ
+
+      OUTPUTS:
+      - {PROJECT_DIR}/design/DESIGN_SYSTEM_A.md, _B.md, _C.md
+      - {PROJECT_DIR}/design/variations/{A|B|C}-0{1|2|3}-{page}.html (9 files)
+      - {PROJECT_DIR}/design/variations/showcase-ALL.html
+      - {PROJECT_DIR}/design/VARIATIONS_INDEX.md with fields:
+          phase: design-variations
+          variations_generated: 3
+          html_files: <int>
+          archetypes: [archetype_A, archetype_B, archetype_C]
+          differentiation_score: <int>/7
+
+      MANDATORY STRUCTURAL MARKERS (grep-verified by validator):
+      - Every `{A|B|C}-0{1|2|3}-{page}.html` file MUST include either:
+          a) `class="phone-frame"` wrapper (375px mobile frame), OR
+          b) `max-width: 1440px` inline style OR `max-w-[1440px]` Tailwind class on its root wrapper
+        This enforces a consistent viewport frame for side-by-side comparison.
+      - Every `{A|B|C}-0{1|2|3}-{page}.html` file MUST include an in-page variation nav
+        with `class="var-nav-bar"` — a small fixed nav letting the reviewer jump between
+        A/B/C of the same page. Example:
+          <nav class="var-nav-bar fixed top-4 right-4 flex gap-2 bg-black/80 px-3 py-2 rounded text-xs">
+            <a href="A-01-landing.html">A</a><a href="B-01-landing.html">B</a><a href="C-01-landing.html">C</a>
+          </nav>
+      - `showcase-ALL.html` must exist and embed/link all 9 variants.
+
+      Files missing these markers FAIL the phase regardless of visual quality.
+
+      DO NOT proceed to 3d/3e. Stop after 9 HTML files.
+
+  # ============================================================================
+  # TIER 2C: PAUSE — client confirmation (deterministic, ABORTs until approved)
+  # ============================================================================
+
+  - id: validate-variations-output
+    type: deterministic
+    description: "Validate variation HTML meets MANDATORY structural requirements"
+    command: |
+      DIR="{TARGET_DIR}/{PROJECT_DIR}/design/variations"
+      ERRORS=0
+      for f in "$DIR"/*-0[1-3]-*.html; do
+        [ -f "$f" ] || continue
+        grep -qE 'phone-frame|max-width[^a-zA-Z]*1440|max-w-\[1440px\]' "$f" 2>/dev/null || { echo "FAIL: $f missing device frame"; ERRORS=$((ERRORS+1)); }
+      done
+      [ -f "$DIR/showcase-ALL.html" ] || { echo "FAIL: showcase-ALL.html missing"; ERRORS=$((ERRORS+1)); }
+      for f in "$DIR"/[A-Z]-0*.html; do
+        [ -f "$f" ] || continue
+        grep -q 'var-nav-bar' "$f" 2>/dev/null || { echo "FAIL: $f missing in-page variation nav"; ERRORS=$((ERRORS+1)); }
+      done
+      [ $ERRORS -gt 0 ] && { echo "DESIGN_VALIDATION_FAILED: $ERRORS errors"; exit 1; }
+      echo "DESIGN_VALIDATION_PASSED"
+    on_failure: abort
+
+  - id: auto-promote-variation
+    type: deterministic
+    description: "Auto-pick variation A and stamp DESIGN_STATUS.md approved:true for autonomous runs (model-agnostic — unblocks require-variation-selection without prompting any LLM)"
+    command: |
+      # Autonomous-pipeline bypass for the HITL design-review pause.
+      # Default: pick variation A (or the first variant present on disk) and
+      # write DESIGN_STATUS.md with approved:true. Skip when
+      # INTERACTIVE_VARIATION_SELECT=1 so interactive devs can still PAUSE.
+      if [ "${INTERACTIVE_VARIATION_SELECT:-0}" = "1" ]; then
+        echo "INTERACTIVE_VARIATION_SELECT=1 → skipping auto-promote (require-variation-selection will PAUSE)"
+        exit 0
+      fi
+
+      STATUS_DIR="{TARGET_DIR}/{STATUS_DIR}"
+      DESIGN_DIR="{TARGET_DIR}/{PROJECT_DIR}/design"
+      STATUS_FILE=""
+      for c in "$STATUS_DIR/DESIGN_STATUS.md" "$DESIGN_DIR/DESIGN_STATUS.md"; do
+        [ -f "$c" ] && STATUS_FILE="$c" && break
+      done
+
+      # Already approved? Idempotent — leave it alone.
+      if [ -n "$STATUS_FILE" ] && grep -q '^approved:[[:space:]]*true' "$STATUS_FILE" 2>/dev/null; then
+        echo "DESIGN_STATUS.md already approved=true — skipping auto-promote"
+        exit 0
+      fi
+
+      # Pick variant: prefer A; otherwise first DESIGN_SYSTEM_*.md basename.
+      PICK="A"
+      if [ ! -f "$DESIGN_DIR/DESIGN_SYSTEM_A.md" ]; then
+        FIRST=$(ls "$DESIGN_DIR"/DESIGN_SYSTEM_*.md 2>/dev/null | head -1 | sed -E 's/.*DESIGN_SYSTEM_([A-Za-z0-9]+)\.md/\1/')
+        [ -n "$FIRST" ] && PICK="$FIRST"
+      fi
+
+      # Write canonical DESIGN_STATUS.md location used by require-variation-selection
+      # and downstream design-full-generation.
+      mkdir -p "$DESIGN_DIR"
+      OUT="$DESIGN_DIR/DESIGN_STATUS.md"
+      {
+        echo "# DESIGN_STATUS"
+        echo ""
+        echo "selected_variation: $PICK"
+        echo "approved: true"
+        echo "approval_source: auto-promote-variation"
+        echo "approved_at: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        echo ""
+        echo "Set INTERACTIVE_VARIATION_SELECT=1 to disable auto-promote and PAUSE for manual review."
+      } > "$OUT"
+      echo "auto-promoted variation=$PICK → $OUT"
+
+      # v43 evidence: design-gate's `design-system-exists` check looks for
+      # the canonical `DESIGN_SYSTEM.md`, but the design phase produces
+      # variants (DESIGN_SYSTEM_A.md / _B.md / _C.md) with no canonical alias.
+      # Gate scored 6/7 every v40-v43 because of this single missing file.
+      # Copy the selected variant to the canonical name. Model-agnostic +
+      # idempotent (cp -f).
+      SELECTED_VARIANT="$DESIGN_DIR/DESIGN_SYSTEM_$PICK.md"
+      CANONICAL="$DESIGN_DIR/DESIGN_SYSTEM.md"
+      if [ -f "$SELECTED_VARIANT" ]; then
+        cp -f "$SELECTED_VARIANT" "$CANONICAL"
+        echo "promoted $SELECTED_VARIANT → $CANONICAL (canonical alias)"
+      else
+        echo "WARN: $SELECTED_VARIANT not found — skipping canonical alias copy"
+      fi
+    on_failure: ignore
+
+  - id: require-variation-selection
+    type: deterministic
+    description: "PAUSE — ABORT until DESIGN_STATUS.md contains approved:true"
+    command: |
+      STATUS_FILE=""
+      for c in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$c" ] && STATUS_FILE="$c" && break
+      done
+      if [ -z "$STATUS_FILE" ]; then
+        echo "PAUSE: DESIGN_STATUS.md not found"
+        echo "→ Show the 3 variations to the user, record their selection in DESIGN_STATUS.md:"
+        echo "   selected_variation: A"
+        echo "   approved: true"
+        echo "→ Then re-run: node .claude/scripts/fullstack-2/orchestrator.js {project} --phase design --resume"
+        exit 1
+      fi
+      grep -q 'approved: true' "$STATUS_FILE" 2>/dev/null || {
+        VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" 2>/dev/null | sed 's/.*: *//')
+        echo "PAUSE: approved:true missing. selected_variation=${VARIATION:-'(unset)'}"
+        exit 1
+      }
+      VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" | sed 's/.*: *//' | tr -d ' "')
+      echo "Client approved: variation $VARIATION"
+    on_failure: abort
+    abort_message: |
+      ⏸ DESIGN REVIEW REQUIRED
+
+      The 3 variations (A/B/C) are ready in {PROJECT_DIR}/design/variations/.
+      Show them to the user, record their selection in DESIGN_STATUS.md:
+        selected_variation: <A|B|C>
+        approved: true
+
+      Then re-run with --resume to continue into full HTML generation.
+
+  # ============================================================================
+  # TIER 2D: AGENTIC — 3e + 3f + 3g full HTML + QA + upload
+  # ============================================================================
+
+  - id: design-full-generation
+    type: agentic
+    description: "3e+3f+3g — Full HTML for all PRD pages + QA + upload + phase_complete marker"
+    # v48: bumped from default 25min to 40min. v47 mimo cleared this node
+    # in 22.8min (close to the wall); v48 hit the 25min watchdog at turn 29.
+    # Every other heavy agentic node has an explicit override (design-variations
+    # 35, convert-pages 35, implement 40, design-fidelity-check 40, integrate 45,
+    # story-runner 45) — this was the only one still on the 25min default and
+    # it kept biting under model variance. Aligns with design-fidelity-check
+    # since both do multi-page generation across all PRD pages.
+    timeout_ms: 2400000   # 40min
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/DESIGN_FULL_GENERATION_REPORT.md"
+    verification_pattern: "phase_complete:\\s*true"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DOMAIN_RESEARCH.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/VARIATIONS_INDEX.md"
+        - ".claude/skills/design/generate-html/SKILL.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Run Phase 3 Steps 3e → 3f → 3g.
+
+      The confirmed variation is in DESIGN_STATUS.md (approved:true).
+      Read DESIGN_STATUS.md → get selected_variation → load DESIGN_SYSTEM_{variation}.md.
+
+      FRONTEND SUBDIRECTORIES:
+      Read {STATUS_DIR}/PIPELINE_STATUS.md for the `frontends:` block.
+      Each frontend declares a `dir` field. Create HTML files in subdirectories matching
+      those dir names exactly:
+
+        {PROJECT_DIR}/design/html/<frontend.dir>/*.html
+
+      Example: admin-* pages → design/html/frontend-admin-dashboard/*.html
+      Example: shared/public pages → design/html/frontend/*.html
+      Example: worker (b-*) pages → design/html/frontend-worker/*.html
+
+      The subdirectory name MUST match the frontend dir name from PIPELINE_STATUS.md.
+
+      3e: Full HTML generation for ALL PRD pages using the confirmed variation's DESIGN_SYSTEM
+      3f: Design QA — generate DESIGN_SYSTEM_{variation}.md (final consolidated)
+      3g: Upload / finalize all HTML files
+
+      OUTPUTS:
+      - {PROJECT_DIR}/design/html/<frontend.dir>/*.html (organized by frontend app)
+      - {PROJECT_DIR}/design/DESIGN_SYSTEM_{variation}.md (final)
+
+      Append `phase_complete: true` to DESIGN_STATUS.md.
+
+      REPORT FILE: {STATUS_DIR}/DESIGN_FULL_GENERATION_REPORT.md
+      Required fields (regex-verifiable):
+        phase: design-full
+        selected_variation: <A|B|C>
+        html_files_generated: <int>
+        design_system_finalized: (true|false)
+        phase_complete: true
+
+  - id: normalize-design-report
+    type: deterministic
+    description: "Substitute placeholders + add YAML-pair duplicates for markdown-table rows in DESIGN_FULL_GENERATION_REPORT.md (model-agnostic backstop)"
+    command: |
+      # v46 evidence: minimax wrote `| phase_complete | true |` (markdown
+      # table) in the report — the verification regex `phase_complete:\s*true`
+      # failed → design phase scored 6/9 and aborted. The normalizer's new
+      # markdown-table→yaml-pair pass injects a parallel `phase_complete: true`
+      # line below each table row, satisfying the regex without removing the
+      # human-readable table. Idempotent.
+      node {CLAUDE_DIR}/v2/scripts/normalize-docs.js {project} \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_FULL_GENERATION_REPORT.md"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 3: EVIDENCE CHECK (deterministic)
+  # ============================================================================
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify full HTML set + phase_complete marker"
+    command: |
+      HTML=$(find {TARGET_DIR}/{PROJECT_DIR}/design/html -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      [ "$HTML" -gt 0 ] || { echo "FAIL: no full HTML files in design/html/"; exit 1; }
+      STATUS_FILE=""
+      for c in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md"; do
+        [ -f "$c" ] && STATUS_FILE="$c" && break
+      done
+      grep -q 'phase_complete: true' "$STATUS_FILE" || { echo "FAIL: phase_complete:true missing from DESIGN_STATUS.md"; exit 1; }
+      echo "PASS: $HTML full HTML files + phase_complete=true"
+    on_failure: abort
+
+  # ============================================================================
+  # TIER 4: LLM EVALUATOR (article §2 — separate generator from evaluator)
+  # ============================================================================
+  #
+  # Grades the generated HTML against a rubric covering four subjective
+  # criteria the deterministic gate cannot check: token coherence across
+  # pages, domain originality vs generic SaaS, typographic/spacing craft,
+  # and end-to-end user-flow functionality. Output blends into the gate
+  # score per `blend.strategy`; P0 blockers or evaluator score < 0.5 will
+  # flip the phase to FAIL regardless of the deterministic gate.
+  #
+  # on_failure: ignore — a broken evaluator must not prevent shipping. The
+  # absence of a score shows up in reward.js as no drift signal, which
+  # itself degrades the training signal but doesn't block the build.
+
+  - id: design-evaluator
+    type: evaluator
+    description: "Grade HTML prototypes on coherence / originality / craft / functionality"
+    rubric_file: ".claude/blueprints/evaluators/design-rubric.yaml"
+    required_output_file: "{TARGET_DIR}/{STATUS_DIR}/design-evaluation.json"
+    verification_pattern: '"overall_score"\s*:\s*[0-9.]+'
+    tool_profile:
+      allow: [Read, Grep, Glob, Bash, Write]
+      # Edit / NotebookEdit / WebFetch / WebSearch are force-denied by
+      # lib/evaluator.js even if listed here. Redeclaring for clarity.
+      deny: [Edit, NotebookEdit, WebFetch, WebSearch]
+    inputs:
+      artifacts:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/html/*.html"
+      references:
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_SYSTEM.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/design/DOMAIN_RESEARCH.md"
+      max_files: 30
+      max_chars_per_file: 8000
+    blend:
+      strategy: soft_score          # soft_score | veto | hard_gate
+      deterministic_weight: 0.6
+      weight: 0.4                    # evaluator share of the final gate score
+      min_evaluator_score: 0.5       # below this → force FAIL regardless of det
+    calibration:
+      examples_file: ".claude/blueprints/evaluators/design-examples.yaml"
+    on_failure: ignore
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="2">
+  <title>PRD Interview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* === Header / Progress === */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e9ecef;
+      padding: 20px 40px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .logo {
+      font-size: 14px;
+      font-weight: 600;
+      color: #868e96;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .progress-text {
+      font-size: 15px;
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: #e9ecef;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4263eb, #7048e8);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+      width: {{PROGRESS_PERCENT}}%;
+    }
+
+    .category-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 12px;
+      background: #edf2ff;
+      color: #4263eb;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* === Main Content === */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 40px;
+    }
+
+    .question-number {
+      font-size: 14px;
+      font-weight: 600;
+      color: #868e96;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .question-text {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: center;
+      max-width: 720px;
+      margin-bottom: 12px;
+    }
+
+    .question-hint {
+      font-size: 15px;
+      color: #868e96;
+      text-align: center;
+      max-width: 600px;
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
+
+    /* === Preset Options === */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .option-card {
+      background: #fff;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 18px 24px;
+      cursor: default;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .option-card:hover {
+      border-color: #4263eb;
+      box-shadow: 0 2px 12px rgba(66, 99, 235, 0.1);
+    }
+
+    .option-card.recommended {
+      border-color: #4263eb;
+      background: #f8f9ff;
+    }
+
+    .option-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+
+    .option-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .tag-minimal { background: #f1f3f5; color: #868e96; }
+    .tag-recommended { background: #edf2ff; color: #4263eb; }
+    .tag-extended { background: #f3f0ff; color: #7048e8; }
+    .tag-custom { background: #fff9db; color: #e67700; }
+
+    .option-description {
+      font-size: 14px;
+      color: #495057;
+      line-height: 1.5;
+    }
+
+    /* === Free Text Indicator === */
+    .free-text-indicator {
+      background: #fff;
+      border: 2px dashed #dee2e6;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .free-text-indicator p {
+      font-size: 15px;
+      color: #868e96;
+    }
+
+    /* === Checklist === */
+    .checklist {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .checklist-item {
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: #343a40;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .checklist-item::before {
+      content: "\\2610";
+      font-size: 18px;
+      color: #adb5bd;
+    }
+
+    /* === Previous Answers (Footer) === */
+    .footer {
+      background: #fff;
+      border-top: 1px solid #e9ecef;
+      padding: 16px 40px;
+    }
+
+    .footer-toggle {
+      font-size: 14px;
+      font-weight: 500;
+      color: #868e96;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .footer-toggle:hover { color: #495057; }
+
+    .previous-answers {
+      display: none;
+      margin-top: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .previous-answers.open { display: block; }
+
+    .prev-answer {
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f3f5;
+      font-size: 13px;
+    }
+
+    .prev-answer-q {
+      color: #868e96;
+      font-weight: 500;
+    }
+
+    .prev-answer-a {
+      color: #343a40;
+      margin-top: 2px;
+    }
+
+    /* === Completion Screen === */
+    .complete-screen {
+      text-align: center;
+    }
+
+    .complete-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+
+    .complete-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .complete-subtitle {
+      font-size: 16px;
+      color: #868e96;
+      line-height: 1.6;
+    }
+
+    /* === Welcome Screen === */
+    .welcome-screen {
+      text-align: center;
+    }
+
+    .welcome-title {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .welcome-subtitle {
+      font-size: 18px;
+      color: #868e96;
+      line-height: 1.6;
+      max-width: 480px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header with progress -->
+  <div class="header">
+    <div class="header-top">
+      <span class="logo">PRD Interview</span>
+      <span class="progress-text">{{PROGRESS_DISPLAY}}</span>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill"></div>
+    </div>
+    <span class="category-badge">{{CATEGORY}}</span>
+  </div>
+
+  <!-- Main question area -->
+  <div class="main">
+    {{CONTENT}}
+  </div>
+
+  <!-- Previous answers footer -->
+  <div class="footer">
+    <div class="footer-toggle" onclick="togglePrev()">
+      {{PREV_ANSWERS_TOGGLE}}
+    </div>
+    <div class="previous-answers" id="prevAnswers">
+      {{PREVIOUS_ANSWERS}}
+    </div>
+  </div>
+
+  <script>
+    function togglePrev() {
+      var el = document.getElementById('prevAnswers');
+      el.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
+
+<!--
+TEMPLATE INSTRUCTIONS (for Claude Code skill agent):
+
+This HTML file is updated on every question during interactive interview mode.
+Replace the following placeholders before each write:
+
+{{PROGRESS_PERCENT}}   — Integer 0-100 for progress bar width
+{{PROGRESS_DISPLAY}}   — "Q3/~24 (12%)" or "마지막 질문" or "✅ 인터뷰 완료"
+{{CATEGORY}}           — Current category: Business, Users, Design, Features, Data, Technical, Other
+{{CONTENT}}            — The main content area (see content templates below)
+{{PREV_ANSWERS_TOGGLE}} — "✅ 이전 답변 (N개)              [펼치기]" or empty if first question
+{{PREVIOUS_ANSWERS}}   — HTML list of previous Q&A pairs
+
+=== Content Templates ===
+
+1. WELCOME (initial state):
+<div class="welcome-screen">
+  <div class="complete-icon">📋</div>
+  <div class="welcome-title">PRD 인터뷰</div>
+  <div class="welcome-subtitle">프로젝트의 기능과 요구사항을 정의합니다.<br>약 20~25개의 질문이 진행됩니다.</div>
+</div>
+
+2. TIERED QUESTION:
+<div class="question-number">Q{N}</div>
+<div class="question-text">{question}</div>
+<div class="question-hint">{hint}</div>
+<div class="options">
+  <div class="option-card">
+    <div class="option-label"><span class="option-tag tag-minimal">최소한</span>A. {preset_a}</div>
+  </div>
+  <div class="option-card recommended">
+    <div class="option-label"><span class="option-tag tag-recommended">프로젝트 권장</span>B. {preset_b}</div>
+  </div>
+  <div class="option-card">
+    <div class="option-label"><span class="option-tag tag-extended">확장</span>C. {preset_c}</div>
+  </div>
+  <div class="option-card">
+    <div class="option-label"><span class="option-tag tag-custom">직접 입력</span>D. 직접 입력</div>
+  </div>
+</div>
+
+3. FREE TEXT QUESTION:
+<div class="question-number">Q{N}</div>
+<div class="question-text">{question}</div>
+<div class="question-hint">{hint}</div>
+<div class="free-text-indicator">
+  <p>자유롭게 답변해주세요</p>
+</div>
+
+4. YES/NO QUESTION:
+(same as tiered but with A=예/B=아니오/C=추후결정 options)
+
+5. CHECKLIST QUESTION:
+<div class="question-number">Q{N}</div>
+<div class="question-text">{question}</div>
+<div class="question-hint">{hint}</div>
+<div class="checklist">
+  <div class="checklist-item">{item_1}</div>
+  <div class="checklist-item">{item_2}</div>
+  ...
+</div>
+
+6. COMPLETE:
+<div class="complete-screen">
+  <div class="complete-icon">✅</div>
+  <div class="complete-title">인터뷰 완료</div>
+  <div class="complete-subtitle">모든 질문이 완료되었습니다.<br>답변을 바탕으로 PRD를 생성합니다.</div>
+</div>
+
+=== Previous Answer Item ===
+<div class="prev-answer">
+  <div class="prev-answer-q">Q{N}. {question_short}</div>
+  <div class="prev-answer-a">{answer}</div>
+</div>
+-->

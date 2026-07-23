@@ -1,0 +1,27 @@
+{
+  "description": "Skills available in claude-fullstack pipeline. Bot tools read this at runtime to discover skills dynamically.",
+  "skills": {
+    "generate-prd": "skills/dev/generate-prd/SKILL.md",
+    "generate-user-stories": "skills/dev/generate-user-stories/SKILL.md",
+    "deepen-user-stories": "skills/dev/deepen-user-stories/SKILL.md",
+    "prd-to-design-guide": "skills/design/prd-to-design-guide/SKILL.md",
+    "prd-to-design-prompts": "skills/design/prd-to-design-prompts/SKILL.md",
+    "design-guide-to-prompts": "skills/design/design-guide-to-prompts/SKILL.md",
+    "gemini-html-generator": "skills/design/generate-html-gemini/SKILL.md",
+    "prompts-to-html": "skills/design/generate-html/SKILL.md",
+    "html-to-git": "skills/design/html-to-git/SKILL.md",
+    "set-html-routing": "skills/design/set-html-routing/SKILL.md",
+    "acceptance-test": "skills/qa/test-acceptance/SKILL.md",
+    "ui-review": "skills/qa/review-ui/SKILL.md",
+    "smoke-test": "skills/qa/test-smoke/SKILL.md",
+    "playwright-cli": "skills/qa/run-playwright/SKILL.md",
+    "ensure-servers": "skills/dev/ensure-servers/SKILL.md",
+    "init-workspace": "skills/dev/init-workspace/SKILL.md",
+    "setup-git-workflow": "skills/dev/setup-git-workflow/SKILL.md",
+    "start-ticket": "skills/dev/start-ticket/SKILL.md",
+    "bug-feedback-loop": "skills/qa/run-feedback-loop/SKILL.md",
+    "fullstack-improver": "skills/operation/improve-fullstack/SKILL.md",
+    "ux-scanner": "skills/qa/scan-ux/SKILL.md",
+    "dev-watch": "skills/dev/dev-watch/SKILL.md"
+  }
+}

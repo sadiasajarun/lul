@@ -1,0 +1,19 @@
+{
+  "purpose": "CLAIM",
+  "description": "테스트 발행 (Bolta API 연동 검증)",
+  "supplied": {
+    "identificationNumber": "3218603271",
+    "organizationName": "주식회사 케이톡",
+    "representativeName": "신동섭",
+    "managers": [{ "email": "admin@ktalk.live" }]
+  },
+  "items": [
+    {
+      "name": "테스트 품목",
+      "unitPrice": 100000,
+      "quantity": 1,
+      "supplyCost": 100000,
+      "tax": 10000
+    }
+  ]
+}

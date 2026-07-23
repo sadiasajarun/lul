@@ -1,0 +1,97 @@
+name: backend-django-2
+description: |
+  Django/DRF backend phase — analog of backend-2.yaml (NestJS). Selected by
+  stack-aware findBlueprint when tech_stack.backend=django. Assembles a runnable
+  Django backend from the SAME contract the NestJS path uses: copy the project
+  template (settings/urls/wsgi + envelope renderer + contract pagination + JWT
+  auth + exception handler), derive serializers + viewsets + url routers, register
+  apps, generate the seed command, install deps, makemigrations + migrate, seed.
+  Pairs with database-django-2.yaml (BaseModel + models). Everything downstream of
+  the HTTP contract (frontend/integrate/test-browser) is the SHARED pipeline.
+version: 2
+manifest: backend
+nodes:
+  - id: scaffold-django-project
+    type: deterministic
+    description: "Copy the Django project template (config + core + manage.py + requirements)"
+    command: |
+      SRC="{CLAUDE_DIR}/{BACKEND}/templates"
+      T="{TARGET_DIR}/{BACKEND_DIR}"
+      [ -d "$SRC/config" ] || { echo "FAIL: Django template missing at $SRC"; exit 1; }
+      mkdir -p "$T"
+      cp -R "$SRC/config" "$T/config"
+      cp -R "$SRC/core/." "$T/core/" 2>/dev/null || cp -R "$SRC/core" "$T/core"
+      cp "$SRC/manage.py" "$SRC/requirements.txt" "$T/"
+      echo "ok: Django project template copied"
+    on_failure: abort
+    abort_message: "Failed to copy Django project template from {CLAUDE_DIR}/{BACKEND}/templates"
+
+  - id: scaffold-django-serializers
+    type: deterministic
+    description: "DRF serializer per table (explicit contract fields) — analog of scaffold-dto-from-entity"
+    command: |
+      DB="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      [ -f "$DB" ] && node {CLAUDE_DIR}/v2/scripts/scaffold-django-serializers.js --db "$DB" --target "{TARGET_DIR}/{BACKEND_DIR}" --verbose || true
+    on_failure: ignore
+
+  - id: scaffold-django-viewsets
+    type: deterministic
+    description: "DRF ViewSet + router urls per table — analog of scaffold-crud-module"
+    command: |
+      DB="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      [ -f "$DB" ] && node {CLAUDE_DIR}/v2/scripts/scaffold-django-viewsets.js --db "$DB" --target "{TARGET_DIR}/{BACKEND_DIR}" --verbose || true
+    on_failure: ignore
+
+  - id: scaffold-django-app-registry
+    type: deterministic
+    description: "Wire apps into INSTALLED_APPS + root urls + per-app apps.py — analog of scaffold-app-module-registry"
+    command: |
+      DB="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      [ -f "$DB" ] && node {CLAUDE_DIR}/v2/scripts/scaffold-django-app-registry.js --db "$DB" --target "{TARGET_DIR}/{BACKEND_DIR}" || true
+    on_failure: ignore
+
+  - id: scaffold-django-seed
+    type: deterministic
+    description: "`manage.py seed` command from _fixtures.yaml (bcrypt users) — analog of scaffold-seed-script (RULE-B3)"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-django-seed.js --target "{TARGET_DIR}/{BACKEND_DIR}" || true
+    on_failure: ignore
+
+  - id: django-install-deps
+    type: deterministic
+    description: "Create venv + pip install requirements (psycopg2, DRF, PyJWT, bcrypt, PyYAML)"
+    command: |
+      T="{TARGET_DIR}/{BACKEND_DIR}"
+      cd "$T"
+      python3 -m venv venv 2>&1 | tail -2 || { echo "FAIL: venv"; exit 1; }
+      ./venv/bin/pip install -q --disable-pip-version-check -r requirements.txt 2>&1 | tail -3 || { echo "FAIL: pip install"; exit 1; }
+      ./venv/bin/python -c "import django, rest_framework; print('deps ok', django.get_version())"
+    on_failure: abort
+    abort_message: "Django deps install failed (need python3 + network)"
+
+  - id: django-migrate
+    type: deterministic
+    description: "makemigrations + migrate (fresh Django-managed schema)"
+    command: |
+      T="{TARGET_DIR}/{BACKEND_DIR}"
+      cd "$T"
+      ./venv/bin/python manage.py makemigrations 2>&1 | tail -5
+      ./venv/bin/python manage.py migrate 2>&1 | tail -5
+    on_failure: ignore
+
+  - id: django-seed
+    type: deterministic
+    description: "Run the seed command so login-proof has fixture users"
+    command: |
+      T="{TARGET_DIR}/{BACKEND_DIR}"
+      cd "$T"
+      FIXTURES_PATH="{TARGET_DIR}/{PROJECT_DIR}/user_stories/_fixtures.yaml" ./venv/bin/python manage.py seed 2>&1 | tail -3
+    on_failure: ignore
+
+  - id: django-check
+    type: deterministic
+    description: "django check — the backend config must be valid (boot precondition)"
+    command: |
+      T="{TARGET_DIR}/{BACKEND_DIR}"
+      cd "$T" && ./venv/bin/python manage.py check 2>&1 | tail -8
+    on_failure: ignore

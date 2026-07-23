@@ -1,0 +1,21 @@
+{
+  "name": "bolta-tax-invoice-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Test scripts for Bolta e-tax invoice (세금계산서) issuance",
+  "scripts": {
+    "check": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- node check-env.mjs",
+    "check:live": "op run --account team-potentialai.1password.com --env-file=.env.1password.live -- node check-env.mjs",
+    "issue": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- node issue-tax-invoice.mjs",
+    "issue:live": "op run --account team-potentialai.1password.com --env-file=.env.1password.live -- node issue-tax-invoice.mjs",
+    "amend": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- node amend-termination.mjs",
+    "amend:live": "op run --account team-potentialai.1password.com --env-file=.env.1password.live -- node amend-termination.mjs",
+    "wait": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- node wait-until-issued.mjs",
+    "wait:live": "op run --account team-potentialai.1password.com --env-file=.env.1password.live -- node wait-until-issued.mjs"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5"
+  }
+}

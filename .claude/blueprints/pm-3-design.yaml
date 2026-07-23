@@ -1,0 +1,235 @@
+name: pm-3-design
+description: PM-track design — domain research + 3 variations + client confirmation + role-folder HTML + PRD snapshot
+version: 1
+manifest: pm-3-design
+
+nodes:
+  # --- DETERMINISTIC: Ensure design output dirs ---
+  - id: ensure-dirs
+    type: deterministic
+    command: |
+      mkdir -p "{TARGET_DIR}/{PROJECT_DIR}/design/variations"
+      mkdir -p "{TARGET_DIR}/{PROJECT_DIR}/design/html"
+      mkdir -p "{TARGET_DIR}/{STATUS_DIR}"
+    on_failure: fail
+
+  # --- AGENTIC: P3a — Domain research ---
+  - id: domain-research
+    type: agentic
+    skill: ".claude/skills/design/prd-to-design-guide/SKILL.md"
+    depends_on: [ensure-dirs]
+    prompt: |
+      Run Phase P3 Step 3a Part 1 — Domain & Reference Research ONLY.
+      Extract industry/domain from PRD, research competitors via WebSearch, derive standard patterns per page type.
+      Save to {PROJECT_DIR}/design/{PROJECT}_DomainResearch.md.
+      DO NOT generate DesignGuide or DESIGN_SYSTEMs yet.
+    tool_profile:
+      allow: [Read, Write, Bash, Grep, Glob, WebSearch, WebFetch]
+
+  # --- AGENTIC: P3a+3b+3c — DesignGuide + 3 variations + representative HTML ---
+  - id: design-variations
+    type: agentic
+    skill: ".claude/skills/design/prd-to-design-guide/SKILL.md"
+    depends_on: [domain-research]
+    prompt: |
+      Run Phase P3 Steps 3a Part 2 → 3b → 3c (follow pm-3-design.md).
+      Output files identical to legacy 3c: {PROJECT_DIR}/design/variations/{A|B|C}-*.html + showcase-ALL.html +
+      DESIGN_SYSTEM_{A,B,C}.md + {PROJECT}_DesignGuide.md + {PROJECT}_VariationPrompts.md.
+
+      MANDATORY differentiation rules (same as legacy):
+      - 3 variations with different background theme (dark + cream + white, etc.)
+      - PRD primary color interpreted differently per variation
+      - Different design company reference per variation
+      - 5+ of 7 differentiation checklist items must differ
+
+      STOP after 3c — do not proceed to 3d/3e.
+
+  # --- DETERMINISTIC: Validation of variation HTML ---
+  - id: validate-variations
+    type: deterministic
+    description: "Validate variation HTML meets device frame, nav, and showcase requirements"
+    depends_on: [design-variations]
+    command: |
+      DIR="{TARGET_DIR}/{PROJECT_DIR}/design/variations"
+      ERRORS=0
+
+      [ -f "$DIR/showcase-ALL.html" ] || { echo "FAIL: showcase-ALL.html missing"; ERRORS=$((ERRORS+1)); }
+
+      for f in "$DIR"/[A-Z]-0*.html; do
+        [ -f "$f" ] || continue
+        grep -q 'var-nav-bar' "$f" 2>/dev/null || { echo "FAIL: $f missing var-nav-bar"; ERRORS=$((ERRORS+1)); }
+      done
+
+      if [ $ERRORS -gt 0 ]; then
+        echo "PM_3_DESIGN_VALIDATION_FAILED: $ERRORS errors"
+        exit 1
+      fi
+      echo "PM_3_DESIGN_VALIDATION_PASSED"
+    on_failure: fail
+
+  # --- DETERMINISTIC: P3d PAUSE enforcement — abort if approved:true missing ---
+  - id: require-variation-selection
+    type: deterministic
+    depends_on: [validate-variations]
+    description: "ABORT if approved:true missing from DESIGN_STATUS.md"
+    command: |
+      STATUS_FILE=""
+      for candidate in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md"; do
+        [ -f "$candidate" ] && STATUS_FILE="$candidate" && break
+      done
+
+      if [ -z "$STATUS_FILE" ]; then
+        echo "FAIL: DESIGN_STATUS.md not found — client confirmation (3d) has not run"
+        exit 1
+      fi
+
+      if ! grep -q '^approved:[[:space:]]*true' "$STATUS_FILE" 2>/dev/null; then
+        VAR=$(grep 'selected_variation:' "$STATUS_FILE" | sed 's/.*: *//' | tr -d '"' )
+        echo "FAIL: Design not approved by client."
+        echo "  selected_variation: ${VAR:-'(not set)'}"
+        echo "  → Show 3 variations to user, get selection, record approved:true in DESIGN_STATUS.md"
+        exit 1
+      fi
+
+      echo "Design approved — proceeding to full HTML generation"
+    on_failure: abort
+    abort_message: |
+      ⏸ PM DESIGN REVIEW REQUIRED
+
+      Share the 3 design variations with the client and record their selection.
+      Update DESIGN_STATUS.md:
+        selected_variation: <A|B|C>
+        approved: true
+      Then re-run: /fullstack-pm {project} --phase P3-design --resume
+
+  # --- AGENTIC: P3e+3f — Full HTML generation into role folders ---
+  - id: design-full-generation
+    type: agentic
+    skill: ".claude/skills/design/generate-html/SKILL.md"
+    depends_on: [require-variation-selection]
+    prompt: |
+      Run Phase P3 Steps P3e (full HTML) → P3f (QA) per pm-3-design.md.
+
+      Critical: output HTML to ROLE FOLDERS: {PROJECT_DIR}/design/html/<role>/<page>.page.html
+
+      Role extraction priority:
+      1. PRD user_type: [...] list
+      2. routes.yaml role annotation
+      3. PRD section headers (User App → user, Admin Dashboard → admin, etc.)
+      4. Fallback: single 'app' role
+
+      For each generated page:
+      - Resolve its role from PRD/routes
+      - Write to design/html/<role>/<page>.page.html (mkdir -p before write)
+      - Update cross-page href to use relative path with role prefix:
+        <a href="../admin/users.page.html"> (from user/home.page.html to admin/users.page.html)
+      - Preserve shared shell (navbar/footer) consistency across all roles
+
+      QA (P3f): validate routing (all hrefs resolve across role folders), shared consistency, role folder presence.
+
+      Output DESIGN_QA_STATUS.md to {STATUS_DIR}/DESIGN_QA_STATUS.md.
+
+  # --- DETERMINISTIC: P3g — Record PRD snapshot in DESIGN_STATUS.md ---
+  - id: record-snapshot
+    type: deterministic
+    depends_on: [design-full-generation]
+    description: "Compute PRD hash, bundle hash, and append snapshot fields to DESIGN_STATUS.md"
+    command: |
+      PRD_FILE="{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"
+      HTML_ROOT="{TARGET_DIR}/{PROJECT_DIR}/design/html"
+      HISTORY_DIR="{TARGET_DIR}/{PROJECT_DIR}/prd/history"
+
+      if [ ! -f "$PRD_FILE" ]; then
+        echo "FAIL: canonical PRD not found at $PRD_FILE"
+        exit 1
+      fi
+
+      PRD_HASH=$(sed -e 's/[[:space:]]*$//' "$PRD_FILE" | tr -d '\r' | sha256sum | awk '{print $1}')
+      PRD_VER=$(ls "$HISTORY_DIR"/PRD_v*.hash 2>/dev/null | sed 's/.*PRD_v\([0-9]*\)\.hash/\1/' | sort -n | tail -1)
+      [ -z "$PRD_VER" ] && PRD_VER="1"
+
+      # Collect roles (folder names immediately under html/)
+      ROLES=$(find "$HTML_ROOT" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort | tr '\n' ',' | sed 's/,$//')
+      if [ -z "$ROLES" ]; then
+        # Flat structure fallback — single 'app' role
+        ROLES="app"
+      fi
+      ROLES_YAML="[$(echo "$ROLES" | sed 's/,/, /g')]"
+
+      # HTML bundle hash (deterministic: sorted file paths + contents)
+      BUNDLE_HASH=$(find "$HTML_ROOT" -name '*.html' -type f | sort | xargs -I {} sh -c 'echo "{}"; cat "{}"' | sha256sum | awk '{print $1}')
+
+      GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+      # Find DESIGN_STATUS.md
+      STATUS_FILE=""
+      for candidate in \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_STATUS.md" \
+        "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md"; do
+        [ -f "$candidate" ] && STATUS_FILE="$candidate" && break
+      done
+
+      if [ -z "$STATUS_FILE" ]; then
+        echo "FAIL: DESIGN_STATUS.md not found"
+        exit 1
+      fi
+
+      # Strip any existing snapshot fields (to avoid duplicate entries on re-run)
+      TMP=$(mktemp)
+      grep -v -E '^(phase_complete|roles|prd_hash_at_generation|prd_version|html_bundle_hash|generated_at):' "$STATUS_FILE" > "$TMP"
+
+      # Append new snapshot block (using echo statements to keep YAML block indentation valid)
+      {
+        echo ""
+        echo "# PM-track snapshot (pm-3-design P3g)"
+        echo "phase_complete: true"
+        echo "roles: $ROLES_YAML"
+        echo "prd_hash_at_generation: \"$PRD_HASH\""
+        echo "prd_version: \"v$PRD_VER\""
+        echo "html_bundle_hash: \"$BUNDLE_HASH\""
+        echo "generated_at: \"$GENERATED_AT\""
+      } >> "$TMP"
+
+      mv "$TMP" "$STATUS_FILE"
+      echo "Snapshot recorded in $STATUS_FILE"
+      echo "  roles: $ROLES_YAML"
+      echo "  prd_hash_at_generation: $PRD_HASH"
+      echo "  html_bundle_hash: $BUNDLE_HASH"
+    on_failure: fail
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    depends_on: [record-snapshot]
+    command: "bash {CLAUDE_DIR}/gates/pm-3-design-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.9"
+
+  # --- AGENTIC: Update PIPELINE_STATUS.md with row key P3-design ---
+  - id: update-pipeline-status
+    type: agentic
+    depends_on: [gate]
+    prompt: |
+      Update {TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md for phase P3-design.
+
+      IMPORTANT: Use row key "P3-design" (not "design" or "3-design").
+
+      Progress Table row (P3-design):
+        Status: Complete
+        Score: (from gate proof)
+        Output: {PROJECT_DIR}/design/html/<role>/ (list role folder count and page count summary)
+
+      Execution Log: append with ISO8601 timestamp.
+      Config: update last_run.
+    scope_guard:
+      allow:
+        - "{TARGET_DIR}/{STATUS_DIR}/**"
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: []
+  mcp: [sequential-thinking, playwright]

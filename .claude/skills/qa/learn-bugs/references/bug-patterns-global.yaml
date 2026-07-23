@@ -1,0 +1,1374 @@
+metadata:
+  last_updated: "2026-03-19"
+  total_patterns: 112
+  sources:
+    projects: 19
+    bug_reports: "1165+"
+
+categories:
+  - id: "auth"
+    name: "Auth/Login"
+    patterns:
+      - id: "auth-001"
+        name: "Session expiry/credential error repeated display"
+        frequency: 5
+        severity: "high"
+        symptom: "Credential error popups repeatedly appear during normal usage. Refreshing the page resolves the issue, but it frequently recurs."
+        root_cause: "When server session limits are reached or token renewal fails, the client exposes the error directly without proper handling."
+        affected_screens: ["Dashboard", "Dropdown menu", "Home screen"]
+        prevention_spec: "[Client] Upon receiving a session expiry (401/403) response, automatically attempt token renewal; if renewal fails, redirect to the login page and display a 'Session expired' message only once. Manage error state globally to prevent duplicate error displays."
+        code_signals: ["401", "403", "token", "session", "refresh", "credential", "interceptor"]
+        cases: ["#1252", "#1251", "#1244", "#1240", "#1576"]
+
+      - id: "auth-002"
+        name: "Login/signup not functioning"
+        frequency: 10
+        severity: "high"
+        symptom: "Login button is unresponsive. Signup does not work. App freezes during registration. 401 error occurs on logout."
+        root_cause: "Button remains disabled due to form validation logic errors. API endpoint errors or token handling failures. Expired token sent when calling the logout API."
+        affected_screens: ["Login screen", "Signup screen", "Logout handling"]
+        prevention_spec: "[Client] Login/signup buttons should be clickable regardless of form validation status; display specific error messages on each field when validation fails. [Server] The logout API should return a success response regardless of token expiry and invalidate the server-side token."
+        code_signals: ["login", "signup", "register", "submit", "disabled", "logout", "handleSubmit"]
+        cases: ["Coaching Record #Login button not responding", "K Talk #517 Sign Up is not working", "K Talk #stuck at signup", "K Talk #Login issue in client Server-site", "#1064 User log out error", "Trustix #2000", "Trustix #1999", "Trustix #1998", "Trustix #1972", "Trustix #1971"]
+
+      - id: "auth-003"
+        name: "Redirect to wrong screen after authentication"
+        frequency: 4
+        severity: "medium"
+        symptom: "After login, user is redirected to wrong screens such as password reset completion or login page instead of the dashboard. Unauthenticated users can access the home screen."
+        root_cause: "Auth state checks and routing guard logic not applied, or navigation stack management errors."
+        affected_screens: ["Login screen", "Signup completion screen", "Home screen"]
+        prevention_spec: "[Client] Apply auth guards to all routes. Redirect unauthenticated users to the login page when accessing protected routes. Redirect authenticated users to the dashboard/home when accessing login/onboarding pages. Reset the navigation stack after signup completion so users cannot navigate back to pre-auth screens."
+        code_signals: ["redirect", "navigate", "authGuard", "ProtectedRoute", "isAuthenticated", "router"]
+        cases: ["#2226", "#2234", "#2928", "#2894"]
+
+      - id: "auth-004"
+        name: "Insufficient password validation"
+        frequency: 6
+        severity: "high"
+        symptom: "Signup is possible with passwords that do not meet rules (8-12 chars, letters+numbers+special chars). 404 error displayed after successful password change. Insufficient error messages for incorrect password input."
+        root_cause: "Missing client-side validation or incorrect success/failure branching after server response."
+        affected_screens: ["Signup", "Password change", "Login"]
+        prevention_spec: "[Client] Apply real-time validation to password input fields and display specific guidance messages when rules are not met. [Server] The password change API should return a success response on 200 and appropriate error codes on failure. [Client] Display 'Username or password does not match' message when an incorrect password is entered."
+        code_signals: ["password", "validation", "regex", "pattern", "minLength", "maxLength"]
+        cases: ["#2273", "#1272", "#2932", "#2235", "#2240", "Trustix #1996", "Trustix #1991", "Bside #3015"]
+
+      - id: "auth-005"
+        name: "Multi-device login handling error for same account"
+        frequency: 3
+        severity: "medium"
+        symptom: "Users can re-login with the same account while already logged in on another device, or conversely, a 'Currently in use on another device' message is repeatedly displayed during normal usage."
+        root_cause: "Insufficient session invalidation in single-device login enforcement logic, or lock release timing mismatch."
+        affected_screens: ["Login screen", "Home screen"]
+        prevention_spec: "[Server] Immediately invalidate existing sessions upon login and issue a new session. [Client] When multi-device login is detected, provide clear guidance and an option to force-terminate the existing session. Completely delete server sessions on logout to prevent false positives on re-login."
+        code_signals: ["session", "device", "concurrent", "invalidate", "forceLogout"]
+        cases: ["#2225", "#2329", "#1575"]
+
+      - id: "auth-006"
+        name: "Repeated onboarding screen display"
+        frequency: 3
+        severity: "medium"
+        symptom: "Onboarding screen is repeatedly shown to users who have already completed it, either on app launch or after re-login following logout."
+        root_cause: "Onboarding completion state not saved to local storage, or state check logic missing during initialization."
+        affected_screens: ["Onboarding", "Splash screen"]
+        prevention_spec: "[Client] Save onboarding completion status to local storage (AsyncStorage/SecureStore) and check this value on app launch to decide whether to skip onboarding. Do not reset the onboarding completion flag on logout."
+        code_signals: ["onboarding", "AsyncStorage", "SecureStore", "localStorage", "firstLaunch"]
+        cases: ["#2946", "#2954", "#2887"]
+
+      - id: "auth-007"
+        name: "Social login failure and unoptimized flow"
+        frequency: 3
+        severity: "medium"
+        symptom: "Apple account login does not work. Server error occurs at the final step of the auth process. Missing intermediate screens during social signup. Re-registration is possible with an already registered email."
+        root_cause: "Social login callback handling or server-side token verification logic errors. Insufficient session restoration and redirect logic after OAuth callback processing. Missing email duplicate check logic during signup."
+        affected_screens: ["Login screen", "Social signup flow", "Email duplicate check"]
+        prevention_spec: "[Server] Return clear error responses for token verification failures during social login (Apple, Google, etc.) callback processing. The signup API should first check for email/social account duplicates and guide existing users to the login screen with an 'Account already exists' message. The OAuth callback handler should immediately redirect to the client deep link after token issuance. [Client] Display a retry guidance message on social login failure and provide a regular login option."
+        code_signals: ["OAuth", "Apple", "Google", "socialLogin", "callback", "deeplink", "duplicate"]
+        cases: ["#2243", "#2935", "#3082", "Coaching Record #Social signup one screen missing", "Ivory #If existed user tries to signup"]
+
+      - id: "auth-008"
+        name: "Signup form — API not connected"
+        frequency: 2
+        severity: "low"
+        symptom: "Account is not created when the signup form is submitted, or certain fields (license number, hospital code) are not saved."
+        root_cause: "handleSubmit only executes navigate() without making an actual API call, or fields are missing from the backend DTO/Entity making the entire pipeline incomplete."
+        affected_screens: ["Coach signup form"]
+        prevention_spec: "[Client] The signup form submit handler must call the auth API and include loading state, error handling, and success message UI. [Server] Verify via PR checklist that the same fields exist across all three layers: RegisterDto, Entity, and Service."
+        code_signals: ["handleSubmit", "navigate", "RegisterDto", "Entity", "API call"]
+        cases: ["#3070", "#3071"]
+
+      - id: "auth-009"
+        name: "Login loop after new signup"
+        frequency: 1
+        severity: "low"
+        symptom: "Infinite loop where login after new signup continuously redirects to the registration page."
+        root_cause: "Auth state is not updated after signup completion, so the routing guard considers the user unauthenticated and repeatedly redirects to the registration page."
+        affected_screens: ["New user login flow"]
+        prevention_spec: "[Client] Immediately update auth tokens/state after successful signup and ensure routing guards reference the new state. Cover the signup -> login -> home flow with E2E tests."
+        code_signals: ["redirect", "loop", "authState", "register", "guard"]
+        cases: ["#1283"]
+
+      - id: "auth-010"
+        name: "Login failure message not displayed"
+        frequency: 1
+        severity: "low"
+        symptom: "No error message appears when an incorrect password is entered."
+        root_cause: "Error state is not bound to the UI on login failure."
+        affected_screens: ["Admin login page"]
+        prevention_spec: "[Client] An inline error message must be displayed upon receiving a login failure response (401/403). Error messages should support multiple languages through i18n keys."
+        code_signals: ["error", "message", "401", "403", "toast", "inline"]
+        cases: ["#1531"]
+
+      - id: "auth-011"
+        name: "Auth token propagation failure on multi-API call pages"
+        frequency: 3
+        severity: "high"
+        symptom: "Only some sections on a page display data while others show placeholders like '?', '—', 'N/A'. On pages making 3+ simultaneous API calls, only some calls return 401. Token refresh interceptor located in utility files is missed during page component analysis."
+        root_cause: "Token refresh interceptor encounters race conditions during concurrent API calls. While the first call refreshes the token, remaining calls execute with the expired token. The interceptor is located in utility files, excluding it from component analysis scope."
+        affected_screens: ["Pages with 3+ data sections", "Dashboard", "Team/member management page"]
+        prevention_spec: "[Client] Implement request queuing in the token refresh interceptor to hold pending requests during refresh and retry after completion. [Test] Verify that all data sections on pages with 3+ API calls display actual values. Confirm that placeholders ('?', '—', 'N/A') do not remain after data loading completes. [Analysis] Include utility/interceptor files (src/lib/, src/utils/, src/interceptors/) in the scope when analyzing page components."
+        code_signals: ["interceptor", "refresh", "401", "useQuery", "useSWR", "useEffect", "Promise.all", "race condition"]
+        cases: ["ReviewBoard-v3 #BUG-001", "ReviewBoard-v3 #BUG-007", "ActivityCoaching #session-expiry"]
+
+      - id: "auth-012"
+        name: "Auth Context Race Condition — page renders before auth loading completes"
+        frequency: 4
+        severity: "high"
+        symptom: "Page renders as a blank screen or shows 404/Not Found immediately after login or on direct URL access. API hooks are called with undefined parameters during auth context loading, causing 500 errors. Role-based route guards execute redirects before role verification completes."
+        root_cause: "While the SPA's auth context (AuthContext/AuthProvider) asynchronously loads user/organization/role data, layout components do not block child route rendering. Protected route guards make immediate redirect decisions without checking isLoading state. Data fetching hooks execute API calls while dependent parameters (orgId, userId, etc.) are still undefined."
+        affected_screens: ["All protected pages accessed after login", "Protected routes on direct URL access", "Admin pages with role-based route guard"]
+        prevention_spec: "[Client] In all layout wrapper components (WorkspaceLayout, AdminLayout, etc.), display a loading spinner instead of rendering child components when AuthContext.isLoading is true. ProtectedRoute/RoleGuard components should wait without redirecting during isLoading state. Set enabled: !!requiredParam conditions on data fetching hooks to prevent API calls before dependent parameters are ready. [Test] Verify that normal content (not blank screens) is displayed when directly accessing each protected route immediately after login."
+        code_signals: ["useAuth", "isLoading", "AuthContext", "AuthProvider", "ProtectedRoute", "WorkspaceLayout", "AdminLayout", "enabled: !!", "orgId", "role"]
+        cases: ["PINboard #BUG-001", "PINboard #BUG-002", "PINboard #BUG-003", "QA-2026-03 #AuthRace"]
+
+  - id: "file_upload"
+    name: "Image/File Upload"
+    patterns:
+      - id: "file_upload-001"
+        name: "Profile image change failure and app crash"
+        frequency: 3
+        severity: "medium"
+        symptom: "Profile image is not reflected after change. App crashes when changing profile picture via camera (occurs on both iOS/Android)."
+        root_cause: "Insufficient camera permission handling, memory errors during image compression/resizing, missing UI cache refresh after upload."
+        affected_screens: ["Profile edit screen", "Image picker"]
+        prevention_spec: "[Client] Always implement the permission request flow before accessing camera/gallery and display a settings guidance popup when permission is denied. Compress images to a maximum of 2MB before upload and immediately invalidate the local cache after successful upload to display the new image. [Server] Include the new image URL in the image upload completion response."
+        code_signals: ["profileImage", "camera", "compress", "resize", "cache", "upload"]
+        cases: ["K Talk #Profile image didn't change", "Coaching Record #Changing profile picture on iphone/Android by camera crashes app"]
+
+      - id: "file_upload-002"
+        name: "File upload failure and requirements error"
+        frequency: 5
+        severity: "high"
+        symptom: "File upload fails. Upload file requirements (size, format) are unclear or incorrectly displayed. STL file upload does not work."
+        root_cause: "Missing file type/size validation logic, server-side file processing errors, or error messages not displayed."
+        affected_screens: ["File upload screen", "STL file upload", "Order attachments"]
+        prevention_spec: "[Client] Clearly communicate allowed file formats and maximum size before upload, and display specific error messages when conditions are not met. [Server] The file upload API should also validate allowed MIME type whitelist and maximum file size on the server side, and return clear error codes on failure."
+        code_signals: ["upload", "MIME", "fileSize", "maxSize", "multer", "multipart"]
+        cases: ["Elite4Print #Upload New File Issues", "Elite4Print #Upload File Requirement Issue", "Ivory #Upload approved designed STL not working"]
+
+      - id: "file_upload-003"
+        name: "Uploaded image not displayed in chat UI"
+        frequency: 1
+        severity: "low"
+        symptom: "Image is not displayed in the chat UI even though it was sent."
+        root_cause: "Image data URL is sent to the backend but not bound to Redux state and MessageBubble component."
+        affected_screens: ["Chat detail page (image attachment)"]
+        prevention_spec: "[Client] After sending a file/image, the message object should include a preview URL for immediate rendering. Display optimistically first regardless of upload success status."
+        code_signals: ["MessageBubble", "imageUrl", "optimistic", "preview", "Redux"]
+        cases: ["#3081"]
+
+      - id: "file_upload-004"
+        name: "Upload flow interrupted after STL file deletion"
+        frequency: 1
+        severity: "low"
+        symptom: "When a previously uploaded STL file is deleted, the 'Skip for now' button does not work, making it impossible to proceed without re-uploading."
+        root_cause: "Upload state is not fully reset after file deletion, causing the next step progression condition to evaluate incorrectly."
+        affected_screens: ["STL file upload", "Order edit page"]
+        prevention_spec: "[Client] Fully reset the upload state (null/empty) when a file is deleted, and explicitly handle the condition where 'skip' is possible even without a required file."
+        code_signals: ["fileState", "reset", "null", "skip", "delete"]
+        cases: ["#1279"]
+
+      - id: "file_upload-005"
+        name: "Gallery access permission not requested"
+        frequency: 1
+        severity: "low"
+        symptom: "Photos are uploaded without the app requesting gallery access permission."
+        root_cause: "Permission request logic is missing (OS permission API not called)."
+        affected_screens: ["Photo upload screen"]
+        prevention_spec: "[Client] When accessing gallery/camera, always obtain user consent through the OS permission API. Specify NSPhotoLibraryUsageDescription for iOS and READ_EXTERNAL_STORAGE/READ_MEDIA_IMAGES permissions for Android, and request them at runtime."
+        code_signals: ["permission", "gallery", "NSPhotoLibrary", "READ_EXTERNAL_STORAGE", "requestPermission"]
+        cases: ["Entermong #180 uploading photos"]
+
+  - id: "list_pagination"
+    name: "List/Pagination"
+    patterns:
+      - id: "list_pagination-001"
+        name: "Pagination not implemented and sorting error"
+        frequency: 6
+        severity: "high"
+        symptom: "List pages have no pagination, displaying all data at once. Latest items are not shown at the top of the list. Page numbers do not work properly. Survey history only shows 10 items. Some orders are not displayed in the order info table."
+        root_cause: "Pagination API parameters not applied, default sort condition not set (missing created_at DESC), UI component not implemented. useHistory hook does not support pagination parameters and queries with a fixed limit=10."
+        affected_screens: ["User list", "Blog list", "Admin panel list", "Order list", "Patient survey history tab", "Admin user detail order info section"]
+        prevention_spec: "[Server] List query APIs must support page and page_size parameters with default sorting set to created_at DESC. List APIs should return a pagination response structure including total, page, and limit. User order list APIs should return the total order count (totalCount) separately without status filters. [Client] Implement pagination or infinite scroll on all list screens where 10+ data items are expected, and also provide empty state UI. Output warning logs when the table header count and actual rendered row count do not match."
+        code_signals: ["page", "pageSize", "limit", "offset", "created_at", "DESC", "totalCount", "pagination"]
+        cases: ["Near Work #Need a pagination system", "Thrll #website blog page don't have pagination", "Onui CRM #need Sorting by created at", "Onui CRM #New user should be display top of the list", "#1530", "#1542"]
+
+      - id: "list_pagination-002"
+        name: "Auto-reset after filter application"
+        frequency: 5
+        severity: "high"
+        symptom: "Previously set filters (diagnosis, date, call result) are reset when closing and reopening the filter modal. Filter application itself does not work."
+        root_cause: "Filter state is managed only as local state within the modal component, so it is lost when closed. Filter parameters are not included in API requests."
+        affected_screens: ["Call log management filter", "Lead list filter", "Today assignment filter", "Playbook filter"]
+        prevention_spec: "[Client] Store filter conditions in a parent component or global state so that previous selections are preserved when the modal is reopened. Include filter conditions in API request parameters when the apply button is clicked, and provide a separate filter reset button."
+        code_signals: ["filter", "modal", "useState", "reset", "queryParam"]
+        cases: ["Onui CRM #1478", "Onui CRM #1489", "Onui CRM #1490", "Playbook #1486", "Playbook #1485"]
+
+      - id: "list_pagination-003"
+        name: "Page/search state reset on back navigation"
+        frequency: 2
+        severity: "low"
+        symptom: "Page number and search results are reset when navigating back from a detail page to the list. Filter conditions are also reset."
+        root_cause: "List page state is managed only as component local state, so it is lost on unmount. Insufficient use of global state or URL query parameters."
+        affected_screens: ["Order list", "Search results list"]
+        prevention_spec: "[Client] Save the current page number, search terms, and filter conditions of list pages in URL query parameters or global state management (Redux, Zustand, etc.) so they are restored after navigating back."
+        code_signals: ["queryParam", "searchParams", "back", "navigate", "unmount", "Redux", "Zustand"]
+        cases: ["Ivory #Pagination and search state reset after navigating back", "Ivory #1160 Issue on order details after data is revised with back buttons"]
+
+      - id: "list_pagination-004"
+        name: "Admin table Export button not working"
+        frequency: 3
+        severity: "medium"
+        symptom: "Nothing happens when clicking the Export button in the admin patient/coach table."
+        root_cause: "The Export button has no click handler or actual data download logic implemented."
+        affected_screens: ["Admin patient table", "Admin coach table"]
+        prevention_spec: "[Client] Button components without an onClick handler should be displayed in disabled state, or the button itself should be hidden until implemented. Enable the Export feature only after connecting to the CSV/Excel download API."
+        code_signals: ["export", "CSV", "Excel", "download", "onClick", "disabled"]
+        cases: ["#3073", "#3072"]
+
+  - id: "push_notification"
+    name: "Push Notification"
+    patterns:
+      - id: "push_notification-001"
+        name: "Notification badge/count error"
+        frequency: 8
+        severity: "high"
+        symptom: "Red dot is displayed even when there are no unread notifications. Notification count is truncated or stuck at a static value. Chat notification count is not reset even after being marked as read. Chat icon does not show notification badge even when new chat messages exist."
+        root_cause: "Missing notification count update API call or insufficient synchronization between local and server state. Badge number UI component does not handle maximum display length. Unread message count is not passed to the chat icon component, or notification event subscription is missing."
+        affected_screens: ["Notification tab badge", "Chat notification count", "Home screen icon badge", "Chat icon", "Notification center"]
+        prevention_spec: "[Client] Re-query the unread count from the server when entering the notification list to synchronize local state. Badge numbers must handle overflow (e.g., 99+). The chat icon must display a badge reflecting the unread message count in real time. Update unread count via socket events or periodic polling. [Server] The 'mark all as read' API must guarantee count=0 response after actual DB update, and the client must immediately refresh the badge upon receiving the response."
+        code_signals: ["badge", "unreadCount", "notification", "red dot", "markAllRead"]
+        cases: ["Ivory #No new notification but showing red dot", "Coaching Record #Notification number cut and static", "Coaching Record #Chat notification count number not clearing", "#1365", "#1363"]
+
+      - id: "push_notification-002"
+        name: "Notifications not received and background notifications unavailable"
+        frequency: 5
+        severity: "high"
+        symptom: "Push notifications do not arrive when the app is closed or in background state. In some cases, notifications are not received at all."
+        root_cause: "Push notification sending logic depends only on app foreground state, or FCM/APNs token renewal and background processing configuration is missing."
+        affected_screens: ["Overall notification receipt", "Push notification settings"]
+        prevention_spec: "[Client] Always enable FCM/APNs background mode (background fetch, remote notifications) and implement notifications to reach the device via silent push and data payload even when the app is terminated/in background. [Server] Set priority=high and specify TTL (time-to-live) when sending notifications. Include retry logic for notification delivery failures."
+        code_signals: ["FCM", "APNs", "background", "push", "token", "priority", "TTL"]
+        cases: ["Roadmap #Push notifications should be delivered regardless of phone state", "K Talk #Notifications are not sent", "Near Work #Notification titles are not providing accurate information", "K Talk #notification"]
+
+      - id: "push_notification-003"
+        name: "Duplicate notification display and page malfunction"
+        frequency: 6
+        severity: "high"
+        symptom: "Same notification is displayed twice. No response when clicking a notification. Notification page itself does not work. Previous notification data is exposed after signup."
+        root_cause: "Duplicate notification listener registration, deep link handler not connected, missing notification data initialization for newly registered users."
+        affected_screens: ["Notification list page", "Notification click deep link", "Initial notification state after signup"]
+        prevention_spec: "[Client] Register notification listeners only once on component mount and always unregister on unmount. Implement a handler that navigates to the deep link or corresponding screen on notification click. [Server] Initialize notification data as empty when creating new users."
+        code_signals: ["addEventListener", "removeEventListener", "listener", "duplicate", "deeplink"]
+        cases: ["Ivory #Notification shows two times", "K Talk #Notification is not clickable", "Ivory #Notification Page Not working", "Roadmap #Notification issues(old data)"]
+
+      - id: "push_notification-004"
+        name: "Notification icon position and message accuracy error"
+        frequency: 3
+        severity: "medium"
+        symptom: "Notification icon position is incorrect. Notification title/message is inaccurate or contains wrong information. Notification message is not displayed correctly."
+        root_cause: "Notification template variable binding errors, undefined notification icon layout, incorrect context data inserted during notification dispatch."
+        affected_screens: ["Notification icon UI", "Notification message body"]
+        prevention_spec: "[Server] Verify that variables inserted into notification message templates (username, content name, etc.) are not null/empty before sending. [Client] Use standard icons from the design system for notification icons, and fix their position pixel-by-pixel according to Figma spec."
+        code_signals: ["template", "notification", "icon", "position", "message", "variable"]
+        cases: ["K Talk #Notification icon placement", "Near Work #Notification titles are not providing accurate information", "Coaching Record #Notification message is not Shown properly"]
+
+      - id: "push_notification-005"
+        name: "Deep link not working on notification click"
+        frequency: 3
+        severity: "medium"
+        symptom: "Clicking a notification does not navigate to the corresponding screen for patients. Clicking a design file addition notification does not navigate directly to the review screen."
+        root_cause: "Navigation logic is not implemented in the notification click handler. Deep link processing logic is not implemented, or the connection between notification payload and routing is missing."
+        affected_screens: ["Patient notification list", "Notification list", "Design review screen"]
+        prevention_spec: "[Client] Include the target path (deeplink) as a data attribute on notification items and route to that path in the click handler. Implement deep links that navigate directly to the appropriate screen based on notification type for both push and in-app notifications. Include target_screen and target_id in the notification payload to ensure accurate routing. Define the deep link URL format per notification type in the spec."
+        code_signals: ["deeplink", "target_screen", "target_id", "payload", "onNotificationClick", "navigate"]
+        cases: ["#3075", "#1268", "#2346"]
+
+  - id: "payment"
+    name: "Payment/In-App Purchase"
+    patterns:
+      - id: "payment-001"
+        name: "UI not updated after payment completion and history error"
+        frequency: 7
+        severity: "high"
+        symptom: "Gray screen displayed without success message after payment completion. Payment history page is not updated. Data appears in history without making a payment. Dashboard payment amount does not match payment history."
+        root_cause: "Missing UI state refresh logic after payment callback/webhook processing. Confusion between card registration events and actual payment completion events. Dashboard aggregation query errors."
+        affected_screens: ["Payment completion screen", "Payment history", "Dashboard payment amount"]
+        prevention_spec: "[Server] Immediately reflect payment status in the DB after receiving the payment completion webhook, and deliver results to the client via polling or socket events. Separate card registration and payment completion as distinct events. [Client] Clearly display success/failure messages on payment completion and auto-navigate to the payment history page."
+        code_signals: ["webhook", "payment", "callback", "stripe", "billing", "history"]
+        cases: ["Roadmap #dashboard payment amount different", "Roadmap #payment history still not showing", "Coaching Record #1674 Payment success is showing raw message", "Bright Pixel #673 Not getting success message after payment", "APP #1414 payment issue"]
+
+      - id: "payment-002"
+        name: "Coupon/promotion application error and price calculation error"
+        frequency: 5
+        severity: "medium"
+        symptom: "Cannot proceed to checkout when applying a coupon code. Cart amount is displayed with 3 decimal places. Shipping/additional fees are not reflected in the invoice. Subtotal and final total do not match (suspected double-billing). Price items are not displayed on the payment screen."
+        root_cause: "Errors in final amount calculation logic after coupon application. Insufficient floating-point rounding handling. Additional fee items not included in invoice generation logic. Double calculation logic error where additional items like shipping fees are included in the subtotal and then summed again."
+        affected_screens: ["Cart", "Checkout", "Invoice", "Price estimate", "Payment page", "Order detail page"]
+        prevention_spec: "[Server] Process all amount calculations using integers (smallest unit: won/cents) to prevent floating-point errors. Recalculate and return the final amount from the server after coupon application. Verify via checklist that all cost items including shipping and additional fees are included when generating invoices. [Client] Explicitly display all price items (per-product amount, shipping, discount, final total) on the pre-payment screen."
+        code_signals: ["coupon", "discount", "price", "float", "toFixed", "subtotal", "invoice", "shipping"]
+        cases: ["Elite4Print #2094 Coupon Code/Promotion", "Elite4Print #2286 Local Delivery Fees", "Ivory #pontic crown not counted in the price", "#1242", "#1241"]
+
+      - id: "payment-003"
+        name: "Order form — conditional field display error"
+        frequency: 4
+        severity: "medium"
+        symptom: "Certain fields should be shown/hidden based on selected options, but incorrect conditions cause unnecessary fields to be exposed or required fields to be hidden (Full Arch Retention Type, MUA scan body type, FP1/FP2/FP3 options, etc.)."
+        root_cause: "Conditional rendering logic conditions cannot correctly handle complex order type combinations."
+        affected_screens: ["Order create/edit form (Implant Full Arch, Crown, Bridge)"]
+        prevention_spec: "[Client] Manage the conditional field display logic of order forms by separating the decision tree per order type into separate constant/configuration files. Document show/hide cases for each combination as test cases."
+        code_signals: ["conditionalRender", "orderType", "visible", "hidden", "showField"]
+        cases: ["#1300", "#1302", "#1303", "#1304"]
+
+      - id: "payment-004"
+        name: "Order status display inconsistency"
+        frequency: 3
+        severity: "medium"
+        symptom: "Status does not change to 'Awaiting Production' after payment, or refund request/completion/rejection statuses are not reflected on the customer tracking page. Revision request status is not visible on the dashboard."
+        root_cause: "New status values are missing from state transition logic or client display mapping."
+        affected_screens: ["Order detail", "Order tracking", "Admin dashboard"]
+        prevention_spec: "[Server] Manage the order status Enum as a single source and implement a state machine that only allows permitted transition paths. [Client] Manage display labels per status as a constant map and show a fallback like 'Unknown' for undefined statuses."
+        code_signals: ["status", "enum", "state machine", "transition", "orderStatus"]
+        cases: ["#1336", "#1344", "#1546"]
+
+      - id: "payment-005"
+        name: "Payment cancellation and refund processing error"
+        frequency: 3
+        severity: "medium"
+        symptom: "Cancelled and current payments are displayed simultaneously even after payment cancellation. No follow-up notifications/actions after refund request. Subscription cancellation does not work."
+        root_cause: "Payment cancellation status reflection logic not implemented. Missing status update and notification dispatch flow after refund request."
+        affected_screens: ["Payment history", "Refund request screen", "Subscription management screen"]
+        prevention_spec: "[Server] Immediately update the payment record status upon payment cancellation/refund completion and display cancelled payments with a 'Cancelled' status in the list. Send a notification to the user when refund processing is complete. [Client] Display cancelled payments separately with a cancellation history tab or status badge."
+        code_signals: ["cancel", "refund", "subscription", "status", "cancelled"]
+        cases: ["Ivory #Even the payment is cancelled it is showing cancel payment and current payment", "Ivory #No follow-up action/notification with Refund request", "Ivory #Cancel subscription is not working"]
+
+      - id: "payment-006"
+        name: "Game currency reflection error"
+        frequency: 2
+        severity: "low"
+        symptom: "Game currency (Gold/DIA) is not reflected in the balance after in-app purchase. Initial currency not granted to new users."
+        root_cause: "Missing server webhook processing or client state refresh after payment completion."
+        affected_screens: ["Shop screen", "Home screen", "Currency balance display area"]
+        prevention_spec: "[Server] Immediately update the user's currency balance after receiving the payment completion webhook. Automatically grant initial currency (Gold 2,000, DIA 1,000) when creating new users. [Client] Re-query the currency balance from the server after payment completion to refresh the screen."
+        code_signals: ["currency", "gold", "DIA", "balance", "inAppPurchase", "webhook"]
+        cases: ["#2991", "#1574"]
+
+      - id: "payment-007"
+        name: "Page redirect error after payment"
+        frequency: 2
+        severity: "low"
+        symptom: "Redirected back to the payment page after payment completion. Even when signing up with a different email, user is navigated to a page from the previous session."
+        root_cause: "Insufficient session/state clearing after payment completion. Previous session data persists in routing logic."
+        affected_screens: ["Redirect after payment completion", "Redirect after signup"]
+        prevention_spec: "[Client] Completely clear payment-related session data and local storage on payment completion or logout. Only use server-verified values for redirect URLs."
+        code_signals: ["redirect", "session", "clear", "stripe", "returnUrl"]
+        cases: ["Thrll #Some payment redirecting to payment page again from stripe", "Thrll #987 Redirecting Issue"]
+
+  - id: "realtime"
+    name: "Real-time Data"
+    patterns:
+      - id: "realtime-001"
+        name: "Real-time messages/notifications not received"
+        frequency: 5
+        severity: "high"
+        symptom: "DM messages are not displayed in real time. Chat notifications are received only on specific pages. No notification when receiving messages on other pages. Payment notifications not received. Order status changes and notifications are not reflected in real time."
+        root_cause: "WebSocket/real-time connection is maintained only on specific screens and not managed globally. Insufficient reconnection logic during foreground/background transitions. Status updates and notification events are not propagated via WebSocket/Server-Sent Events."
+        affected_screens: ["DM screen", "Home screen", "Order detail", "Payment screen", "Order management dashboard", "Notification center"]
+        prevention_spec: "[Client] Manage WebSocket/real-time connections globally at the app level so they are not tied to specific screens. Check connection status when the app returns to foreground and reconnect if disconnected. Maintain unread messages/notifications as badges regardless of screen transitions. [Server] Emit real-time events to relevant users when order status changes. Implement reconnection and missed event re-query logic when socket connections are dropped."
+        code_signals: ["WebSocket", "socket.io", "SSE", "emit", "reconnect", "foreground"]
+        cases: ["#2263", "#2239", "#1594", "#2931", "#1262", "#1362"]
+
+      - id: "realtime-002"
+        name: "Chat UI error and message malfunction"
+        frequency: 4
+        severity: "medium"
+        symptom: "Chat text overflows beyond the UI area. Chat partner name is displayed incorrectly. Messages sent by admin from the dashboard are shown as 'Coach' in chat. Chat messages are displayed in newest-first (descending) order with the most recent message at the top."
+        root_cause: "Max-width CSS not set on chat message bubbles. Chat participant data binding errors. Sender identification relies only on ID comparison, causing role misidentification when an admin is also a coach. Backend returns DESC sort for pagination but frontend renders the array without reversing it."
+        affected_screens: ["Chat screen", "Message list", "Patient chat detail", "Coach chat detail"]
+        prevention_spec: "[Client] Set max-width (70-80%) on chat message bubbles and apply word-break: break-word for long text. Re-query chat participant information from the server when entering a chat room to display the latest data. Prioritize the role field over ID comparison for sender display. Always sort messages by createdAt ASC before rendering. [Server] The chat message list API should return data in actual rendering order (oldest first = ASC) by default, or explicitly state DESC sort in the response. Include the sender.role field in socket message broadcasts and chat room query responses."
+        code_signals: ["max-width", "word-break", "overflow", "role", "sender", "ASC", "DESC", "createdAt"]
+        cases: ["K Talk #Chat Page", "Ivory #chat text running over", "Coaching Record #Chat restricted. Chat person name incorrect.", "#2977", "#2978"]
+
+      - id: "realtime-003"
+        name: "Duplicate chat room creation"
+        frequency: 1
+        severity: "low"
+        symptom: "Duplicate chat rooms are created between a patient and a coach, resulting in two chat rooms being displayed."
+        root_cause: "Chat room creation API inserts a new record each time instead of using the getOrCreate pattern, causing race conditions."
+        affected_screens: ["Chat room list"]
+        prevention_spec: "[Server] The chat room creation endpoint should use the getOrCreate pattern and implement DB UNIQUE constraints + race condition handling (23505 error catch). Merge duplicate chat rooms via migration if they exist."
+        code_signals: ["getOrCreate", "UNIQUE", "race condition", "23505", "chatRoom", "duplicate"]
+        cases: ["#2337"]
+
+      - id: "realtime-004"
+        name: "Online/offline status display error"
+        frequency: 1
+        severity: "low"
+        symptom: "The other party is shown as offline in the DM window even though they are actually online."
+        root_cause: "User status updates are not subscribed to in real time, or the status is not fetched on initial load."
+        affected_screens: ["DM screen"]
+        prevention_spec: "[Client] Subscribe to the other party's online status in real time when entering the DM screen and immediately update the UI on status changes. [Server] Broadcast user connect/disconnect events via WebSocket."
+        code_signals: ["online", "offline", "presence", "subscribe", "broadcast"]
+        cases: ["#1563"]
+
+  - id: "admin_dashboard"
+    name: "Admin Dashboard"
+    patterns:
+      - id: "admin_dashboard-001"
+        name: "Admin filter/statistics error"
+        frequency: 6
+        severity: "high"
+        symptom: "'All Filter' in the order list only displays pending status. Admin statistics show only some statuses. Call log editing permission settings are not applied. Report page numbers do not change. Payments are not reflected in the admin panel revenue."
+        root_cause: "Filter API parameter default values misconfigured. Statistics query does not include all status values. Permission check logic not implemented. Statistics data only shows initially loaded data without real-time or periodic refresh."
+        affected_screens: ["Order list filter", "MQL statistics", "Permission management", "Call log management", "Admin report", "Revenue dashboard"]
+        prevention_spec: "[Server] When the 'All' filter is selected, omit the status parameter or use the 'all' value to return all data. Statistics APIs should include all status values in aggregation and include statuses with 0 values in the response. Immediately refresh related statistics when a payment completion event occurs. [Client] Apply permission changes immediately after saving and verify they are reflected without re-login. Refresh statistics/revenue data on screen focus or auto-refresh at regular intervals (e.g., 30 seconds)."
+        code_signals: ["filter", "status", "all", "statistics", "aggregate", "permission", "dashboard"]
+        cases: ["Ivory #All Filter in Order List Displays Only Pending Status", "Onui CRM #MQL - status", "Onui CRM #Permission management", "#1257", "#754"]
+
+      - id: "admin_dashboard-002"
+        name: "Admin bulk/single action error"
+        frequency: 3
+        severity: "medium"
+        symptom: "Cannot delete users from admin. Admin cannot create other admins. Error occurs when placing an order on Hold."
+        root_cause: "Delete/create API permission configuration errors. Hold status processing logic is incomplete."
+        affected_screens: ["User management", "Admin management", "Order management"]
+        prevention_spec: "[Server] Apply role-based access control (RBAC) to admin-only API endpoints and clearly define the permission hierarchy where superadmin can create/delete admins. Pre-implement and test APIs for all status transitions including Hold."
+        code_signals: ["RBAC", "role", "superadmin", "delete", "create", "hold"]
+        cases: ["#789 Unable to delete any user", "#484 admin can't create the admin", "#1212 Hold order error"]
+
+      - id: "admin_dashboard-003"
+        name: "Admin user update DTO field mismatch"
+        frequency: 2
+        severity: "low"
+        symptom: "400 error occurs when admin tries to save patient information (fullName, phone, birth) or coach assignment (coachId)."
+        root_cause: "Fields sent by the frontend are not in UpdateUserDto's allowed fields, so ValidationPipe (forbidNonWhitelisted) rejects the request."
+        affected_screens: ["Admin patient detail", "User management"]
+        prevention_spec: "[Server] UpdateUserDto must include all editable fields that the client can send with @IsOptional(). Update frontend type definitions simultaneously when changing DTOs."
+        code_signals: ["UpdateUserDto", "ValidationPipe", "forbidNonWhitelisted", "@IsOptional", "400"]
+        cases: ["#2940", "#2921"]
+
+      - id: "admin_dashboard-004"
+        name: "Admin pagination state persistence failure"
+        frequency: 2
+        severity: "low"
+        symptom: "After changing an applicant's status, it redirects to page 1 but pagination is incorrect. When clicking the next page button, the group number changes but order content remains the same as page 1."
+        root_cause: "Page number state management error or page parameter not correctly passed during API calls."
+        affected_screens: ["Admin applicant list", "Order list"]
+        prevention_spec: "[Client] Maintain the current page or explicitly navigate to page 1 after changing a list item's status (approve/reject, etc.). Manage page numbers via URL parameters to maintain the correct page even after status changes. [Server] Process offset/limit parameters accurately in the pagination API."
+        code_signals: ["page", "offset", "limit", "currentPage", "pagination"]
+        cases: ["#969", "#1248"]
+
+      - id: "admin_dashboard-005"
+        name: "Admin statistics date calculation error"
+        frequency: 1
+        severity: "low"
+        symptom: "Days elapsed (daysElapsed) for new users is displayed as a negative number."
+        root_cause: "registrationDate is not normalized to midnight, causing days elapsed to be negative for users registered on the same day."
+        affected_screens: ["Admin patient list", "Statistics page"]
+        prevention_spec: "[Server] When calculating date differences, normalize both Date objects to midnight using setHours(0,0,0,0) before computation."
+        code_signals: ["daysElapsed", "setHours", "Date", "diff", "registrationDate"]
+        cases: ["#2921"]
+
+      - id: "admin_dashboard-006"
+        name: "Refund status management error"
+        frequency: 1
+        severity: "low"
+        symptom: "Re-requests are possible for approved/rejected refund requests. Approve/reject buttons disappear for admins after approval/rejection."
+        root_cause: "UI conditional rendering logic errors based on refund status and unimplemented state transition rules."
+        affected_screens: ["Refund management page"]
+        prevention_spec: "[Server] Clearly distinguish refund request statuses (requested/approved/rejected/completed) and reject re-requests for already processed requests. [Client] Conditionally display action buttons based on refund status and show only status badges for completed requests."
+        code_signals: ["refund", "status", "approved", "rejected", "conditionalRender"]
+        cases: ["#1276"]
+
+      - id: "admin_dashboard-007"
+        name: "Admin chat HTML tag exposure and link not working"
+        frequency: 1
+        severity: "low"
+        symptom: "HTML tags are exposed raw in the admin chat preview. Links are not clickable."
+        root_cause: "Chat messages are rendered as plain text, exposing HTML tags without escaping. Link component not used."
+        affected_screens: ["Admin chat list/preview"]
+        prevention_spec: "[Client] When rendering chat messages, parse HTML to apply formatting, or render links as clickable components. Display message previews as plain text with HTML tags stripped."
+        code_signals: ["innerHTML", "dangerouslySetInnerHTML", "sanitize", "stripTags", "link"]
+        cases: ["#1278"]
+
+
+  - id: "search_filter"
+    name: "Search/Filter"
+    patterns:
+      - id: "search_filter-001"
+        name: "Search function not working or DB not connected"
+        frequency: 6
+        severity: "high"
+        symptom: "Teacher search filter does not work. Order list search bar malfunctions. Leads are not displayed in the today assignment filter. Cannot search by Invoice ID. Results do not change when typing in the search bar."
+        root_cause: "Search API parameter connection is missing. Insufficient search term debounce handling causing unnecessary API calls or results not being reflected. Only the search UI is implemented without connecting the actual API query parameter passing logic."
+        affected_screens: ["Teacher search", "Order list search", "Lead filter search", "Search page"]
+        prevention_spec: "[Client] The search input component should apply a 300ms debounce before passing the search term as an API query parameter. Display empty state UI when search results are 0. [Server] The search API should support search based on key identifiers including Invoice ID and support case-insensitive partial matching (ILIKE)."
+        code_signals: ["search", "debounce", "ILIKE", "queryParam", "filter", "searchBar"]
+        cases: ["K Talk #Search with teacher is not working", "Ivory #Searce bar is not working properly", "#548 today assignment filter issue", "#1261", "#1249", "#3013"]
+
+      - id: "search_filter-002"
+        name: "All data exposed on filter reset"
+        frequency: 1
+        severity: "low"
+        symptom: "When applying the 'Deselect All' filter, all data is displayed instead of empty results."
+        root_cause: "When selections are empty, the filter function treats it as 'no filter = show all', and the API query also re-requests all data."
+        affected_screens: ["Session calendar coach filter"]
+        prevention_spec: "[Client] When the filter array is empty, clearly distinguish between 'nothing selected = empty results' and 'no filter = show all'. When the filter array is empty, skip the API request and return an empty array."
+        code_signals: ["filter", "deselectAll", "empty", "length === 0", "skip"]
+        cases: ["#3031"]
+
+  - id: "navigation"
+    name: "Navigation/Routing"
+    patterns:
+      - id: "navigation-001"
+        name: "Back button incorrect redirection"
+        frequency: 3
+        severity: "medium"
+        symptom: "Back button navigates to previously visited pages or unexpected pages instead of the expected page (order list, login, etc.)."
+        root_cause: "Back button relies on navigate(-1) or history.back(), causing the destination to vary depending on history stack state. Some are implemented without an explicit destination."
+        affected_screens: ["Order detail", "Session record", "General page navigation"]
+        prevention_spec: "[Client] Back buttons should use explicit destination paths (e.g., navigate('/orders')) instead of navigate(-1). Specify the default back navigation destination for each page in the spec."
+        code_signals: ["navigate(-1)", "history.back()", "goBack", "router.back"]
+        cases: ["#3054", "#3025", "#1324"]
+
+      - id: "navigation-002"
+        name: "Wrong screen displayed after tab/screen switch"
+        frequency: 3
+        severity: "medium"
+        symptom: "Settings menu is shown instead of the main view when returning to the social tab. Tab-specific header navigation is displayed differently. Conflicts occur when returning to a previous page as old data is retained."
+        root_cause: "Tab navigation stack is not reset, or state is not re-initialized on screen focus."
+        affected_screens: ["Social tab", "Home tab", "Order edit screen"]
+        prevention_spec: "[Client] Manage each tab's navigation stack independently and provide an option to reset the stack to root on tab switch. Use screen focus events (useFocusEffect) to initialize necessary state when re-entering a screen."
+        code_signals: ["tab", "useFocusEffect", "navigation stack", "resetRoot", "popToTop"]
+        cases: ["#1599", "#2345", "#1255"]
+
+      - id: "navigation-003"
+        name: "Deep link/routing error and loop"
+        frequency: 3
+        severity: "medium"
+        symptom: "Clicking the continue button in a specific section loops back to a previous section. Incorrectly redirected to a page from the previous session after login. In-page anchor (#section) links are treated as page navigation in prototype navigation, or links with spaces fail to match."
+        root_cause: "Navigation stack management error. Previous route history is retained without session initialization. Anchor link processing logic does not handle URLs starting with # as exceptions in catch-all routing."
+        affected_screens: ["Navigation within order flow", "Redirect after signup", "Design preview prototype navigation"]
+        prevention_spec: "[Client] Each step of multi-step flows (orders, onboarding, etc.) should have a unique route, and reset the history stack (replace method) after completion to prevent re-entry via back navigation. In the routing interceptor, treat hrefs starting with '#' as in-page scroll and exclude from navigation. Normalize spaces to hyphens and unify to lowercase when matching links."
+        code_signals: ["replace", "anchor", "hash", "loop", "catch-all", "normalize"]
+        cases: ["Ivory #1120 Unknown looping issue", "Thrll #987 Redirecting Issue", "#3102"]
+
+      - id: "navigation-004"
+        name: "Redirect to first page on page reload"
+        frequency: 1
+        severity: "low"
+        symptom: "Always redirected to the first page (landing/home) when refreshing the current page."
+        root_cause: "Routing executes before auth state restoration, so even with tokens in localStorage, the user is judged as unauthenticated and redirected to root."
+        affected_screens: ["All protected routes"]
+        prevention_spec: "[Client] Protected route evaluation should only execute after auth state restoration is complete. Display a blank screen or spinner during initial loading and delay route redirects."
+        code_signals: ["refresh", "reload", "authLoading", "isLoading", "splash"]
+        cases: ["#3110"]
+
+  - id: "data_sync"
+    name: "Data Synchronization"
+    patterns:
+      - id: "data_sync-001"
+        name: "Date offset due to timezone mismatch"
+        frequency: 3
+        severity: "medium"
+        symptom: "A date one day before/after is selected when picking a date, today's exercise/survey data is displayed as 0, or calendar dot indicators do not match actual data."
+        root_cause: "new Date('YYYY-MM-DD') or toISOString() converts to UTC basis, causing dates to shift by 1 day in KST (UTC+9) environments. Creating new Date() on every render also causes unnecessary recalculation."
+        affected_screens: ["Patient home (calendar)", "Exercise log", "Survey status display"]
+        prevention_spec: "[Client] When converting date strings (YYYY-MM-DD) to Date objects, always use local timezone parsing (local midnight) and maintain direct string format (YYYY-MM-DD) instead of toISOString(). Stabilize today's reference date with useMemo. [Server] Apply start-of-day (00:00:00.000) ~ end-of-day (23:59:59.999) normalization to DB queries when querying date ranges."
+        code_signals: ["toISOString", "UTC", "KST", "timezone", "new Date", "YYYY-MM-DD"]
+        cases: ["#2975", "#2993", "#3001"]
+
+      - id: "data_sync-002"
+        name: "List not updated after data creation"
+        frequency: 3
+        severity: "medium"
+        symptom: "Not displayed in the list after a successful notice creation message. Lead creation API returns success but is not actually created. Not displayed after class forum creation."
+        root_cause: "Mismatch between creation API success response and actual DB save. Missing list re-query logic after creation."
+        affected_screens: ["Notice list", "Lead list", "Class forum list"]
+        prevention_spec: "[Server] Creation APIs should only return success responses after DB save is complete and guarantee atomicity with transactions. [Client] Immediately re-query the list or add the new item via optimistic update after receiving a successful creation response."
+        code_signals: ["invalidateQueries", "refetch", "optimistic", "transaction", "create"]
+        cases: ["Entermong #186 notice creation", "Onui CRM #1424 lead create api has some problem", "K Talk #Class forum is not working"]
+
+      - id: "data_sync-003"
+        name: "Incorrect data display (Stale/Incorrect Data)"
+        frequency: 3
+        severity: "medium"
+        symptom: "Incorrect information from a previous task is briefly displayed when clicking a task. Lead child's grade automatically changes when customer information is modified. Duplicate diagnosis submissions are processed."
+        root_cause: "Previous data cache not cleared. Unintended reference relationships between different entities. Missing duplicate submission prevention logic."
+        affected_screens: ["Task detail", "Lead detail", "Diagnosis submission"]
+        prevention_spec: "[Client] Clear previous data (null/loading state) when entering a detail page, then call the API to display the latest data. [Server] Only allow automatic data synchronization between unrelated entities through explicit connections. To prevent duplicate submissions, disable the submit button during requests and use server-side idempotency keys."
+        code_signals: ["stale", "cache", "idempotency", "loading", "reset", "initialData"]
+        cases: ["Onui CRM #Clicking task briefly shows incorrect info", "Playbook #624 Lead child grade follows customer child grade", "#856 Handle Duplicate Learning Diagnosis Submission"]
+
+      - id: "data_sync-004"
+        name: "Calendar dot display and actual data mismatch"
+        frequency: 2
+        severity: "low"
+        symptom: "Calendar dots are not updated after survey submission, or dot positions are displayed incorrectly due to date parsing errors."
+        root_cause: "(1) Missing query cache invalidation after survey submission, (2) timezone errors in new Date() based date parsing."
+        affected_screens: ["Patient home calendar monthly view"]
+        prevention_spec: "[Client] Immediately invalidate related query keys after successful data submission. Use string-based (YYYY-MM-DD) comparison for dates."
+        code_signals: ["invalidate", "queryKey", "calendar", "dot", "markedDates"]
+        cases: ["#3001", "#2997"]
+
+      - id: "data_sync-005"
+        name: "Exercise count/completion status mismatch"
+        frequency: 2
+        severity: "low"
+        symptom: "Exercise completion count or prescription count is displayed as 0 on the home screen or reflects stale cache values."
+        root_cause: "(1) getDaySummary returns null when no ExerciseDay record exists, displaying 0/0, (2) countActiveForPatient queries wrong dates due to timezone errors, (3) totalCount validation logic not applied when deactivating prescriptions."
+        affected_screens: ["Patient home exercise card", "Exercise record page"]
+        prevention_spec: "[Server] getDaySummary should return a synthetic summary based on current active prescriptions instead of null when no ExerciseDay record exists. Re-validate totalCount in real time when prescriptions change."
+        code_signals: ["getDaySummary", "ExerciseDay", "totalCount", "null", "synthetic"]
+        cases: ["#3021", "#2993"]
+
+  - id: "form_input"
+    name: "Form/Input"
+    patterns:
+      - id: "form_input-001"
+        name: "Form validation not working and abnormal button activation"
+        frequency: 7
+        severity: "high"
+        symptom: "Password confirmation validation does not work. No format guidance/auto-conversion for phone number input. Continue button is enabled even when required fields (shipping address) are not filled. Continue button is disabled with only partial selection. Signup Continue button does not work. Error messages are incorrect."
+        root_cause: "Validation rules not defined or not connected. Input format masking not applied. Form validity state management logic errors or bug checking only some fields. Error message hardcoding errors."
+        affected_screens: ["Password change", "Phone number input", "Order creation form", "Signup form", "Service selection form"]
+        prevention_spec: "[Client] Apply real-time validation to all input fields and display specific guidance messages for each error type. Phone number fields should provide auto-masking or input guidance placeholders for allowed digits and format (e.g., 010-XXXX-XXXX). Continue/Submit buttons should only be enabled when all required fields are valid. Track each field's validity state individually and determine button enablement with AND conditions."
+        code_signals: ["validation", "isValid", "disabled", "required", "mask", "pattern", "formState"]
+        cases: ["Onui CRM #Myprofile edit password: Validation is not working", "Thrll #1094 Office Phone number Error issue", "#1238", "#1250", "#1247", "#900", "#3015"]
+
+      - id: "form_input-002"
+        name: "Keyboard covering UI elements"
+        frequency: 5
+        severity: "high"
+        symptom: "Input fields, buttons, navigation bars, etc. are hidden when the soft keyboard appears. Cursor is covered by the keyboard when text wraps to the next line. System navigation bar covers modal/tab bar."
+        root_cause: "KeyboardAvoidingView or ScrollView not applied. SafeAreaInsets not handled. Missing dynamic scroll logic."
+        affected_screens: ["Chat input", "Signup form", "Onboarding", "Modal", "Bottom tab bar"]
+        prevention_spec: "[Client] Apply KeyboardAvoidingView to all screens with input fields. Use useSafeAreaInsets from react-native-safe-area-context to apply padding to the system navigation bar area. Track cursor position during multiline input and auto-scroll the screen."
+        code_signals: ["KeyboardAvoidingView", "SafeAreaInsets", "ScrollView", "keyboard", "padding"]
+        cases: ["#2039", "#2242", "#2247", "#2248", "#1571"]
+
+      - id: "form_input-003"
+        name: "Multi-step form data persistence error and loop"
+        frequency: 4
+        severity: "medium"
+        symptom: "Previously entered data is reset or overwritten by old data when using the back button. Changes are not reflected when editing an order. During order editing, back navigation repeatedly loops to already-visited pages, or progress stops after selecting all teeth as crowns."
+        root_cause: "Multi-step form state is managed only as local state in each step's component, so it is lost on back navigation. Multi-step form step state management logic incorrectly evaluates conditions in edit mode, or completion conditions are handled differently between initial creation and editing."
+        affected_screens: ["Order create/edit multi-step form", "Order create/edit form (Abutment, Crown step)"]
+        prevention_spec: "[Client] Store multi-step form input data in global state or form context so data is preserved when navigating between steps. The 'back' button should restore previous step data and preserve data until final submission. Manage the current step index via URL parameters or state in multi-step forms and use the same step forward/backward logic in edit mode. Cover all step transition conditions with unit tests."
+        code_signals: ["step", "wizard", "multiStep", "context", "formData", "persist"]
+        cases: ["Ivory #1160 Issue on order details after data is revised with back buttons", "Ivory #Edit order selection/summary discrepancy", "#1323", "#1282"]
+
+      - id: "form_input-004"
+        name: "Number input field allowing negative/non-numeric values"
+        frequency: 2
+        severity: "low"
+        symptom: "Negative numbers or non-numeric characters (e, +, -) can be entered in numeric input fields such as exercise set count, walking time, and step count."
+        root_cause: "Default behavior of <input type='number'> allows e, +, - keys, and client-side keydown blocking logic is not implemented."
+        affected_screens: ["Survey input form", "Exercise prescription input form"]
+        prevention_spec: "[Client] Use onKeyDown handler on numeric-only input fields to preventDefault for e, E, +, -, . keys. Also apply min=0 attribute and re-validate positive integer range on the server during form submission."
+        code_signals: ["type='number'", "onKeyDown", "preventDefault", "min", "parseInt"]
+        cases: ["#3023", "#1526"]
+
+      - id: "form_input-005"
+        name: "Text editor formatting (line breaks, bullets) not reflected"
+        frequency: 2
+        severity: "low"
+        symptom: "Bullet/number formatting applied in the FAQ text box is not reflected on the actual page. Line breaks do not work."
+        root_cause: "The rendering side does not parse the rich text editor's HTML output, or it is saved as plain text."
+        affected_screens: ["FAQ management page", "Community post"]
+        prevention_spec: "[Server] Save rich text content in HTML or Markdown format. [Client] Use dangerouslySetInnerHTML or a Markdown parser when rendering saved rich text to preserve formatting."
+        code_signals: ["richText", "editor", "dangerouslySetInnerHTML", "markdown", "quill", "tiptap"]
+        cases: ["#1256", "#1117"]
+
+  - id: "performance"
+    name: "Performance"
+    patterns:
+      - id: "performance-001"
+        name: "Page reload required after design generation"
+        frequency: 2
+        severity: "low"
+        symptom: "The generated design is only displayed after refreshing the page following design generation completion."
+        root_cause: "fetchDesign logic exists only in the SSE completion handler; polling, fallback, and safety-net paths lack retry logic, causing data load failures depending on timing."
+        affected_screens: ["Design generation screen", "My designs"]
+        prevention_spec: "[Client] After receiving an async generation completion event, apply retry logic with exponential backoff (minimum 3 attempts) equally across all completion paths (SSE, polling, fallback) for data retrieval."
+        code_signals: ["SSE", "polling", "retry", "backoff", "fetchDesign"]
+        cases: ["#3034", "#3100"]
+
+      - id: "performance-002"
+        name: "Preview not working"
+        frequency: 2
+        severity: "low"
+        symptom: "Full design preview feature does not work. Regular preview feature does not work."
+        root_cause: "Missing fallback handling when relation data is not loaded in the preview service. Missing module dependency registration."
+        affected_screens: ["Design preview", "Content preview"]
+        prevention_spec: "[Server] Implement the preview generation service to perform a direct query (fallback query) when relation data loading fails. Always register related Repositories in the module. [Client] Display a clear error message when preview loading fails."
+        code_signals: ["preview", "fallback", "Repository", "Module", "imports"]
+        cases: ["Roadmap #preview is not working", "Design Flow #2966 Full Preview Option Not Working"]
+
+      - id: "performance-003"
+        name: "Data instability due to unnecessary re-renders"
+        frequency: 1
+        severity: "low"
+        symptom: "Date-based schedule data on the patient home page is recalculated on every render, causing UI flickering."
+        root_cause: "new Date() is called inside the component render function, creating a new object on every render -> unstable dependency array."
+        affected_screens: ["Patient home page"]
+        prevention_spec: "[Client] Stabilize new Date() calls inside render functions with useMemo(() => new Date(), []) or constants. Do not include unstable objects in the deps array of date-dependent effects/memos."
+        code_signals: ["useMemo", "useEffect", "deps", "new Date()", "rerender", "flicker"]
+        cases: ["#2997"]
+
+  - id: "ui_layout"
+    name: "UI/Layout"
+    patterns:
+      - id: "ui_layout-001"
+        name: "UI component inconsistency and layout error"
+        frequency: 8
+        severity: "high"
+        symptom: "Padding/margin errors. Icons differ from the app-wide design system. Navigation bar displays differently on each page. UI breaks when no profile image is set. Responsive design errors. Profile image is displayed differently across Home, Shop, and My Profile screens."
+        root_cause: "Design system (shared components) not used. Insufficient implementation against Figma spec. Missing edge case handling (no image, empty state). Each screen loads profile data separately without using shared state."
+        affected_screens: ["Overall app UI", "Navigation bar", "Profile", "Icons", "Home screen", "Shop screen", "My profile screen"]
+        prevention_spec: "[Client] Reuse design system components for shared UI elements (icons, buttons, input fields, navigation bar) and use Figma spec 1:1 matching as QA criteria when implementing new screens. Always implement placeholder UI for no image/data states on all screens. Manage user profile information (including image) in global state (Context/Redux/Zustand). Immediately update global state on profile update to display consistent data across all screens."
+        code_signals: ["designSystem", "Figma", "placeholder", "responsive", "padding", "margin", "globalState"]
+        cases: ["Bright Pixel #533 Responsive Design", "Design Flow #2944 Inconsistent Navbar", "Thrll #1130 UI Issue", "#1603", "#1595", "#1597"]
+
+      - id: "ui_layout-002"
+        name: "Text/copywriting error"
+        frequency: 10
+        severity: "high"
+        symptom: "Button text is incorrect. Password confirmation field label error. Class schedule title format needs to be changed. Text capitalization errors. Error message wording is inaccurate."
+        root_cause: "Specification changes not reflected in development. Text hardcoded and insufficiently centralized."
+        affected_screens: ["Buttons", "Labels", "Error messages", "Titles overall"]
+        prevention_spec: "[Client] Manage all user-facing text through i18n or centralized constant files to enable batch modifications. Verify text matching against Figma specs via checklist during the QA phase."
+        code_signals: ["i18n", "t()", "label", "text", "constant", "hardcoded string"]
+        cases: ["K Talk #579 All of contact us button", "Playbook #208 Confirm Password", "K Talk #341 Change Title of Class", "#966 text capitalization", "#1309", "#1310", "Trustix #2024", "Trustix #2023", "Trustix #2020", "Blink #2986"]
+
+      - id: "ui_layout-003"
+        name: "Profile/edit page cannot scroll"
+        frequency: 2
+        severity: "low"
+        symptom: "When content overflows on coach/patient profile pages, scrolling is not available and bottom content cannot be viewed."
+        root_cause: "Flex layout container missing min-h-0, so flex items cannot shrink below content height, preventing overflow-y-auto from activating."
+        affected_screens: ["Coach profile", "Patient profile"]
+        prevention_spec: "[Client] Always apply min-h-0 alongside overflow-y: auto on flex child elements. Include this property in the standard template when reusing layout component patterns."
+        code_signals: ["min-h-0", "overflow-y-auto", "flex", "scroll", "min-height"]
+        cases: ["#2332", "#3080"]
+
+      - id: "ui_layout-004"
+        name: "Calendar event rendering error (block/dot)"
+        frequency: 2
+        severity: "low"
+        symptom: "Events are displayed as dots instead of blocks in the calendar monthly view, or adjacent events overlap and background grid lines show through in weekly/daily views."
+        root_cause: "display: block property not set on FullCalendar event objects; CSS variables applied in wrong format (hsl() wrapping) causing background color rendering failure."
+        affected_screens: ["Admin/coach calendar"]
+        prevention_spec: "[Client] Specify display: 'block' on FullCalendar monthly view event objects. In Tailwind CSS v4, use CSS custom properties in var(--color) format and do not wrap with hsl(var(--color))."
+        code_signals: ["FullCalendar", "display: block", "hsl", "var(--color)", "CSS variable"]
+        cases: ["#3032", "#2914"]
+
+      - id: "ui_layout-005"
+        name: "Splash/onboarding image cropped"
+        frequency: 1
+        severity: "low"
+        symptom: "Splash screen image is displayed cropped. Onboarding profile completion page cannot scroll."
+        root_cause: "Responsive layout not applied for screen size variations."
+        affected_screens: ["Splash screen", "Onboarding screen"]
+        prevention_spec: "[Client] Explicitly set resizeMode to 'contain' or 'cover' for images. Apply ScrollView by default to onboarding screens where content may overflow the screen."
+        code_signals: ["resizeMode", "contain", "cover", "ScrollView", "splash"]
+        cases: ["#2038", "#2906"]
+
+      - id: "ui_layout-006"
+        name: "Raw key exposure due to missing i18n key"
+        frequency: 1
+        severity: "low"
+        symptom: "Login button is briefly displayed in English or as an i18n key string (e.g., auth.landing.loggingIn) instead of the expected language."
+        root_cause: "Code references an i18n key but the key is not defined in translation files (ko.json, en.json)."
+        affected_screens: ["Login page button"]
+        prevention_spec: "[Client] When adding or referencing a new i18n key, register it simultaneously in ko.json and en.json. Apply lint rules in the build or CI stage to detect missing i18n keys."
+        code_signals: ["i18n", "t()", "ko.json", "en.json", "missing key", "translation"]
+        cases: ["#1515"]
+
+  - id: "camera_permission"
+    name: "Camera/Permission"
+    patterns:
+      - id: "camera_permission-001"
+        name: "Camera permission request timing and handling error"
+        frequency: 4
+        severity: "medium"
+        symptom: "Camera permission requested immediately after app launch (after splash). Permission screen is repeatedly shown to users who already granted permission on re-login. 'Request Permission' button does not work. Camera does not work on the home screen."
+        root_cause: "Permission request timing is inappropriate, and permission grant status is not cached locally, requiring re-verification every time."
+        affected_screens: ["Splash", "Onboarding", "Home screen", "Matching screen"]
+        prevention_spec: "[Client] Request camera permission at the point when the feature is actually needed (after onboarding login or before starting a match). Cache permission grant status locally and do not re-request on re-login. Provide a guidance UI that allows navigation to settings when permission is denied."
+        code_signals: ["camera", "permission", "requestPermission", "Linking.openSettings", "check"]
+        cases: ["#1967", "#1573", "#2199", "#1568"]
+
+  - id: "video_call"
+    name: "Video Call"
+    patterns:
+      - id: "video_call-001"
+        name: "Video call connection instability"
+        frequency: 6
+        severity: "high"
+        symptom: "Video call connection failure. Connection drops after accepting an extension. Camera screen not displayed on Next Match (occurs after 5+ tests). Server error when navigating to the matching screen."
+        root_cause: "Insufficient WebRTC disconnect and reconnect logic. Session transition handling errors during call extension."
+        affected_screens: ["Video call screen", "Matching screen", "Call extension screen"]
+        prevention_spec: "[Client] Attempt automatic reconnection (up to 3 times) on video call connection failure and display connection status to the user. Explicitly terminate the existing WebRTC session before starting a new one on call extension/Next Match. [Server] Strengthen exception handling in the matching API to return clear error responses to the client when server errors occur."
+        code_signals: ["WebRTC", "peerConnection", "ICE", "reconnect", "mediaStream", "RTCPeerConnection"]
+        cases: ["#3003", "#3004", "#2228", "#2936"]
+
+  - id: "ai_design"
+    name: "AI Generation / Design Tools"
+    patterns:
+      - id: "ai_design-001"
+        name: "AI-generated HTML rendering error (script parsing broken)"
+        frequency: 2
+        severity: "low"
+        symptom: "Raw HTML/code is displayed instead of the generated design in the design viewer, or a blank screen appears."
+        root_cause: "AI-generated <script> tags contain </script> strings inside them, causing the browser parser to prematurely terminate the script block, rendering subsequent scripts as text."
+        affected_screens: ["Design generation preview", "Design edit view"]
+        prevention_spec: "[Server/Client] Always apply a sanitizer that escapes </script> strings within inline <script> blocks before inserting AI-generated HTML into iframes. Automatically add closing tags (</body></html>) if they are missing from the generated HTML."
+        code_signals: ["iframe", "srcdoc", "script", "sanitize", "escape", "AI", "generated"]
+        cases: ["#3044", "#3107"]
+
+      - id: "ai_design-002"
+        name: "Version history data loss"
+        frequency: 2
+        severity: "low"
+        symptom: "Version history disappears after page refresh, or refreshing after version restoration reverts to the original version."
+        root_cause: "Version history is stored only in Redux client state without persisting to the backend. Restoration API calls are also not implemented."
+        affected_screens: ["Design edit version history"]
+        prevention_spec: "[Server] Persist history by saving an htmlSnapshot field in design edit messages. [Client] Restore version history from edit message htmlSnapshots on page load, and always call the backend API when restoring versions to update server state."
+        code_signals: ["version", "history", "snapshot", "Redux", "persist", "restore"]
+        cases: ["#3094", "#3043"]
+
+  - id: "community"
+    name: "Community/Board"
+    patterns:
+      - id: "community-001"
+        name: "Community content display error"
+        frequency: 3
+        severity: "medium"
+        symptom: "Community page thumbnail images do not work. Post carousel images cannot be viewed. Non-logged-in users cannot click posts (should be clickable). Attachment update fails."
+        root_cause: "Image URL processing errors, permission check placement errors (auth check in click event), file upload handler errors."
+        affected_screens: ["Community list", "Community detail"]
+        prevention_spec: "[Client] Verify URL validity when rendering images and display a fallback image on failure. Allow non-logged-in users to view public posts and require login only at the point of interaction (comments, likes, etc.). [Server] Process the file attachment update API as a transaction: delete existing files, then save new files."
+        code_signals: ["thumbnail", "carousel", "public", "guest", "attachment", "fallback image"]
+        cases: ["#1012", "#1138", "#1011", "#1352"]
+
+  - id: "api_server"
+    name: "API/Server"
+    patterns:
+      - id: "api_server-001"
+        name: "API 500 error and insufficient server exception handling"
+        frequency: 2
+        severity: "low"
+        symptom: "PUT /user/{id} endpoint returns 500 even on minimal update requests. 404 error after successful password change."
+        root_cause: "Missing null checks or relation handling in the controller. Incorrect success response code."
+        affected_screens: ["User profile edit", "Password change"]
+        prevention_spec: "[Server] All UPDATE endpoints should support partial updates and ignore null/undefined fields. Validate input values in the controller before DB queries and return appropriate HTTP status codes (200, 400, 404, 500). Implement a global exception handler to prevent unhandled exceptions from returning as 500."
+        code_signals: ["500", "404", "ExceptionFilter", "HttpException", "partial update", "null check"]
+        cases: ["#1539", "#1272"]
+
+      - id: "api_server-002"
+        name: "Parent entity relation not included — breadcrumb/context header broken"
+        frequency: 2
+        severity: "medium"
+        symptom: "Breadcrumbs on detail/viewer pages display type names ('Project', 'Organization', etc.) instead of actual parent entity names. Parent item name is missing or undefined in the context header."
+        root_cause: "Backend ORM queries do not include parent relations (include/join) when fetching detail entities. Frontend breadcrumb component references entity.parent.name but the parent object is missing from the API response."
+        affected_screens: ["Detail/viewer page", "All sub-pages with breadcrumbs"]
+        prevention_spec: "[Server] Detail query APIs should include parent relations needed for frontend breadcrumbs/headers via include/join. Return at least the parent's id and name fields. [Test] Verify that each segment displays actual entity names on all pages with breadcrumbs. Fail if type literals ('Project', 'Organization', etc.) appear as-is in breadcrumb text."
+        code_signals: ["breadcrumb", "include:", "relation", "parent", "join", "entity.name", "context header"]
+        cases: ["ReviewBoard-v3 #BUG-010", "QA-2026-03 #Breadcrumb-01"]
+
+      - id: "api_server-003"
+        name: "Error returned as HTTP 200 — client interceptor bypassed"
+        frequency: 2
+        severity: "high"
+        symptom: "Frontend does not detect error state under auth failure conditions. Login page redirect does not trigger on token expiry/absence. Network tab shows 200 OK but response body contains { statusCode: 401 }."
+        root_cause: "Backend controller does not throw HTTP exceptions (throw new UnauthorizedException()) on error conditions; instead returns { statusCode: 401, message: '...' } in 200 response body. Frontend HTTP interceptor only reacts to HTTP status codes (4xx/5xx), so it cannot detect errors in 200 responses."
+        affected_screens: ["Auth/token refresh endpoint", "All APIs requiring error handling"]
+        prevention_spec: "[Server] Always throw HTTP exception classes on error conditions (never use return { statusCode: 4xx }). Ensure the framework's exception filter automatically sets the correct HTTP status code. [Test] Verify that HTTP status codes are 4xx/5xx in error condition tests. Fail as anti-pattern if a statusCode field exists in a 200 OK response body."
+        code_signals: ["return { statusCode:", "HttpException", "UnauthorizedException", "ForbiddenException", "interceptor", "response.status"]
+        cases: ["ReviewBoard-v3 #BUG-008", "QA-2026-03 #HTTP-contract"]
+
+      - id: "api_server-004"
+        name: "500 returned on undefined parameter (should be 400)"
+        frequency: 3
+        severity: "medium"
+        symptom: "API returns 500 Internal Server Error, but the actual cause is required parameters (orgId, userId, etc.) being passed as undefined. Occurs when client calls API before auth context loading is complete. String 'undefined' is passed to ORM queries, causing SQL errors."
+        root_cause: "Backend route handlers pass parameters directly to ORM queries without applying validation pipes/guards. undefined values are converted to the string 'undefined', causing type errors in UUID/numeric column queries."
+        affected_screens: ["All org/workspace-based APIs", "Dashboard", "List pages"]
+        prevention_spec: "[Server] Apply validation pipes (ParseUUIDPipe, ParseIntPipe, etc.) to all route parameters. Also validate query parameters with DTO + ValidationPipe. Respond with 400 Bad Request for undefined/null parameters. [Test] Verify that 400 (not 500) is returned when required parameters are missing or in incorrect format."
+        code_signals: ["@Param", "ParseUUIDPipe", "ParseIntPipe", "ValidationPipe", "undefined", "findOne", "findBy", "where:"]
+        cases: ["PINboard #BUG-002", "PINboard #BUG-003", "QA-2026-03 #Param-validation"]
+
+  - id: "otp_email"
+    name: "OTP/Email Verification"
+    patterns:
+      - id: "otp_email-001"
+        name: "OTP timer and error state mismatch"
+        frequency: 3
+        severity: "medium"
+        symptom: "Error continues to be displayed even after 4 minutes since OTP input. OTP validity time is shorter than the resend timer, so the code expires before resend is available. Error message wording for expired verification codes is inaccurate."
+        root_cause: "Server OTP expiry time (TTL) and client countdown timer value are not synchronized. Error state is cleared only on OTP input attempts, not on timer expiry."
+        affected_screens: ["OTP verification screen", "Email verification screen"]
+        prevention_spec: "[Server] Include the OTP validity time (TTL) in the API response to pass to the client. The resend wait time must be shorter than or equal to the OTP validity time. [Client] Initialize the OTP timer with the TTL value from the server response, and automatically clear error messages on timer expiry, transitioning to a 'Code has expired' notice. Unify the resend button activation condition and OTP expiry condition to the same TTL standard."
+        code_signals: ["OTP", "TTL", "timer", "countdown", "resend", "expire"]
+        cases: ["Trustix #2032", "Trustix #2021", "Trustix #2024"]
+
+  - id: "data_integrity"
+    name: "Data Integrity/Integration"
+    patterns:
+      - id: "data_integrity-001"
+        name: "Unintended linked changes in shared data"
+        frequency: 4
+        severity: "medium"
+        symptom: "Editing a member name on one screen changes it on another screen (ticket management). Previously issued QR links and data are reset when reassigning to a match. Previous input data is deleted when assigning multiple members to multiple tickets. Only 14 of 25 uploaded files are reflected in the system."
+        root_cause: "Different entities (member profile, ticket, QR code) are connected by value copying instead of references, causing changes on one side to propagate to the other. Reassignment logic is implemented as DELETE+INSERT which resets existing associated data. Insufficient rollback logic for failed items during bulk uploads."
+        affected_screens: ["Member management", "Ticket assignment", "QR management", "File upload"]
+        prevention_spec: "[Server] Implement entity connections via foreign key references (FK) instead of value copying. Use PATCH method during reassignment (unassign->reassign) to preserve existing associated data (QR codes, previous settings) and update only changed items. Process bulk data uploads as transactions and explicitly include success and failure counts in the response on partial failures. [Client] Manage state by preserving previous selections and only adding new items during multi-select input."
+        code_signals: ["FK", "foreignKey", "PATCH", "transaction", "bulk", "reassign"]
+        cases: ["Trustix #2029", "Trustix #2028", "Trustix #1975", "Trustix #1981"]
+
+  - id: "point_credit"
+    name: "Point/Credit Management"
+    patterns:
+      - id: "point_credit-001"
+        name: "Point/credit balance calculation error and not updated"
+        frequency: 3
+        severity: "medium"
+        symptom: "After charging 10 points and using 2, the balance should be 8 but is displayed as 2 on the overview screen and 9 on the point management screen. Add points button does not work. Transaction history is not updated."
+        root_cause: "Point balance is calculated separately in multiple places (overview aggregation query, point management detail query), causing synchronization errors. Charge and deduction events are not processed in separate transactions, exposing intermediate states."
+        affected_screens: ["Point overview", "Point management", "Transaction history"]
+        prevention_spec: "[Server] Query point balance from a single source only (current_balance column in the points table) and guarantee atomicity with transactions during charges/deductions. Separate into a common service so that the overview API and point detail API use the same balance calculation logic. [Client] Simultaneously invalidate query caches for both the overview and point management screens after point changes."
+        code_signals: ["balance", "point", "credit", "transaction", "current_balance", "invalidate"]
+        cases: ["Trustix #2035", "Trustix #1970", "Trustix #2001"]
+
+  - id: "data_sort"
+    name: "Data Sorting/Classification"
+    patterns:
+      - id: "data_sort-001"
+        name: "Time-based item classification/sorting not applied"
+        frequency: 5
+        severity: "high"
+        symptom: "Past matches continue to appear in the assignment target list. Ongoing/upcoming/ended matches are mixed without a defined order. Date/time-based sorting is not applied correctly. Ticket management screen lacks separate sections for 'upcoming matches' and 'past matches'."
+        root_cause: "Current time-based filtering (status=ongoing/upcoming/past) logic is not implemented in the list query API, or date comparison conditions are missing. UI simply lists everything without time-based tab/section separation."
+        affected_screens: ["Match assignment screen", "Match list", "Ticket management screen"]
+        prevention_spec: "[Server] The match list API should automatically classify and return statuses as upcoming (before start), ongoing (in progress), and past (ended) based on current time. The assignment target match API should include only future/ongoing matches by default. [Client] Display match list and ticket management screens with separate tabs or sections for 'upcoming/ongoing' and 'past matches'. Set default sort to date ascending (nearest upcoming at the top)."
+        code_signals: ["upcoming", "ongoing", "past", "sort", "orderBy", "Date.now()"]
+        cases: ["Trustix #2017", "Trustix #1989", "Trustix #1985", "Trustix #2030", "Trustix #1988"]
+
+  - id: "rbac"
+    name: "Role/Permission Management (RBAC)"
+    patterns:
+      - id: "rbac-001"
+        name: "Incomplete user role definition and out-of-role actions allowed"
+        frequency: 8
+        severity: "high"
+        symptom: "Registration is possible with roles not allowed in the system. Admin should be able to edit supplier information but can only edit some fields. Insufficient spam prevention for bots repeatedly submitting applications."
+        root_cause: "Allowed role lists are defined differently on server and client, or the Enum is not managed as a single source. Role-based allowed action matrix is not specified, leading to missing implementations. Bot prevention (CAPTCHA, rate limiting) not applied to form submissions."
+        affected_screens: ["Signup screen", "Admin user management", "Supplier management"]
+        prevention_spec: "[Server] Define the allowed roles Enum in a single constant file and enforce via DB column CHECK constraints. Specify the allowed role list on each API endpoint via decorators. Apply rate limiting (max N per minute per IP) to public form submission APIs. [Client] Apply reCAPTCHA or honeypot fields to signup forms to prevent bot submissions."
+        code_signals: ["role", "Enum", "RBAC", "Roles decorator", "reCAPTCHA", "rate limit"]
+        cases: ["Activity Coaching #2899", "Ktalk #1021", "Trustix #1997"]
+
+      - id: "rbac-002"
+        name: "Access control by sidebar hiding only — no route guard"
+        frequency: 3
+        severity: "high"
+        symptom: "Lower-role users cannot see menus in the sidebar, but can access admin-only pages by entering the URL directly. Page content renders normally and data modification is also possible."
+        root_cause: "Conditional rendering of sidebar navigation ({isAdmin && <NavLink>}) is treated as access control. Role-based guards (ProtectedRoute HOC, etc.) are not applied in router configuration. Page components render full content without role verification."
+        affected_screens: ["All pages with role restrictions", "Team management", "Settings page", "Admin-only pages"]
+        prevention_spec: "[Client] Apply ProtectedRoute or roleGuard wrapper to role-restricted routes in router configuration. Confirm in code review that sidebar conditional rendering is only a UX convenience, not access control. [Server] Apply @Roles() guard to corresponding APIs for dual protection. [Test] For all routes with role: admin/owner in route configuration, verify redirect or access denial when accessing URLs directly with lower roles."
+        code_signals: ["isAdmin &&", "role &&", "ProtectedRoute", "RoleGuard", "Navigate to", "sidebar", "NavLink"]
+        cases: ["ReviewBoard-v3 #BUG-005", "ReviewBoard-v3 #BUG-006", "QA-2026-03 #RBAC-sidebar"]
+
+  - id: "hardcoded"
+    name: "Hardcoded/Unlinked Dynamic Data"
+    patterns:
+      - id: "hardcoded-001"
+        name: "Dynamic data hardcoded as static"
+        frequency: 19
+        severity: "high"
+        symptom: "'Premier League' text is hardcoded when it should be dynamically loaded from game info. Competition logos are managed as static files instead of from the database. Display options are fixed with incorrect labels. Currency symbol is hardcoded as dollar instead of pound."
+        root_cause: "Temporary hardcoded values from initial development were not replaced with actual data connections. Fixed to specific values without considering multi-country/multi-currency support."
+        affected_screens: ["Ticket screen", "Competition list", "Match management screen"]
+        prevention_spec: "[Client] Bind all dynamically changeable text such as league names, team names, and currency symbols from API response data. Include hardcoded strings as a code review checklist item to detect during PRs. [Server] Manage competition/league information in separate tables and provide CRUD APIs. Load currency from configuration values with defaults set according to project requirements."
+        code_signals: ["hardcoded", "static", "config", "currency", "dynamic", "binding"]
+        cases: ["Trustix #2006", "Trustix #2015", "Trustix #1984", "Trustix #1987"]
+
+      - id: "hardcoded-002"
+        name: "Development mock data/fallback values not removed"
+        frequency: 4
+        severity: "high"
+        symptom: "Table always shows the same N rows (regardless of API data). Detail page fields display default values like 'Admin', 'Acme Corp'. KPI/statistics cards all show 0 or identical values. Components render data without API calls."
+        root_cause: "Inline array/object mock data used before API integration during initial development was not removed after integration. Fallback operators (|| 'default') display default values when API response field mismatches occur. Data mapping fails because response structure changes after API refactoring were not reflected in components."
+        affected_screens: ["Admin list page", "Admin detail page", "Dashboard KPI card"]
+        prevention_spec: "[Client] Table/list data must use API call results as the source and not use inline array literals (3+ objects) as state initial values. Do not use fallback operators (|| 'string') for display fields; show loading/error states when data is not loaded. [Test] Verify that known placeholder values are not displayed on list pages. Verify that KPI card values are greater than 0 (or match fixture data). Verify that API calls actually occur via network request inspection."
+        code_signals: ["useState([{", "|| '", "|| \"", "mockData", "dummyData", "fallback", "stats.", "data.kpi"]
+        cases: ["ReviewBoard-v3 #BUG-002", "ReviewBoard-v3 #BUG-003", "ReviewBoard-v3 #BUG-004", "Trustix #hardcoded-mock"]
+
+  - id: "ui_naming"
+    name: "UI Naming/Terminology Consistency"
+    patterns:
+      - id: "ui_naming-001"
+        name: "Name/ID inconsistency across screens"
+        frequency: 5
+        severity: "high"
+        symptom: "'Member ID' and 'Member No.' are mixed depending on the screen. The same item has different names on 'member management' and 'ticket management' screens. Only member number is displayed without the name on the assignment screen. Field order varies across screens, causing user confusion."
+        root_cause: "Each screen developer defined labels independently without term definitions in the initial spec. Common label constants not used. Naming consistency not reviewed during design QA."
+        affected_screens: ["Member management", "Ticket management", "Assignment screen", "All admin pages"]
+        prevention_spec: "[Client] Manage all labels for domain objects (Member ID/No., field names, status names, etc.) in a single i18n or constant file referenced by all screens. [Server] Align API response field names with spec documentation and reflect changes together with the client when field names change. Define a domain terminology glossary when writing the PRD and finalize before development."
+        code_signals: ["label", "glossary", "constant", "i18n", "naming", "field order"]
+        cases: ["Trustix #2018", "Trustix #2014", "Trustix #2019", "Trustix #2011", "Trustix #2016"]
+
+  - id: "gift_duplicate"
+    name: "Gift/Item Duplicate Processing"
+    patterns:
+      - id: "gift_duplicate-001"
+        name: "Duplicate item/gift distribution due to duplicate actions"
+        frequency: 3
+        severity: "medium"
+        symptom: "Same gift is sent twice during video extension. Already selected items in the gift selection UI are shown as selectable again. Events fire twice, causing duplicate processing."
+        root_cause: "Gift sending event listener is registered twice, or new gifts are created each time on socket event receipt without idempotency handling. Selection state is not synchronized between UI and server."
+        affected_screens: ["Video call gift UI", "Item selection screen"]
+        prevention_spec: "[Server] The gift sending API should use an idempotency key (e.g., combination of session_id + gift_id + timestamp) to prevent duplicate processing of the same request. [Client] Disable the gift/item send button after click until server response is received. Register socket event listeners only once on component mount and always unregister on unmount."
+        code_signals: ["idempotency", "duplicate", "listener", "removeListener", "gift", "socket"]
+        cases: ["Blink #2983", "Blink #3005", "Bside #3089"]
+
+  - id: "artwork_capture"
+    name: "Artwork/Content Capture"
+    patterns:
+      - id: "artwork_capture-001"
+        name: "Collection not classified after content capture"
+        frequency: 3
+        severity: "medium"
+        symptom: "Capture collection is not created after photo capture. Captured artwork is not sorted into the correct collection. Artwork inference API is not called after photo capture."
+        root_cause: "Collection creation API call logic is missing after the capture completion event. AI inference API trigger is not connected to the capture completion handler."
+        affected_screens: ["Artwork capture screen", "Collection list"]
+        prevention_spec: "[Client] Implement the flow on photo capture completion in this order: (1) call artwork inference API -> (2) auto-classify into collection based on inference results -> (3) refresh collection list. Display appropriate error messages to the user on each step failure and provide a manual collection selection option."
+        code_signals: ["capture", "collection", "inference", "classify", "artwork", "trigger"]
+        cases: ["Bside #3008", "Bside #3090", "Bside #3089"]
+
+  - id: "exercise_prescription"
+    name: "Exercise/Prescription Management"
+    patterns:
+      - id: "exercise_prescription-001"
+        name: "Exercise timer context-based behavior branching not implemented"
+        frequency: 2
+        severity: "low"
+        symptom: "Timer is not reset when starting a new exercise, continuing from the previous exercise's time. Timer does not resume from saved time when returning to a previously in-progress exercise."
+        root_cause: "Exercise timer state is managed globally independent of exercise ID, so it is not reset on exercise transition."
+        affected_screens: ["Exercise execution screen", "Exercise list"]
+        prevention_spec: "[Client] Manage exercise timers as a map structure keyed by exercise ID. Start the timer from 0 for the given exercise ID when starting a new exercise, and resume from saved elapsed time when returning to a previous exercise. [Server] Store exercise progress state (elapsed time, completion status) per exercise ID and provide APIs to enable restoration on app restart."
+        code_signals: ["timer", "exerciseId", "elapsed", "Map", "reset", "resume"]
+        cases: ["Activity Coaching #2917", "Activity Coaching #2898"]
+
+      - id: "exercise_prescription-002"
+        name: "Overview/dashboard static data display"
+        frequency: 4
+        severity: "medium"
+        symptom: "Overview page numbers (ticket count, match count, points, etc.) remain static and are not updated even after adding new data. Recent ticket options do not work."
+        root_cause: "Overview/dashboard page aggregation data is queried only once on initial load without re-query logic on subsequent data changes."
+        affected_screens: ["Admin overview page", "Supplier-side recent activity panel"]
+        prevention_spec: "[Client] Auto-refresh dashboard/overview page aggregate numbers via screen focus (useFocusEffect) or periodic polling (30 seconds). Immediately invalidate related query keys to refresh overview data when match/ticket/point creation or modification events occur."
+        code_signals: ["useFocusEffect", "polling", "refetchOnFocus", "invalidate", "aggregate", "dashboard"]
+        cases: ["Trustix #1994", "Trustix #1976", "Trustix #1992", "Trustix #1977"]
+
+      - id: "exercise_prescription-003"
+        name: "Admin field editing not possible (disable not implemented)"
+        frequency: 3
+        severity: "medium"
+        symptom: "Admin cannot edit ticket detail fields as they are in a non-editable state. Team management page has no edit functionality at all."
+        root_cause: "Input fields are fixed as disabled or readOnly despite having admin edit permissions, or edit mode toggle logic is not implemented."
+        affected_screens: ["Admin ticket detail", "Admin team management", "Supplier info edit"]
+        prevention_spec: "[Client] For admin-permissioned users, related fields should transition to editable state when clicking the 'Edit' button on detail pages. Define the list of editable fields per role as separate constants. [Server] Verify via PR checklist that the admin edit API's allowed field list (UpdateDto) matches the edit fields provided by the UI."
+        code_signals: ["disabled", "readOnly", "editMode", "isEditing", "role", "editable"]
+        cases: ["Trustix #2013", "Trustix #2012", "Trustix #1997"]
+
+      - id: "exercise_prescription-004"
+        name: "Clickable area mismatch (label not working)"
+        frequency: 1
+        severity: "low"
+        symptom: "Clicking the text label area next to a checkbox does not toggle the checkbox; only the checkbox icon itself is clickable."
+        root_cause: "Checkbox is not wrapped in a label tag, or htmlFor/id attributes are not connected."
+        affected_screens: ["Forms with checkboxes", "Consent screen", "Selection list"]
+        prevention_spec: "[Client] Selection input elements such as checkboxes and radio buttons must be implemented with label htmlFor={id} or by placing the input inside a label, so the entire label area is clickable."
+        code_signals: ["label", "htmlFor", "checkbox", "radio", "toggle", "clickable area"]
+        cases: ["Blink #1582"]
+
+  - id: "session_lifecycle"
+    name: "Session/Token Lifecycle"
+    patterns:
+      - id: "session_lifecycle-001"
+        name: "httpOnly cookie not deleted on logout"
+        frequency: 5
+        severity: "high"
+        symptom: "User has logged out but httpOnly refresh_token cookie remains in the browser, enabling session hijacking. Logout handler only clears client state and does not call the server-side token revocation API."
+        root_cause: "Logout function only performs localStorage/Zustand/Redux state clearing and omits calling the server's /auth/logout endpoint (cookie deletion + token invalidation)."
+        affected_screens: ["Logout handling", "Sidebar/header logout button"]
+        prevention_spec: "[Client] The logout handler must call the server /auth/logout API before clearing client state. Even if the API call fails, still clear client state but log the cookie deletion failure. [Server] /auth/logout should set the refresh_token cookie to maxAge=0 via Set-Cookie header and invalidate the token in DB/Redis."
+        code_signals: ["logout", "handleLogout", "clearCookie", "Set-Cookie", "maxAge", "httpOnly", "refresh_token"]
+        cases: ["QA-2026-03 #Session-01", "QA-2026-03 #Session-02", "QA-2026-03 #Session-03", "QA-2026-03 #Session-04", "QA-2026-03 #Session-05"]
+
+      - id: "session_lifecycle-002"
+        name: "Blank screen due to in-memory token loss on page refresh"
+        frequency: 6
+        severity: "high"
+        symptom: "2-3 seconds of blank screen followed by content display on page refresh or direct URL entry. Auth state remains as true in localStorage but access_token stored only in memory is lost on refresh. All API calls return 401 until token refresh completes."
+        root_cause: "access_token is stored only in Zustand/Redux in-memory and excluded from persist targets. Startup refresh runs asynchronously on app start, but the React tree renders first, causing API calls without tokens. No layout-level loading gate."
+        affected_screens: ["All protected pages", "Dashboard", "Settings page"]
+        prevention_spec: "[Client] Implement a loading gate (AuthGate component or isRefreshing state) that blocks protected route rendering until startup refresh completes on app start. Display a global spinner or skeleton during loading. Use TanStack Query's enabled option to delay API calls when the token is null."
+        code_signals: ["isRefreshing", "startupRefresh", "persist", "partialize", "AuthGate", "enabled: !!token"]
+        cases: ["QA-2026-03 #Session-06", "QA-2026-03 #Session-07", "QA-2026-03 #Session-08", "QA-2026-03 #Session-09", "QA-2026-03 #Session-10", "QA-2026-03 #Session-11"]
+
+      - id: "session_lifecycle-003"
+        name: "Role-specific login page redirect error"
+        frequency: 3
+        severity: "medium"
+        symptom: "Client/customer role users are redirected to admin/staff-only login pages after session expiry. Roles with separate login paths (client, partner, etc.) are navigated to the generic /login."
+        root_cause: "The 401 handling in Axios interceptor or route guard redirects to a single /login path without checking the user's role."
+        affected_screens: ["Client login", "Partner login", "Admin login"]
+        prevention_spec: "[Client] When handling 401 responses, check the current user role or current URL prefix to redirect to the appropriate login page for that role. Example: redirect to /client/login when expired on /client/* paths, and /admin/login when expired on /admin/* paths. Store the last role in localStorage for reference."
+        code_signals: ["401", "redirect", "login", "role", "client", "admin", "interceptor"]
+        cases: ["QA-2026-03 #Session-12", "QA-2026-03 #Session-13", "QA-2026-03 #Session-14"]
+
+  - id: "rate_limiting"
+    name: "Rate Limiting"
+    patterns:
+      - id: "rate_limiting-001"
+        name: "Login attempt rate limiting not implemented"
+        frequency: 5
+        severity: "high"
+        symptom: "Unlimited repeated login attempts are possible with incorrect passwords on the login page. Fully exposed to brute-force attacks. No failure-count-based blocking or CAPTCHA display."
+        root_cause: "Rate limiting middleware not applied to server-side login endpoint. No client-side failure counting."
+        affected_screens: ["Login screen", "Password reset request"]
+        prevention_spec: "[Server] Apply IP-based rate limiting to the login API (e.g., 15-minute block after 10 failures within 5 minutes from the same IP). Also apply separate rate limiting based on the same email. [Client] Display reCAPTCHA or additional authentication steps after 3 consecutive failures. When blocked, show a 'Please try again later' message with remaining wait time."
+        code_signals: ["login", "throttle", "rateLimit", "attempt", "brute", "CAPTCHA", "lockout"]
+        cases: ["QA-2026-03 #Auth-01", "QA-2026-03 #Auth-02", "QA-2026-03 #Auth-03", "QA-2026-03 #Auth-04", "QA-2026-03 #Auth-05"]
+
+  - id: "rbac_ui"
+    name: "Role-based UI Control"
+    patterns:
+      - id: "rbac_ui-001"
+        name: "Action button UI exposed to users without required role"
+        frequency: 7
+        severity: "high"
+        symptom: "'Create', 'Delete', 'Edit' buttons are visible to read-only role users. Clicking buttons returns 403 from the server but is silently ignored with no feedback to the user (silent fail). Or the UI appears to succeed but reverts to original state on refresh."
+        root_cause: "Components render all action UI without checking the current user's role. No user feedback (toast, modal) for 403 errors."
+        affected_screens: ["List page action buttons", "Detail page edit buttons", "Dashboard management buttons"]
+        prevention_spec: "[Client] Do not render buttons/menus if the current user's role is lower than the minimum required role for that action. Apply usePermission(action) or role >= requiredRole checks to UI conditional rendering. Display a 'You do not have permission' toast on server 403 responses. [Server] Apply role verification guards (@Roles) to all CUD endpoints and manage constants in a common module so that client UI exposure and server guards share the same role criteria."
+        code_signals: ["role", "permission", "canCreate", "canDelete", "isAdmin", "isOwner", "RolesGuard", "403"]
+        cases: ["QA-2026-03 #RBAC-01", "QA-2026-03 #RBAC-02", "QA-2026-03 #RBAC-03", "QA-2026-03 #RBAC-04", "QA-2026-03 #RBAC-05", "QA-2026-03 #RBAC-06", "QA-2026-03 #RBAC-07"]
+
+      - id: "rbac_ui-002"
+        name: "Lower roles can perform CUD due to missing backend role guard"
+        frequency: 5
+        severity: "high"
+        symptom: "Member-role users can successfully call admin-only APIs (status changes, settings modifications, etc.). Server returns 200 OK and data is actually changed."
+        root_cause: "@Roles() decorator or role guard is not applied to the controller, so only authentication is verified without checking authorization."
+        affected_screens: ["Status change API", "Settings change API", "Delete API"]
+        prevention_spec: "[Server] Mandatorily apply @Roles(minimumRole) guard to all CUD (Create/Update/Delete) endpoints. Apply role checks to GET endpoints as well when returning sensitive data. Verify allow/block cases for each role in E2E tests. [Client] Disable the corresponding UI and display an 'Insufficient permissions' notice on server 403 responses."
+        code_signals: ["@Roles", "RolesGuard", "role", "403", "Forbidden", "canActivate"]
+        cases: ["QA-2026-03 #RBAC-08", "QA-2026-03 #RBAC-09", "QA-2026-03 #RBAC-10", "QA-2026-03 #RBAC-11", "QA-2026-03 #RBAC-12"]
+
+  - id: "stub_button"
+    name: "Stub Button/Unconnected UI"
+    patterns:
+      - id: "stub_button-001"
+        name: "Stub button deployed without onClick handler"
+        frequency: 15
+        severity: "high"
+        symptom: "Button exists in the UI with styles applied, but nothing happens when clicked. No console errors. Users perceive the feature as broken."
+        root_cause: "During prototype or UI-first development, buttons are placed in JSX first and onClick handler connection is omitted. Code review only verifies visual appearance without checking event binding."
+        affected_screens: ["Admin dashboard export button", "Settings page management buttons", "Detail page action buttons", "Upload buttons"]
+        prevention_spec: "[Client] All <button> elements must have an onClick handler bound. Buttons without onClick should add a disabled attribute and show a 'Coming soon' tooltip. [Test] In E2E tests, assert at least one side effect (network request, modal open, state change, navigation) after every button click. Clicks with no side effects should be treated as FAIL."
+        code_signals: ["<button", "onClick", "handleClick", "disabled", "stub", "TODO"]
+        cases: ["QA-2026-03 #Stub-01", "QA-2026-03 #Stub-02", "QA-2026-03 #Stub-03", "QA-2026-03 #Stub-04", "QA-2026-03 #Stub-05", "QA-2026-03 #Stub-06", "QA-2026-03 #Stub-07", "QA-2026-03 #Stub-08", "QA-2026-03 #Stub-09", "QA-2026-03 #Stub-10", "QA-2026-03 #Stub-11", "QA-2026-03 #Stub-12", "QA-2026-03 #Stub-13", "QA-2026-03 #Stub-14", "QA-2026-03 #Stub-15"]
+
+      - id: "stub_button-002"
+        name: "File upload button JSX exists — event handler/file input not implemented"
+        frequency: 8
+        severity: "high"
+        symptom: "File upload, bulk upload, and image change buttons exist in the UI but the file selection dialog does not open on click. <input type='file'> does not exist in the DOM or ref connection is missing."
+        root_cause: "Upload UI was implemented first and actual file selection/upload logic connection was deferred and deployed. Hidden file input element and ref.current.click() connection missing."
+        affected_screens: ["Profile image change", "Screenshot/image upload", "Bulk upload", "Attachments"]
+        prevention_spec: "[Client] Upload buttons must be connected to a hidden <input type='file'> element via ref, calling inputRef.current.click() on button click. Create FormData in the onChange handler and send to the API. [Test] Verify that the file selection dialog opens (or native event fires) after clicking the upload button."
+        code_signals: ["<input type=\"file\"", "inputRef", "FormData", "upload", "accept", "onChange"]
+        cases: ["QA-2026-03 #Upload-01", "QA-2026-03 #Upload-02", "QA-2026-03 #Upload-03", "QA-2026-03 #Upload-04", "QA-2026-03 #Upload-05", "QA-2026-03 #Upload-06", "QA-2026-03 #Upload-07", "QA-2026-03 #Upload-08"]
+
+  - id: "kpi_data_integrity"
+    name: "KPI/Statistics Data Consistency"
+    patterns:
+      - id: "kpi_data_integrity-001"
+        name: "KPI summary card and detail table data mismatch"
+        frequency: 5
+        severity: "high"
+        symptom: "Numbers displayed in the dashboard KPI cards (e.g., 'Payment failures: 0') do not match the row count in the table at the bottom of the same page (3 rows). Users cannot trust the data."
+        root_cause: "KPI card values and table data use different APIs or different calculation logic. This includes cases where one is hardcoded and the other is API-connected."
+        affected_screens: ["Admin dashboard", "Revenue page", "Statistics page"]
+        prevention_spec: "[Client] KPI card values should use aggregation fields (count, sum) from the same API, and tables should use the detail array from the same API. Confirm in code review that both values source from the same API response. [Test] Automatically verify that KPI card numbers match table row counts."
+        code_signals: ["KPI", "card", "table", "count", "summary", "statistics", "dashboard"]
+        cases: ["QA-2026-03 #KPI-01", "QA-2026-03 #KPI-02", "QA-2026-03 #KPI-03", "QA-2026-03 #KPI-04", "QA-2026-03 #KPI-05"]
+
+  - id: "accessibility"
+    name: "Accessibility (A11y)"
+    patterns:
+      - id: "accessibility-001"
+        name: "Global focus indicator and aria attributes missing"
+        frequency: 8
+        severity: "high"
+        symptom: "Currently focused element is not visually distinguishable during keyboard Tab navigation. aria-label not applied to navigation, buttons, and links. Multiple nav landmarks coexist without aria-label."
+        root_cause: "outline: none applied globally in CSS without providing alternative focus styles. aria attributes missing from early development."
+        affected_screens: ["All pages — focus indicator", "Sidebar navigation", "Form fields", "Action buttons"]
+        prevention_spec: "[Client] When applying outline: none or outline: 0 globally, always provide an alternative focus ring (2px solid + offset) via the :focus-visible pseudo-class. Add aria-label to all <nav> elements. Always specify aria-label on icon-only buttons. [Test] Include automated accessibility checks in CI using axe-core or Pa11y."
+        code_signals: ["outline", "focus", "aria-label", "aria-live", "role", "tabIndex", ":focus-visible"]
+        cases: ["QA-2026-03 #A11y-01", "QA-2026-03 #A11y-02", "QA-2026-03 #A11y-03", "QA-2026-03 #A11y-04", "QA-2026-03 #A11y-05", "QA-2026-03 #A11y-06", "QA-2026-03 #A11y-07", "QA-2026-03 #A11y-08"]
+
+      - id: "accessibility-002"
+        name: "Modal focus trap not implemented"
+        frequency: 5
+        severity: "high"
+        symptom: "Tab key can access page elements behind the modal when it is open. Focus does not move inside the modal when it opens. Focus does not return to the original trigger element when the modal closes."
+        root_cause: "Focus trap library (focus-trap-react, etc.) not applied to the modal component. aria-modal='true', role='dialog' missing."
+        affected_screens: ["Confirmation modal", "Creation modal", "Edit modal", "Delete confirmation modal"]
+        prevention_spec: "[Client] All modal components should include role='dialog', aria-modal='true', and aria-labelledby. On open, move autofocus to the first focusable element; when Tab reaches beyond the modal, cycle back to the first element (focus trap). On close, return focus to the trigger element that opened the modal."
+        code_signals: ["modal", "dialog", "focus", "trap", "aria-modal", "FocusTrap", "autoFocus"]
+        cases: ["QA-2026-03 #A11y-09", "QA-2026-03 #A11y-10", "QA-2026-03 #A11y-11", "QA-2026-03 #A11y-12", "QA-2026-03 #A11y-13"]
+
+      - id: "accessibility-003"
+        name: "Clickable div — button/a tag not used"
+        frequency: 6
+        severity: "high"
+        symptom: "Clickable areas like cards, rows, and tiles are implemented with <div onClick>, making them inaccessible via keyboard Enter/Space. Screen readers do not recognize them as interactive elements."
+        root_cause: "Click areas implemented with <div> + onClick pattern instead of semantic HTML. role='button', tabIndex='0', and onKeyDown handler missing."
+        affected_screens: ["Card layout (project cards, screen cards)", "Table row click", "Tab/filter buttons"]
+        prevention_spec: "[Client] Implement clickable elements as <button> or <a>. When <div> must be used, always add role='button', tabIndex={0}, onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick()}. Enable the ESLint jsx-a11y/click-events-have-key-events rule."
+        code_signals: ["<div onClick", "role=\"button\"", "tabIndex", "onKeyDown", "cursor: pointer"]
+        cases: ["QA-2026-03 #A11y-14", "QA-2026-03 #A11y-15", "QA-2026-03 #A11y-16", "QA-2026-03 #A11y-17", "QA-2026-03 #A11y-18", "QA-2026-03 #A11y-19"]
+
+  - id: "cross_tab_sync"
+    name: "Cross-tab/Multi-session Synchronization"
+    patterns:
+      - id: "cross_tab_sync-001"
+        name: "Client state management not synchronized across tabs"
+        frequency: 3
+        severity: "medium"
+        symptom: "After changing organization name/profile in one tab, sidebar/header in other tabs retains the old values. Logging out in one tab still allows continued work in other tabs."
+        root_cause: "Zustand/Redux persist middleware does not support cross-tab synchronization via storage event listener. Or state is only read from local store instead of API queries."
+        affected_screens: ["Sidebar organization name", "Profile dropdown", "Auth state"]
+        prevention_spec: "[Client] For state requiring cross-tab synchronization (auth, organization context), register localStorage storage event listeners to detect changes from other tabs and update the store. Alternatively, manage that data with API queries (TanStack Query) for automatic refresh based on staleTime."
+        code_signals: ["addEventListener", "storage", "BroadcastChannel", "persist", "cross-tab", "sync"]
+        cases: ["QA-2026-03 #Sync-01", "QA-2026-03 #Sync-02", "QA-2026-03 #Sync-03"]
+
+  - id: "dto_mismatch"
+    name: "Frontend-Backend DTO Mismatch"
+    patterns:
+      - id: "dto_mismatch-001"
+        name: "Frontend/backend DTO field name mismatch"
+        frequency: 7
+        severity: "high"
+        symptom: "400 Bad Request returned on form submission. Error message: 'property X should not exist'. Mismatches such as frontend sending a 'content' field while the backend expects a 'text' field."
+        root_cause: "Frontend and backend development proceeded independently without agreeing on field names. NestJS forbidNonWhitelisted: true setting immediately rejects unknown fields."
+        affected_screens: ["Comment/reply writing", "Client account creation", "Profile edit", "Settings change"]
+        prevention_spec: "[Common] Define DTO interfaces in shared packages or shared type files to enforce identical field names between frontend and backend. [Server] Include rejected field names and allowed field lists in forbidNonWhitelisted error responses to aid debugging. [Test] Validate based on the actual payload sent by the frontend in API integration tests."
+        code_signals: ["Dto", "forbidNonWhitelisted", "whitelist", "class-validator", "property should not exist"]
+        cases: ["QA-2026-03 #DTO-01", "QA-2026-03 #DTO-02", "QA-2026-03 #DTO-03", "QA-2026-03 #DTO-04", "QA-2026-03 #DTO-05", "QA-2026-03 #DTO-06", "QA-2026-03 #DTO-07"]
+
+      - id: "dto_mismatch-002"
+        name: "ORM raw object returned — snake_case/computed field not converted"
+        frequency: 5
+        severity: "high"
+        symptom: "Date columns in list tables display as '—'. Count columns (member count, project count, etc.) show blank or 0. Frontend expects camelCase fields but API returns snake_case. ORM aggregation results (_count.members, etc.) are returned as nested objects, inaccessible from the frontend."
+        root_cause: "Backend service directly returns ORM query results without DTO/mapper. ORM uses DB column names (snake_case) as-is, and relation aggregations (_count) are returned as nested objects. Derived fields (screensCount, openFeedbackCount, etc.) require separate calculation in the service layer but are omitted."
+        affected_screens: ["List/table pages", "Admin dashboard", "Statistics display on detail page"]
+        prevention_spec: "[Server] All service methods should not directly return ORM results; instead, transform through DTO conversion (mapEntity/toDTO) functions to camelCase field names. Flatten ORM aggregation fields (_count.relation) as membersCount = _count.members. Explicitly calculate and include derived fields in the service layer. [Test] Verify that all date columns display formatted dates and count columns display numbers on list pages. Confirm that '—' or uniform 0 values do not remain after data loading completes."
+        code_signals: ["created_at", "updated_at", "createdAt", "_count", "include:", "select:", "mapEntity", "toDTO", "plainToClass"]
+        cases: ["ReviewBoard-v3 #BUG-009", "ReviewBoard-v3 #BUG-011", "ReviewBoard-v3 #BUG-012", "ReviewBoard-v3 #BUG-013", "QA-2026-03 #DTO-snake"]
+
+  - id: "responsive"
+    name: "Responsive/Mobile Layout"
+    patterns:
+      - id: "responsive-001"
+        name: "Fixed-width sidebar not responsive on mobile"
+        frequency: 5
+        severity: "high"
+        symptom: "Sidebar maintains fixed width (200-280px) on mobile or tablet viewports, making the content area extremely narrow. No collapse/expand toggle. No hamburger menu."
+        root_cause: "Sidebar implemented with fixed width without applying media queries or responsive breakpoints."
+        affected_screens: ["All pages with sidebar", "Dashboard", "List pages"]
+        prevention_spec: "[Client] Implement sidebar layout as fixed display on lg: and above, collapsed (icon-only or overlay) on md: and below. Provide a collapse/expand toggle button. On md: and below, apply the hamburger icon -> overlay sidebar pattern at the top. [Test] Include viewport tests at 1024px, 768px, and 375px in Playwright."
+        code_signals: ["sidebar", "aside", "fixed", "width", "collapse", "hamburger", "md:", "lg:", "responsive"]
+        cases: ["QA-2026-03 #Responsive-01", "QA-2026-03 #Responsive-02", "QA-2026-03 #Responsive-03", "QA-2026-03 #Responsive-04", "QA-2026-03 #Responsive-05"]
+
+  - id: "image_url"
+    name: "Image URL/Resource Reference"
+    patterns:
+      - id: "image_url-001"
+        name: "Image URL stored as relative storage key — browser cannot load"
+        frequency: 5
+        severity: "high"
+        symptom: "Images are not displayed, showing broken image icons. Console shows 'empty string passed to src' or 404 errors. img src is set to a relative key like 'uploads/abc.png', causing the browser to request an incorrect path relative to the current domain."
+        root_cause: "Backend stores storage keys (relative paths) as-is in the DB and does not convert to full URLs when delivering to the frontend. CDN/storage base URL is not configured on the frontend."
+        affected_screens: ["Image viewer", "Thumbnail grid", "Profile image", "Attachment preview"]
+        prevention_spec: "[Server] Image URLs in API responses must always be returned as fully accessible URLs. When only storage keys are stored, convert to STORAGE_BASE_URL + key format in the Serializer/Interceptor. [Client] When img src receives an empty string or relative path, substitute with a placeholder image and output a console warning."
+        code_signals: ["<img", "src", "imageUrl", "storageKey", "STORAGE_BASE_URL", "CDN", "placeholder"]
+        cases: ["QA-2026-03 #Image-01", "QA-2026-03 #Image-02", "QA-2026-03 #Image-03", "QA-2026-03 #Image-04", "QA-2026-03 #Image-05"]
+
+  - id: "tenant_context"
+    name: "Multi-tenant Context"
+    patterns:
+      - id: "tenant_context-001"
+        name: "Tenant context not reflected in URL in multi-tenant app"
+        frequency: 3
+        severity: "medium"
+        symptom: "Organization/workspace ID is not included in the URL, so another organization's data is displayed when sharing bookmarks. The URL alone does not indicate which organization's page it is."
+        root_cause: "Tenant context is stored only in local store (Zustand/Redux persist) instead of the URL. /org/:orgId/... pattern not applied in route design."
+        affected_screens: ["All workspace pages", "Project list", "Team management", "Settings"]
+        prevention_spec: "[Client] Include tenant identifiers in URLs for multi-tenant apps (e.g., /workspace/:orgSlug/projects). Deep links, bookmarks, and URL sharing should be able to restore the correct tenant context. When the URL's orgSlug does not match the local store's current org, update the store based on the URL."
+        code_signals: ["orgId", "orgSlug", "workspace", "tenant", "useParams", "context"]
+        cases: ["QA-2026-03 #Tenant-01", "QA-2026-03 #Tenant-02", "QA-2026-03 #Tenant-03"]
+
+  - id: "truncation"
+    name: "Text Truncation/Overflow"
+    patterns:
+      - id: "truncation-001"
+        name: "title attribute not provided for truncated text (ellipsis)"
+        frequency: 5
+        severity: "high"
+        symptom: "Long text is truncated with '...' but there is no way to view the full text on mouse hover. Occurs in table cells, sidebar items, card titles, etc."
+        root_cause: "Only text-overflow: ellipsis CSS is applied without adding the title={fullText} attribute to the element."
+        affected_screens: ["Table cells", "Sidebar items", "Card titles/descriptions", "Navigation links"]
+        prevention_spec: "[Client] Add title={fullText} to all elements that apply text-overflow: ellipsis or line-clamp. Alternatively, use a custom Tooltip component to conditionally show tooltips only on truncated text (scrollWidth > clientWidth check). [Test] Verify that the title attribute exists on the element after entering long text."
+        code_signals: ["text-overflow", "ellipsis", "truncate", "line-clamp", "title", "tooltip", "overflow: hidden"]
+        cases: ["QA-2026-03 #Truncation-01", "QA-2026-03 #Truncation-02", "QA-2026-03 #Truncation-03", "QA-2026-03 #Truncation-04", "QA-2026-03 #Truncation-05"]
+
+  - id: "websocket_config"
+    name: "WebSocket/Real-time Configuration"
+    patterns:
+      - id: "websocket_config-001"
+        name: "WebSocket port/namespace frontend-backend mismatch"
+        frequency: 3
+        severity: "medium"
+        symptom: "Real-time notifications, messages, and status updates are not received at all. WebSocket connection itself fails in the browser network tab or connection attempts target the wrong port."
+        root_cause: "Frontend Socket.IO/WebSocket client targets a different port or namespace than the backend. Backend gateway does not call event emit."
+        affected_screens: ["Chat", "Notifications", "Real-time collaboration viewer", "Dashboard live updates"]
+        prevention_spec: "[Client] Manage WebSocket connection URL via environment variable (VITE_WS_URL) with the default set to the same port as the current host. [Server] Verify that the Gateway decorator's namespace and port match the API server. [Test] Verify WebSocket connection success and at least one event receipt in E2E tests."
+        code_signals: ["socket.io", "WebSocket", "Gateway", "namespace", "port", "VITE_WS_URL", "io("]
+        cases: ["QA-2026-03 #WS-01", "QA-2026-03 #WS-02", "QA-2026-03 #WS-03"]

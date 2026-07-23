@@ -1,0 +1,46 @@
+name: database-django-2
+description: |
+  Django/DRF database phase — analog of database-2.yaml (NestJS/TypeORM).
+  Selected by stack-aware findBlueprint when tech_stack.backend=django.
+  Deterministic baseline: copy the core BaseModel, then derive one Django
+  model per table from PROJECT_DATABASE.md (the SAME stack-agnostic contract
+  doc the NestJS path reads). Pairs with backend-django-2.yaml (serializers/
+  viewsets/urls/auth) — both behind the shared PROJECT_API.md contract.
+version: 2
+manifest: database
+nodes:
+  - id: pre-check
+    type: deterministic
+    description: "PROJECT_DATABASE.md must exist (produced by prd phase)"
+    command: |
+      DB="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      [ -f "$DB" ] || { echo "FAIL: PROJECT_DATABASE.md missing"; exit 1; }
+      echo "ok: $DB"
+    on_failure: abort
+    abort_message: "Phase prd must complete first — PROJECT_DATABASE.md required"
+
+  - id: scaffold-core-basemodel
+    type: deterministic
+    description: "Copy Django core BaseModel (UUID pk + timestamps + soft delete) — analog of src/core/base"
+    command: |
+      SRC="{CLAUDE_DIR}/{BACKEND}/templates/core/models.py"
+      DST_DIR="{TARGET_DIR}/{BACKEND_DIR}/core"
+      [ -f "$SRC" ] || { echo "FAIL: Django core template missing at $SRC"; exit 1; }
+      mkdir -p "$DST_DIR"
+      cp "$SRC" "$DST_DIR/models.py"
+      [ -f "$DST_DIR/__init__.py" ] || touch "$DST_DIR/__init__.py"
+      echo "ok: core/models.py (BaseModel)"
+    on_failure: abort
+    abort_message: "Failed to copy Django core BaseModel from {CLAUDE_DIR}/{BACKEND}/templates/core/"
+
+  - id: scaffold-django-models
+    type: deterministic
+    description: "Derive Django models from PROJECT_DATABASE.md (LLM-independent baseline — analog of scaffold-entities)"
+    command: |
+      DB="{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+      [ -f "$DB" ] || { echo "no PROJECT_DATABASE.md — skipping model scaffold"; exit 0; }
+      node {CLAUDE_DIR}/v2/scripts/scaffold-django-models.js \
+        --db "$DB" \
+        --target "{TARGET_DIR}/{BACKEND_DIR}" \
+        --verbose
+    on_failure: ignore

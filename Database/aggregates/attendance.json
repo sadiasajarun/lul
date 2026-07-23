@@ -1,0 +1,165 @@
+{
+  "generated_by": "scripts/aggregate.mjs",
+  "source": "Database/*.csv + summary_dataset.json",
+  "zero_meaning": "unknown",
+  "note": "Rows recorded as 0 dominate Catchup (98.5%) and Innovation (98.2%). Among students with a non-zero record every programme sits at 86-97%, so the programme-level spread reflects record coverage, not attendance behaviour. Whether 0 means 'no record' or 'never attended' is not determinable from this dataset and must be confirmed with the data owner.",
+  "by_program": {
+    "abal": {
+      "rows": 55363,
+      "zero_count": 16305,
+      "recorded_count": 39058,
+      "coverage": 0.7054892256561242,
+      "recorded_mean": 86.43338906241861,
+      "raw_mean_including_zeros": 60.977824720480214,
+      "distribution": [
+        {
+          "bin": "0-10",
+          "count": 406
+        },
+        {
+          "bin": "10-20",
+          "count": 116
+        },
+        {
+          "bin": "20-30",
+          "count": 127
+        },
+        {
+          "bin": "30-40",
+          "count": 190
+        },
+        {
+          "bin": "40-50",
+          "count": 314
+        },
+        {
+          "bin": "50-60",
+          "count": 793
+        },
+        {
+          "bin": "60-70",
+          "count": 1817
+        },
+        {
+          "bin": "70-80",
+          "count": 4333
+        },
+        {
+          "bin": "80-90",
+          "count": 10502
+        },
+        {
+          "bin": "90-100",
+          "count": 20460
+        }
+      ]
+    },
+    "catchup": {
+      "rows": 191556,
+      "zero_count": 188662,
+      "recorded_count": 2894,
+      "coverage": 0.015107853578065945,
+      "recorded_mean": 86.53708707671038,
+      "raw_mean_including_zeros": 1.3073896406272831,
+      "distribution": [
+        {
+          "bin": "0-10",
+          "count": 34
+        },
+        {
+          "bin": "10-20",
+          "count": 3
+        },
+        {
+          "bin": "20-30",
+          "count": 9
+        },
+        {
+          "bin": "30-40",
+          "count": 18
+        },
+        {
+          "bin": "40-50",
+          "count": 32
+        },
+        {
+          "bin": "50-60",
+          "count": 62
+        },
+        {
+          "bin": "60-70",
+          "count": 123
+        },
+        {
+          "bin": "70-80",
+          "count": 305
+        },
+        {
+          "bin": "80-90",
+          "count": 793
+        },
+        {
+          "bin": "90-100",
+          "count": 1515
+        }
+      ]
+    },
+    "innovation": {
+      "rows": 3877,
+      "zero_count": 3809,
+      "recorded_count": 68,
+      "coverage": 0.017539334537013153,
+      "recorded_mean": 97.02,
+      "raw_mean_including_zeros": 1.7016662367810163,
+      "distribution": [
+        {
+          "bin": "0-10",
+          "count": 0
+        },
+        {
+          "bin": "10-20",
+          "count": 0
+        },
+        {
+          "bin": "20-30",
+          "count": 0
+        },
+        {
+          "bin": "30-40",
+          "count": 0
+        },
+        {
+          "bin": "40-50",
+          "count": 0
+        },
+        {
+          "bin": "50-60",
+          "count": 0
+        },
+        {
+          "bin": "60-70",
+          "count": 0
+        },
+        {
+          "bin": "70-80",
+          "count": 1
+        },
+        {
+          "bin": "80-90",
+          "count": 3
+        },
+        {
+          "bin": "90-100",
+          "count": 64
+        }
+      ]
+    }
+  },
+  "overall": {
+    "rows": 250796,
+    "recorded_count": 42020,
+    "coverage": 0.16754653184261312,
+    "recorded_mean_student_weighted": 86.45766301760936,
+    "raw_mean_student_weighted_including_zeros": 14.485681589817803
+  }
+}

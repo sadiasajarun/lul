@@ -1,0 +1,41 @@
+center_id,center_name,program,division,pedagogy,assessments,documentation,learning_environment,engagement,score,band,days_since_visit
+3030000000,400 Nabajatak Prathomik Kendro,EMDC-CATCHUP,Dhaka,3.99,3.66,3.63,3.67,3.55,3.7,Good,34
+3030000001,401 Anandadhara Shishu Kendro,EMDC-CATCHUP,Chattogram,1.59,1.51,1.31,1.29,1.53,1.45,Poor,13
+3030000002,402 Kishalay Prathomik Kendro,EMDC-CATCHUP,Rajshahi,3.87,4,3.65,3.61,3.9,3.81,Good,32
+3030000003,403 Anandadhara Shikkha Kendro,EMDC-CATCHUP,Khulna,3.72,3.97,3.78,3.71,4,3.84,Good,11
+3030000004,404 Nabajatak Shishu Kendro,EMDC-CATCHUP,Barishal,2.79,2.41,2.27,2.59,2.4,2.49,Fair,7
+3030000005,405 Shapla Shishu Kendro,EMDC-ABAL,Sylhet,2.39,2.73,2.32,2.6,2.43,2.49,Fair,15
+3030000006,406 Nabajatak Prathomik Kendro,EMDC-CATCHUP,Rangpur,2.75,2.88,3.06,3.16,3.36,3.04,Good,13
+3030000007,407 Anandadhara Prathomik Kendro,EMDC-CATCHUP,Mymensingh,2.88,2.87,3.23,3.11,2.93,3,Good,13
+3030000008,408 Shapla Prathomik Kendro,EMDC-CATCHUP,Dhaka,3.3,3.3,3.43,3.56,3.85,3.49,Good,4
+3030000009,409 Anandadhara Shishu Kendro,EMDC-CATCHUP,Chattogram,3.74,3.44,3.09,3.06,3.45,3.36,Good,60
+3030000010,410 Shapla Shishu Kendro,EMDC-CATCHUP,Rajshahi,1.96,1.89,1.66,2.12,2.02,1.93,Poor,36
+3030000011,411 Anandadhara Prathomik Kendro,EMDC-INNOVATION,Khulna,3.63,3.76,3.52,3.69,4,3.72,Good,21
+3030000012,412 Shapla Shikkha Kendro,EMDC-CATCHUP,Barishal,3.77,3.44,3.62,3.72,4,3.71,Good,23
+3030000013,413 Projapoti Shishu Kendro,EMDC-ABAL,Sylhet,1.81,2.16,2.19,2.44,2.39,2.2,Fair,9
+3030000014,414 Shapla Shikkha Kendro,EMDC-CATCHUP,Rangpur,3.81,3.57,3.39,3.78,3.58,3.63,Good,62
+3030000015,415 Anandadhara Learning Centre,EMDC-ABAL,Mymensingh,2.68,2.59,2.34,2.46,2.38,2.49,Fair,11
+3030000016,416 Shapla Learning Centre,EMDC-CATCHUP,Dhaka,3.45,3.72,4,3.98,3.64,3.76,Good,44
+3030000017,417 Surjomukhi Shikkha Kendro,EMDC-ABAL,Chattogram,3.68,3.47,3.38,3.65,3.53,3.54,Good,13
+3030000018,418 Shapla Shikkha Kendro,EMDC-CATCHUP,Rajshahi,3.75,3.83,3.61,3.21,3.33,3.55,Good,1
+3030000019,419 Alokito Shishu Prathomik Kendro,EMDC-CATCHUP,Khulna,3.53,3.73,3.69,3.97,3.97,3.78,Good,19
+3030000020,420 Shapla Prathomik Kendro,EMDC-ABAL,Barishal,3.16,3.82,3.63,3.41,3.2,3.44,Good,29
+3030000021,421 Shapla Shikkha Kendro,EMDC-ABAL,Sylhet,3.38,3.43,3.77,3.39,3.5,3.49,Good,13
+3030000022,422 Nabajatak Prathomik Kendro,EMDC-CATCHUP,Rangpur,1,1.49,1,1.34,1.18,1.2,Poor,21
+3030000023,423 Anandadhara Learning Centre,EMDC-CATCHUP,Mymensingh,3.01,2.63,2.36,2.52,2.98,2.7,Fair,39
+3030000024,424 Alokito Shishu Shishu Kendro,EMDC-ABAL,Dhaka,2.89,2.85,3.03,2.64,2.64,2.81,Fair,29
+3030000025,425 Shapla Prathomik Kendro,EMDC-ABAL,Chattogram,3.12,3.38,2.95,3.39,3.03,3.17,Good,45
+3030000026,426 Shapla Shishu Kendro,EMDC-CATCHUP,Rajshahi,3.56,3.35,2.97,3.13,3.06,3.21,Good,5
+3030000027,427 Alokito Shishu Shishu Kendro,EMDC-CATCHUP,Khulna,3.19,3.27,3,2.98,3.47,3.18,Good,40
+3030000028,428 Shapla Prathomik Kendro,EMDC-CATCHUP,Barishal,1.55,1.75,1.56,1.94,1.41,1.64,Poor,18
+3030000029,429 Shapla Shikkha Kendro,EMDC-CATCHUP,Sylhet,3.59,3,3.62,3.46,3.07,3.35,Good,25
+3030000030,430 Alokito Shishu Shishu Kendro,EMDC-CATCHUP,Rangpur,1.41,1.45,1.29,1.47,1.35,1.39,Poor,64
+3030000031,431 Anandadhara Prathomik Kendro,EMDC-ABAL,Mymensingh,3.56,3.83,3.43,3.95,3.27,3.61,Good,55
+3030000032,432 Shapla Shikkha Kendro,EMDC-CATCHUP,Dhaka,1,1.23,1.23,1.01,1,1.09,Poor,0
+3030000033,433 Nabajatak Learning Centre,EMDC-ABAL,Chattogram,3.34,2.85,3.01,2.69,2.99,2.98,Fair,4
+3030000034,434 Projapoti Learning Centre,EMDC-CATCHUP,Rajshahi,1.54,1.7,1.38,1.28,1.27,1.43,Poor,59
+3030000035,435 Alokito Shishu Shishu Kendro,EMDC-CATCHUP,Khulna,2.75,3.24,2.99,2.76,3.29,3.01,Good,38
+3030000036,436 Alokito Shishu Learning Centre,EMDC-ABAL,Barishal,2.46,2.67,2.73,2.53,2.74,2.63,Fair,26
+3030000037,437 Anandadhara Learning Centre,EMDC-ABAL,Sylhet,3.4,3.65,3.51,3.35,3.62,3.51,Good,44
+3030000038,438 Alokito Shishu Shikkha Kendro,EMDC-ABAL,Rangpur,2.77,2.89,2.95,2.61,2.93,2.83,Fair,37
+3030000039,439 Alokito Shishu Prathomik Kendro,EMDC-ABAL,Mymensingh,2.12,2.45,2.64,2.39,2.1,2.34,Fair,24

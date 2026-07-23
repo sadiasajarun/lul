@@ -1,0 +1,111 @@
+# Phase groups for /fullstack-pm and /fullstack-dev commands.
+# /fullstack (legacy) does NOT read this file — behavior unchanged.
+#
+# Logical names (P#/D#) map to physical phase module files via `file:`.
+# The orchestrator records logical names in PIPELINE_STATUS.md row keys.
+
+groups:
+  pm:
+    - { id: P1-spec,       file: pipeline/phases/00-spec.md,         blueprint: spec,          reuse: true }
+    - { id: P2-prd,        file: pipeline/phases/pm-2-prd.md,        blueprint: pm-2-prd,      reuse: false }
+    - { id: P3-design,     file: pipeline/phases/pm-3-design.md,     blueprint: pm-3-design,   reuse: false }
+
+  dev:
+    - { id: D1-init,       file: pipeline/phases/dev-1-init.md,      blueprint: dev-1-init,    reuse: false }
+    - { id: D2-tech-spec,  file: pipeline/phases/dev-2-tech-spec.md, blueprint: dev-2-tech-spec, reuse: false }
+    - { id: D3-user-stories, file: pipeline/phases/03.5-user-stories.md, blueprint: user-stories, reuse: true }
+    - { id: D4-database,   file: pipeline/phases/04-database.md,     blueprint: database,      reuse: true }
+    - { id: D5-backend,    file: pipeline/phases/05-backend.md,      blueprint: backend,       reuse: true }
+    - { id: D6-frontend,   file: pipeline/phases/06-frontend.md,     blueprint: frontend,      reuse: true }
+    - { id: D7-integrate,  file: pipeline/phases/07-integrate.md,    blueprint: integrate,     reuse: true }
+    - { id: D8-test-api,   file: pipeline/phases/08-test-api.md,     blueprint: test-api,      reuse: true }
+    - { id: D9-test-browser, file: pipeline/phases/09-test-browser.md, blueprint: test-browser, reuse: true }
+    - { id: D10-ship,      file: pipeline/phases/10-ship.md,         blueprint: null,          reuse: true }   # no v1 blueprint — skill-mode
+
+# Handoff validation for /fullstack-dev entry.
+# Evaluated BEFORE any Dev phase executes. Tier failures abort with tier-specific guidance.
+handoff:
+  # Tier 1 — required artifacts must exist, any-of signals permit entry.
+  tier1_required:
+    - type: file_exists
+      paths:
+        - "{TARGET_DIR}/.claude-project/docs/PRD.md"
+        - "{TARGET_DIR}/.claude-project/prd/*.md"   # any file — legacy layout tolerated
+      min_match: 1
+      label: "PRD file"
+    - type: glob_min
+      pattern: "{TARGET_DIR}/.claude-project/design/html/**/*.html"
+      min_count: 1
+      label: "design HTML (role folders or flat)"
+
+  tier1_any_of:
+    - type: grep
+      pattern: "^approved:\\s*true"
+      paths:
+        - "{TARGET_DIR}/.claude-project/status/*/DESIGN_STATUS.md"
+        - "{TARGET_DIR}/.claude-project/design/DESIGN_STATUS.md"
+      label: "DESIGN_STATUS.md approved:true"
+    - type: flag
+      name: "--trust-design"
+      label: "--trust-design flag (external designer acceptance)"
+
+  tier1_fail_message: |
+    /fullstack-dev requires at minimum:
+      1. A PRD file at {TARGET_DIR}/.claude-project/docs/PRD.md (or .claude-project/prd/*.md)
+      2. design HTML at {TARGET_DIR}/.claude-project/design/html/
+      3. An approval signal: DESIGN_STATUS.md approved:true OR --trust-design
+
+    Run `/fullstack-pm <project>` to produce these, or drop external artifacts and pass --trust-design.
+
+  # Tier 2 — PRD ↔ design consistency. snapshot written by pm-3-design at P3g.
+  tier2_consistency:
+    - type: hash_match
+      source:
+        kind: file
+        path: "{TARGET_DIR}/.claude-project/docs/PRD.md"
+        fallback_paths:
+          - "{TARGET_DIR}/.claude-project/prd/*.md"
+      target:
+        kind: yaml_field
+        paths:
+          - "{TARGET_DIR}/.claude-project/status/*/DESIGN_STATUS.md"
+          - "{TARGET_DIR}/.claude-project/design/DESIGN_STATUS.md"
+        field: "prd_hash_at_generation"
+      on_missing_target: warn_unless_flag
+      on_missing_target_flag: "--accept-design-drift"
+      on_mismatch: hard_fail
+      mismatch_message: |
+        PRD changed since design was approved.
+        Current PRD hash does not match design/DESIGN_STATUS.md#prd_hash_at_generation.
+        Run `/fullstack-pm <project> --update --prd <path>` to regenerate affected artifacts first.
+
+  # Tier 3 — role-based HTML folder structure. Soft by default (warn only), hard with --strict-roles.
+  tier3_role_structure:
+    root: "{TARGET_DIR}/.claude-project/design/html"
+    roles_source:
+      kind: yaml_field
+      paths:
+        - "{TARGET_DIR}/.claude-project/status/*/DESIGN_STATUS.md"
+        - "{TARGET_DIR}/.claude-project/design/DESIGN_STATUS.md"
+      field: "roles"
+    min_html_per_role: 1
+    fallback_role: "app"
+    enforcement: warn_unless_flag
+    enforcement_flag: "--strict-roles"
+
+# Row key mapping used by /fullstack-pm and /fullstack-dev when updating PIPELINE_STATUS.md.
+# /fullstack (legacy) continues to use old keys (spec, init, prd, design, ...) — unchanged.
+row_key_map:
+  spec: P1-spec
+  prd: P2-prd
+  design: P3-design
+  init: D1-init
+  tech-spec: D2-tech-spec
+  user-stories: D3-user-stories
+  database: D4-database
+  backend: D5-backend
+  frontend: D6-frontend
+  integrate: D7-integrate
+  test-api: D8-test-api
+  test-browser: D9-test-browser
+  ship: D10-ship

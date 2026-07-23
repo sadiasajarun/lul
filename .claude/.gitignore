@@ -1,0 +1,14 @@
+settings.json
+settings.local.json
+feature-manifest.json
+.env
+node_modules/
+.DS_Store
+package-lock.json
+status/
+.claude-project
+scheduled_tasks.lock
+# Codegraph installer drops project-local Claude Code config here. The file
+# is machine-specific (MCP setup, agent-tool usage docs); don't ship via the
+# .claude submodule.
+CLAUDE.md

@@ -1,0 +1,165 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo (synthetic, fully recorded)",
+  "zero_meaning": "recorded — every learner has a monthly attendance record in the demo dataset",
+  "note": "Demo dataset: attendance coverage is 100% and joins to each learner via student_id (unlike the real export).",
+  "by_program": {
+    "abal": {
+      "rows": 1400,
+      "zero_count": 0,
+      "recorded_count": 1400,
+      "coverage": 1,
+      "recorded_mean": 74.83,
+      "raw_mean_including_zeros": 74.83,
+      "distribution": [
+        {
+          "bin": "0-10",
+          "count": 0
+        },
+        {
+          "bin": "10-20",
+          "count": 0
+        },
+        {
+          "bin": "20-30",
+          "count": 0
+        },
+        {
+          "bin": "30-40",
+          "count": 5
+        },
+        {
+          "bin": "40-50",
+          "count": 33
+        },
+        {
+          "bin": "50-60",
+          "count": 91
+        },
+        {
+          "bin": "60-70",
+          "count": 352
+        },
+        {
+          "bin": "70-80",
+          "count": 409
+        },
+        {
+          "bin": "80-90",
+          "count": 340
+        },
+        {
+          "bin": "90-100",
+          "count": 170
+        }
+      ]
+    },
+    "catchup": {
+      "rows": 2500,
+      "zero_count": 0,
+      "recorded_count": 2500,
+      "coverage": 1,
+      "recorded_mean": 75,
+      "raw_mean_including_zeros": 75,
+      "distribution": [
+        {
+          "bin": "0-10",
+          "count": 0
+        },
+        {
+          "bin": "10-20",
+          "count": 0
+        },
+        {
+          "bin": "20-30",
+          "count": 0
+        },
+        {
+          "bin": "30-40",
+          "count": 9
+        },
+        {
+          "bin": "40-50",
+          "count": 46
+        },
+        {
+          "bin": "50-60",
+          "count": 167
+        },
+        {
+          "bin": "60-70",
+          "count": 653
+        },
+        {
+          "bin": "70-80",
+          "count": 658
+        },
+        {
+          "bin": "80-90",
+          "count": 662
+        },
+        {
+          "bin": "90-100",
+          "count": 305
+        }
+      ]
+    },
+    "innovation": {
+      "rows": 100,
+      "zero_count": 0,
+      "recorded_count": 100,
+      "coverage": 1,
+      "recorded_mean": 76.03,
+      "raw_mean_including_zeros": 76.03,
+      "distribution": [
+        {
+          "bin": "0-10",
+          "count": 0
+        },
+        {
+          "bin": "10-20",
+          "count": 0
+        },
+        {
+          "bin": "20-30",
+          "count": 0
+        },
+        {
+          "bin": "30-40",
+          "count": 0
+        },
+        {
+          "bin": "40-50",
+          "count": 2
+        },
+        {
+          "bin": "50-60",
+          "count": 4
+        },
+        {
+          "bin": "60-70",
+          "count": 25
+        },
+        {
+          "bin": "70-80",
+          "count": 26
+        },
+        {
+          "bin": "80-90",
+          "count": 32
+        },
+        {
+          "bin": "90-100",
+          "count": 11
+        }
+      ]
+    }
+  },
+  "overall": {
+    "rows": 4000,
+    "recorded_count": 4000,
+    "coverage": 1,
+    "recorded_mean_student_weighted": 74.97,
+    "raw_mean_student_weighted_including_zeros": 74.97
+  }
+}

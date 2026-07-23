@@ -1,0 +1,45 @@
+name: audit
+display_name: "Project Audit"
+phase_number: 0.1
+
+prerequisites:
+  phases: []
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  project_docs:
+    - path: "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+      optional: true
+      purpose: "Feature list for inventory comparison"
+    - path: "{TARGET_DIR}/.claude-project/docs/PROJECT_API.md"
+      optional: true
+      purpose: "Endpoint list for backend audit"
+    - path: "{TARGET_DIR}/.claude-project/docs/PROJECT_DATABASE.md"
+      optional: true
+      purpose: "Entity list for database audit"
+  existing_prd:
+    - glob: "{TARGET_DIR}/.claude-project/prd/*.md"
+      optional: true
+      purpose: "Existing PRD for completeness check"
+  status:
+    - path: "{TARGET_DIR}/.claude-project/status/{project}/PIPELINE_STATUS.md"
+      optional: true
+      purpose: "Current pipeline status"
+
+skills:
+  primary: ".claude/pipeline/phases/00a-audit.md"
+
+tools:
+  allow: [Read, Bash, Grep, Glob]
+  deny: [Write, Edit, WebSearch, WebFetch]
+
+gate:
+  pass_threshold: 1.0
+  evaluation_criteria:
+    - name: audit_complete
+      description: "All phases scanned and results written to PIPELINE_STATUS.md"
+    - name: feature_inventory
+      description: "Feature inventory table populated"

@@ -1,0 +1,74 @@
+name: prd
+display_name: "PRD Generation + Conversion + User Stories"
+phase_number: 2
+
+prerequisites:
+  phases: [init]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/status/{project}/seed-*.yaml"
+  existing_prd:
+    - glob: "{TARGET_DIR}/.claude-project/prd/*.md"
+      optional: true
+      purpose: "Check if PRD already exists (existence check only — content via prd_chunks)"
+  prd_chunks:
+    - glob: "{TARGET_DIR}/.claude-project/context/PRD_chunk_*.md"
+      optional: true
+      purpose: "PRD content — bash split 400-line chunks, orchestrator pre-inject (A-02 enforcement)"
+  routes_manifest:
+    - glob: "{TARGET_DIR}/.claude-project/routes.yaml"
+      optional: true
+      purpose: "Route manifest for user story generation"
+  existing_stories:
+    - glob: "{TARGET_DIR}/.claude-project/user_stories/*.yaml"
+      optional: true
+      purpose: "Check if user stories already exist"
+  bug_patterns_global:
+    - glob: "{FRAMEWORK_DIR}/skills/qa/learn-bugs/references/bug-patterns-global.yaml"
+      optional: true
+      purpose: "Cross-project bug pattern knowledge for ⚠️ Known Risks insertion"
+  bug_patterns_project:
+    - glob: "{TARGET_DIR}/.claude-project/knowledge/bug-patterns.yaml"
+      optional: true
+      purpose: "Project-specific bug pattern overrides"
+
+skills:
+  primary: ".claude/skills/dev/generate-prd/SKILL.md"
+  secondary:
+    - ".claude/{$BACKEND}/guides/workflow-convert-prd-to-knowledge.md"
+    - ".claude/skills/dev/generate-user-stories-v2/SKILL.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: prd_exists
+      description: "PRD file exists with all sections"
+    - name: sections_complete
+      description: "Overview, Terminology, User Types, Pages, Features present"
+    - name: features_mapped
+      description: "Every feature has corresponding AC"
+    - name: no_ambiguity
+      description: "No vague terms like should, might, optionally"
+    - name: seed_aligned
+      description: "PRD features match seed acceptance criteria"
+    - name: user_stories_exist
+      description: "YAML user story files generated in .claude-project/user_stories/"
+    - name: route_coverage
+      description: "Every route in routes.yaml covered by at least 1 user story"
+    - name: ac_coverage
+      description: "Every seed acceptance_criterion mapped to at least 1 user story"
+
+ralph:
+  - workflow: spec
+    trigger: "sections missing"
+    mode: incremental

@@ -1,0 +1,34 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo",
+  "total": 200,
+  "gender": {
+    "Woman": 183,
+    "Man": 17
+  },
+  "experience": {
+    "Below 1 year": 72,
+    "Above 10 Years": 19,
+    "1 Year": 47,
+    "2 Years": 47,
+    "3-5 Years": 15
+  },
+  "education": {
+    "H.S.C": 102,
+    "S.S.C": 41,
+    "Lower Secondary Level": 7,
+    "Masters": 8,
+    "Graduation": 36,
+    "Primary Level": 6
+  },
+  "by_division": {
+    "Dhaka": 25,
+    "Chattogram": 25,
+    "Rajshahi": 25,
+    "Khulna": 25,
+    "Barishal": 25,
+    "Sylhet": 25,
+    "Rangpur": 25,
+    "Mymensingh": 25
+  }
+}

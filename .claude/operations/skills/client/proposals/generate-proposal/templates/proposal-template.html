@@ -1,0 +1,1946 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potential - Proposal Deck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        lime: {
+                            400: '#DDFE52', // Signature Lime
+                        },
+                        brand: {
+                            purple: '#5C4EFF',
+                            dark: '#050505',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: white;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            transform: scale(0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 10;
+        }
+        /* Background Gradients */
+        .glow-blob {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-purple { background: radial-gradient(circle, rgba(92,78,255,0.4) 0%, rgba(0,0,0,0) 70%); }
+        .glow-blue { background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, rgba(0,0,0,0) 70%); }
+        .glow-lime { background: radial-gradient(circle, rgba(221,254,82,0.15) 0%, rgba(0,0,0,0) 70%); }
+
+        /* Custom Scrollbar for internal overflow */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { bg-transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        /* Animations */
+        .stagger-enter > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+        }
+        .active .stagger-enter > *:nth-child(1) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
+        .active .stagger-enter > *:nth-child(2) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); }
+        .active .stagger-enter > *:nth-child(3) { transition-delay: 0.3s; opacity: 1; transform: translateY(0); }
+        .active .stagger-enter > *:nth-child(4) { transition-delay: 0.4s; opacity: 1; transform: translateY(0); }
+        .active .stagger-enter > *:nth-child(5) { transition-delay: 0.5s; opacity: 1; transform: translateY(0); }
+        .active .stagger-enter > *:nth-child(6) { transition-delay: 0.6s; opacity: 1; transform: translateY(0); }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:"Plus Jakarta Sans", sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-bottom-20{bottom:-5rem}.-bottom-6{bottom:-1.5rem}.-left-6{left:-1.5rem}.-left-\[5px\]{left:-5px}.-right-20{right:-5rem}.-top-\[5px\]{top:-5px}.bottom-6{bottom:1.5rem}.bottom-\[-10\%\]{bottom:-10%}.bottom-\[-20\%\]{bottom:-20%}.bottom-\[-30\%\]{bottom:-30%}.left-0{left:0px}.left-10{left:2.5rem}.left-\[-10\%\]{left:-10%}.right-10{right:2.5rem}.right-\[-10\%\]{right:-10%}.right-\[-20\%\]{right:-20%}.right-\[20\%\]{right:20%}.top-0{top:0px}.top-1{top:0.25rem}.top-8{top:2rem}.top-\[-20\%\]{top:-20%}.top-\[-30\%\]{top:-30%}.top-\[50\%\]{top:50%}.z-0{z-index:0}.z-10{z-index:10}.z-20{z-index:20}.z-40{z-index:40}.z-50{z-index:50}.col-span-2{grid-column:span 2 / span 2}.col-span-4{grid-column:span 4 / span 4}.col-span-5{grid-column:span 5 / span 5}.col-span-7{grid-column:span 7 / span 7}.col-span-8{grid-column:span 8 / span 8}.m-auto{margin:auto}.mx-6{margin-left:1.5rem;margin-right:1.5rem}.mx-auto{margin-left:auto;margin-right:auto}.mb-0\.5{margin-bottom:0.125rem}.mb-1{margin-bottom:0.25rem}.mb-10{margin-bottom:2.5rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-20{margin-bottom:5rem}.mb-24{margin-bottom:6rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-10{margin-top:2.5rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.box-border{box-sizing:border-box}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.aspect-\[16\/9\]{aspect-ratio:16/9}.h-1{height:0.25rem}.h-1\.5{height:0.375rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-2\.5{height:0.625rem}.h-24{height:6rem}.h-32{height:8rem}.h-40{height:10rem}.h-6{height:1.5rem}.h-8{height:2rem}.h-\[30\%\]{height:30%}.h-\[40\%\]{height:40%}.h-\[400px\]{height:400px}.h-\[50\%\]{height:50%}.h-\[580px\]{height:580px}.h-\[60\%\]{height:60%}.h-\[600px\]{height:600px}.h-\[80\%\]{height:80%}.h-\[800px\]{height:800px}.h-auto{height:auto}.h-full{height:100%}.w-0{width:0px}.w-1\.5{width:0.375rem}.w-1\/2{width:50%}.w-10{width:2.5rem}.w-12{width:3rem}.w-2\.5{width:0.625rem}.w-24{width:6rem}.w-32{width:8rem}.w-6{width:1.5rem}.w-8{width:2rem}.w-\[160px\]{width:160px}.w-\[280px\]{width:280px}.w-\[320px\]{width:320px}.w-\[500px\]{width:500px}.w-\[70\%\]{width:70%}.w-\[800px\]{width:800px}.w-fit{width:-moz-fit-content;width:fit-content}.w-full{width:100%}.max-w-6xl{max-width:72rem}.max-w-7xl{max-width:80rem}.max-w-\[1400px\]{max-width:1400px}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-rotate-1{--tw-rotate:-1deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-rotate-45{--tw-rotate:-45deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-rotate-6{--tw-rotate:-6deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.rotate-12{--tw-rotate:12deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-e-resize{cursor:e-resize}.cursor-pointer{cursor:pointer}.cursor-w-resize{cursor:w-resize}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.grid-rows-2{grid-template-rows:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-12{gap:3rem}.gap-16{gap:4rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.gap-x-5{column-gap:1.25rem}.gap-y-12{row-gap:3rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-\[2rem\]{border-radius:2rem}.rounded-\[40px\]{border-radius:40px}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-sm{border-radius:0.125rem}.rounded-xl{border-radius:0.75rem}.rounded-t{border-top-left-radius:0.25rem;border-top-right-radius:0.25rem}.rounded-bl-3xl{border-bottom-left-radius:1.5rem}.border{border-width:1px}.border-2{border-width:2px}.border-4{border-width:4px}.border-b{border-bottom-width:1px}.border-b-4{border-bottom-width:4px}.border-l{border-left-width:1px}.border-l-2{border-left-width:2px}.border-l-4{border-left-width:4px}.border-r{border-right-width:1px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-\[\#050505\]{--tw-border-opacity:1;border-color:rgb(5 5 5 / var(--tw-border-opacity, 1))}.border-\[\#5C4EFF\]{--tw-border-opacity:1;border-color:rgb(92 78 255 / var(--tw-border-opacity, 1))}.border-brand-purple\/50{border-color:rgb(92 78 255 / 0.5)}.border-gray-800{--tw-border-opacity:1;border-color:rgb(31 41 55 / var(--tw-border-opacity, 1))}.border-lime-400{--tw-border-opacity:1;border-color:rgb(221 254 82 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-white\/30{border-color:rgb(255 255 255 / 0.3)}.border-white\/5{border-color:rgb(255 255 255 / 0.05)}.bg-\[\#0A0A0A\]{--tw-bg-opacity:1;background-color:rgb(10 10 10 / var(--tw-bg-opacity, 1))}.bg-\[\#111\]{--tw-bg-opacity:1;background-color:rgb(17 17 17 / var(--tw-bg-opacity, 1))}.bg-\[\#1A1A1A\]{--tw-bg-opacity:1;background-color:rgb(26 26 26 / var(--tw-bg-opacity, 1))}.bg-\[\#5C4EFF\]{--tw-bg-opacity:1;background-color:rgb(92 78 255 / var(--tw-bg-opacity, 1))}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-blue-200{--tw-bg-opacity:1;background-color:rgb(191 219 254 / var(--tw-bg-opacity, 1))}.bg-blue-300{--tw-bg-opacity:1;background-color:rgb(147 197 253 / var(--tw-bg-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-brand-purple{--tw-bg-opacity:1;background-color:rgb(92 78 255 / var(--tw-bg-opacity, 1))}.bg-brand-purple\/20{background-color:rgb(92 78 255 / 0.2)}.bg-gray-200{--tw-bg-opacity:1;background-color:rgb(229 231 235 / var(--tw-bg-opacity, 1))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251 / var(--tw-bg-opacity, 1))}.bg-gray-800{--tw-bg-opacity:1;background-color:rgb(31 41 55 / var(--tw-bg-opacity, 1))}.bg-lime-400{--tw-bg-opacity:1;background-color:rgb(221 254 82 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-\[radial-gradient\(circle\2c rgba\(221\2c 254\2c 82\2c 0\.15\)_0\%\2c rgba\(0\2c 0\2c 0\2c 0\)_70\%\)\]{background-image:radial-gradient(circle,rgba(221,254,82,0.15) 0%,rgba(0,0,0,0) 70%)}.bg-\[radial-gradient\(circle_at_center\2c _var\(--tw-gradient-stops\)\)\]{background-image:radial-gradient(circle at center, var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-t{background-image:linear-gradient(to top, var(--tw-gradient-stops))}.from-\[\#1A1A1A\]{--tw-gradient-from:#1A1A1A var(--tw-gradient-from-position);--tw-gradient-to:rgb(26 26 26 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-brand-purple{--tw-gradient-from:#5C4EFF var(--tw-gradient-from-position);--tw-gradient-to:rgb(92 78 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-gray-700{--tw-gradient-from:#374151 var(--tw-gradient-from-position);--tw-gradient-to:rgb(55 65 81 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-gray-800{--tw-gradient-from:#1f2937 var(--tw-gradient-from-position);--tw-gradient-to:rgb(31 41 55 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-white\/5{--tw-gradient-from:rgb(255 255 255 / 0.05) var(--tw-gradient-from-position);--tw-gradient-to:rgb(255 255 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-transparent{--tw-gradient-to:rgb(0 0 0 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), transparent var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-black{--tw-gradient-to:#000 var(--tw-gradient-to-position)}.to-blue-500{--tw-gradient-to:#3b82f6 var(--tw-gradient-to-position)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.object-cover{object-fit:cover}.object-top{object-position:top}.p-1{padding:0.25rem}.p-10{padding:2.5rem}.p-12{padding:3rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-10{padding-left:2.5rem;padding-right:2.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-8{padding-left:2rem;padding-right:2rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pb-2{padding-bottom:0.5rem}.pb-8{padding-bottom:2rem}.pl-10{padding-left:2.5rem}.pl-12{padding-left:3rem}.pl-6{padding-left:1.5rem}.pl-8{padding-left:2rem}.pr-12{padding-right:3rem}.pr-6{padding-right:1.5rem}.pt-12{padding-top:3rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-5xl{font-size:3rem;line-height:1}.text-6xl{font-size:3.75rem;line-height:1}.text-7xl{font-size:4.5rem;line-height:1}.text-8xl{font-size:6rem;line-height:1}.text-\[10px\]{font-size:10px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-medium{font-weight:500}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-tighter{letter-spacing:-0.05em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.text-black{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.text-blue-500{--tw-text-opacity:1;color:rgb(59 130 246 / var(--tw-text-opacity, 1))}.text-brand-purple{--tw-text-opacity:1;color:rgb(92 78 255 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-lime-400{--tw-text-opacity:1;color:rgb(221 254 82 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-white\/50{color:rgb(255 255 255 / 0.5)}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.opacity-20{opacity:0.2}.opacity-30{opacity:0.3}.opacity-40{opacity:0.4}.opacity-50{opacity:0.5}.opacity-60{opacity:0.6}.opacity-80{opacity:0.8}.mix-blend-overlay{mix-blend-mode:overlay}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_20px_rgba\(92\2c 78\2c 255\2c 0\.4\)\]{--tw-shadow:0 0 20px rgba(92,78,255,0.4);--tw-shadow-colored:0 0 20px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.blur-\[120px\]{--tw-blur:blur(120px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.grayscale{--tw-grayscale:grayscale(100%);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.duration-500{transition-duration:500ms}.hover\:border-lime-400\/50:hover{border-color:rgb(221 254 82 / 0.5)}.hover\:bg-\[\#4b3ecc\]:hover{--tw-bg-opacity:1;background-color:rgb(75 62 204 / var(--tw-bg-opacity, 1))}.hover\:bg-brand-purple:hover{--tw-bg-opacity:1;background-color:rgb(92 78 255 / var(--tw-bg-opacity, 1))}.hover\:bg-brand-purple\/90:hover{background-color:rgb(92 78 255 / 0.9)}.hover\:bg-white\/10:hover{background-color:rgb(255 255 255 / 0.1)}.hover\:bg-white\/5:hover{background-color:rgb(255 255 255 / 0.05)}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:-translate-y-2{--tw-translate-y:-0.5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:text-lime-400{--tw-text-opacity:1;color:rgb(221 254 82 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:grayscale-0{--tw-grayscale:grayscale(0);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}</style></head>
+<body>
+
+    <!-- GLOBAL GREEN CORNER EFFECTS (Fixed for all slides) -->
+    <div class="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(221,254,82,0.15)_0%,rgba(0,0,0,0)_70%)] blur-[120px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-20%] left-[-10%] w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(221,254,82,0.15)_0%,rgba(0,0,0,0)_70%)] blur-[120px] pointer-events-none z-0"></div>
+
+    <!-- Progress Bar -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-white/10 z-50">
+        <div id="progress" class="h-full bg-lime-400 transition-all duration-300 w-0" style="width: 93.3333%;"></div>
+    </div>
+
+    <!-- Navigation Overlay -->
+    
+
+    <!-- Persistent Logo -->
+    <div class="fixed top-8 left-10 z-50 flex items-center gap-2">
+        <img src=".claude/resources/brand/logo/potential_logo.svg" class="h-8" alt="Potential Logo">
+        <span class="font-bold text-xl tracking-tight">Potential</span>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="fixed bottom-6 right-10 z-50 flex items-center gap-4 text-sm font-medium text-white/50 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+        <button onclick="prevSlide()" class="hover:text-white transition">&lt;</button>
+        <span id="slide-counter">14 / 15</span>
+        <button onclick="nextSlide()" class="hover:text-white transition">&gt;</button>
+    </div>
+
+    <!-- SLIDE 1: HERO / COVER -->
+    <section class="slide">
+        <!-- Extra accent glow specific to hero -->
+        <div class="glow-blob glow-purple top-[-20%] right-[20%] opacity-30"></div>
+        
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <!-- Left Content -->
+            <div class="col-span-5 stagger-enter">
+                <div class="inline-block bg-lime-400 px-6 py-2 mb-4 rounded-sm transform -rotate-1">
+                    <h1 class="text-6xl font-bold text-black tracking-tight">Proposal</h1>
+                </div>
+                <h1 class="text-6xl font-bold mb-10">for ${NAME}</h1>
+                
+                <div class="flex items-center gap-4 mb-20">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition shadow-[0_0_20px_rgba(92,78,255,0.4)]">
+                        Visit Website
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition border border-brand-purple/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 bg-white/5 border border-white/10 rounded-full p-2 pr-6 w-fit">
+                    <img src=".claude/resources/brand/logo/clutch_review_image.jpeg" alt="Clutch" class="w-10 h-10 rounded-full object-cover">
+                    <div>
+                        <div class="flex text-yellow-400 text-xs mb-0.5">★★★★★</div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wider">Based on 7 Clutch reviews</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content (Mockup Grid) -->
+            <div class="col-span-7 relative stagger-enter">
+                <!-- Decorative border line -->
+                <div class="absolute -left-6 -bottom-6 w-32 h-32 border-l-4 border-b-4 border-lime-400 rounded-bl-3xl"></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Main Dashboard Card -->
+                    <div class="col-span-2 bg-[#1A1A1A] rounded-2xl p-4 border border-white/10 shadow-2xl relative overflow-hidden aspect-[16/9]">
+                        <img src=".claude/resources/case-studies/projects/cover.png" class="w-full h-full object-cover rounded-lg opacity-80" alt="Dashboard">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent"></div>
+                    </div>
+                    <!-- Stats Card -->
+                    <div class="bg-black border border-white/10 rounded-2xl p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-4xl font-bold text-lime-400 mb-2">40+</span>
+                        <span class="text-sm text-gray-400">Team member</span>
+                    </div>
+                    <!-- Project Card -->
+                    <div class="bg-black border border-white/10 rounded-2xl p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-4xl font-bold text-lime-400 mb-2">100+</span>
+                        <span class="text-sm text-gray-400">Successful Project</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 2: TABLE OF CONTENTS -->
+    <section class="slide">
+        <!-- Extra accent glow -->
+        <div class="glow-blob glow-blue top-[50%] right-[-20%] opacity-30"></div>
+        
+        <div class="w-full max-w-6xl mx-auto px-6 grid grid-cols-12 gap-16 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-7xl font-bold leading-tight">
+                    Table of <br>
+                    <span class="text-lime-400">Content</span>
+                </h2>
+            </div>
+            <div class="col-span-8 stagger-enter glass-card rounded-3xl p-12">
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- List Items -->
+                    <div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded transition">
+                        <span class="text-gray-400 font-mono">Chapter - 1</span>
+                        <div class="flex-1 border-b border-dashed border-white/10 mx-6 relative top-1"></div>
+                        <span class="text-xl font-medium group-hover:text-lime-400 transition">Who we are</span>
+                    </div>
+                    <div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded transition">
+                        <span class="text-gray-400 font-mono">Chapter - 2</span>
+                        <div class="flex-1 border-b border-dashed border-white/10 mx-6 relative top-1"></div>
+                        <span class="text-xl font-medium group-hover:text-lime-400 transition">Client Request</span>
+                    </div>
+                    <div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded transition">
+                        <span class="text-gray-400 font-mono">Chapter - 3</span>
+                        <div class="flex-1 border-b border-dashed border-white/10 mx-6 relative top-1"></div>
+                        <span class="text-xl font-medium group-hover:text-lime-400 transition">Proposed Solution</span>
+                    </div>
+                    <div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded transition">
+                        <span class="text-gray-400 font-mono">Chapter - 4</span>
+                        <div class="flex-1 border-b border-dashed border-white/10 mx-6 relative top-1"></div>
+                        <span class="text-xl font-medium group-hover:text-lime-400 transition">Our Process</span>
+                    </div>
+                    <div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded transition">
+                        <span class="text-gray-400 font-mono">Chapter - 5</span>
+                        <div class="flex-1 border-b border-dashed border-white/10 mx-6 relative top-1"></div>
+                        <span class="text-xl font-medium group-hover:text-lime-400 transition">Our Portfolio</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 3: WHO WE ARE -->
+    <section class="slide">
+        <div class="w-full max-w-6xl mx-auto px-6 grid grid-cols-12 gap-16 items-center relative z-20">
+            <div class="col-span-5 stagger-enter">
+                <h2 class="text-7xl font-bold mb-4">Who</h2>
+                <h2 class="text-7xl font-bold text-lime-400 mb-12">We are</h2>
+            </div>
+            <div class="col-span-7 stagger-enter">
+                <div class="flex justify-between mb-16 border-b border-white/10 pb-8">
+                    <div>
+                        <div class="text-4xl font-bold text-lime-400 mb-2">40+</div>
+                        <div class="text-sm text-gray-400">Team member</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-lime-400 mb-2">100+</div>
+                        <div class="text-sm text-gray-400">Successful Project</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-lime-400 mb-2">3+</div>
+                        <div class="text-sm text-gray-400">Years of Experience</div>
+                    </div>
+                </div>
+                
+                <p class="text-3xl leading-snug font-medium mb-10">
+                    We're a Design and Development focused agency crafting innovative digital solutions for businesses across industries.
+                </p>
+                
+                <div class="flex gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Learn more
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 4: CLIENT REQUEST -->
+    <section class="slide">
+        <div class="w-full max-w-6xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <div class="col-span-5 stagger-enter">
+                <h2 class="text-6xl font-bold mb-4">Client</h2>
+                <h2 class="text-6xl font-bold text-lime-400">Request</h2>
+            </div>
+            <div class="col-span-7 stagger-enter">
+                <div class="border-l-2 border-white/20 pl-8 py-4">
+                    <h3 class="text-2xl font-bold mb-6">${Title}</h3>
+                    <ul class="space-y-4 text-lg text-gray-300">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-lime-400 shrink-0"></span>
+                            <span>${Content} Requirement description goes here.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-lime-400 shrink-0"></span>
+                            <span>${Content} Detailed analysis of the current system.</span>
+                        </li>
+                        <li class="pl-6 text-gray-500 text-base">
+                            • ${Content} Sub-point regarding specific constraint.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 w-1.5 h-1.5 rounded-full bg-lime-400 shrink-0"></span>
+                            <span>${Content} Expected outcome and timeline.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 5: SERVICE FLOW -->
+    <section class="slide">
+        <div class="w-full max-w-6xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-6xl font-bold mb-4">Service</h2>
+                <h2 class="text-6xl font-bold text-lime-400">Flow</h2>
+            </div>
+            <div class="col-span-8 grid grid-cols-2 gap-6 stagger-enter">
+                <div class="glass-card p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-6">${Title}</h3>
+                    <ul class="space-y-3 text-gray-400">
+                        <li>1. ${content}</li>
+                        <li>2. ${content}</li>
+                        <li>3. ${content}</li>
+                        <li>4. ${content}</li>
+                        <li>5. ${content}</li>
+                        <li>6. ${content}</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-6">${Title}</h3>
+                    <ul class="space-y-3 text-gray-400">
+                        <li>1. ${content}</li>
+                        <li>2. ${content}</li>
+                        <li>3. ${content}</li>
+                        <li>4. ${content}</li>
+                        <li>5. ${content}</li>
+                        <li>6. ${content}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 6: ADMIN DASHBOARD -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-6xl font-bold mb-4">Admin</h2>
+                <h2 class="text-6xl font-bold text-lime-400">Dashboard</h2>
+            </div>
+            <div class="col-span-8 stagger-enter">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Student Management</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Promotion Management</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Course Management</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Webinar Management</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Category Mgment</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Inquiry Management</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Payment Management</div>
+                    <div class="bg-white/5 hover:bg-white/10 transition border border-white/10 p-5 rounded-lg font-medium text-lg">Teacher Management</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 7: OUR PROCESS -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-6xl font-bold mb-4">Our</h2>
+                <h2 class="text-6xl font-bold text-lime-400">Process</h2>
+            </div>
+            <div class="col-span-8 stagger-enter relative">
+                <!-- Grid Lines -->
+                <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                    <div class="border-b border-r border-white/10"></div>
+                    <div class="border-b border-white/10"></div>
+                    <div class="border-r border-white/10"></div>
+                    <div></div>
+                </div>
+                <!-- Content -->
+                <div class="grid grid-cols-2 gap-12 p-8 relative z-10">
+                    <div class="space-y-4">
+                        <span class="border border-white/30 rounded-full px-3 py-1 text-xs uppercase tracking-wider">Step 01</span>
+                        <div class="flex items-center gap-3">
+                            <img src=".claude/resources/brand/icons/discovery-research.png" alt="Discovery & Research" class="w-6 h-6 object-contain">
+                            <h3 class="text-xl font-bold">Discovery &amp; Research</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed">We foster creativity, effectively align processes, brief talent, and create editorial calendars.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <span class="border border-white/30 rounded-full px-3 py-1 text-xs uppercase tracking-wider">Step 02</span>
+                        <div class="flex items-center gap-3">
+                            <img src=".claude/resources/brand/icons/design-development.png" alt="Design & Development" class="w-6 h-6 object-contain">
+                            <h3 class="text-xl font-bold">Design &amp; Development</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed">We foster creativity, effectively align processes, brief talent, and create editorial calendars.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <span class="border border-white/30 rounded-full px-3 py-1 text-xs uppercase tracking-wider">Step 03</span>
+                        <div class="flex items-center gap-3">
+                            <img src=".claude/resources/brand/icons/testing-deployment.png" alt="Testing & Deployment" class="w-6 h-6 object-contain">
+                            <h3 class="text-xl font-bold">Testing &amp; Deployment</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed">We foster creativity, effectively align processes, brief talent, and create editorial calendars.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <span class="border border-white/30 rounded-full px-3 py-1 text-xs uppercase tracking-wider">Step 04</span>
+                        <div class="flex items-center gap-3">
+                            <img src=".claude/resources/brand/icons/maintenance-growth.png" alt="Maintenance & Growth" class="w-6 h-6 object-contain">
+                            <h3 class="text-xl font-bold">Maintenance &amp; Growth</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed">We foster creativity, effectively align processes, brief talent, and create editorial calendars.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 8: PORTFOLIO - 343PET -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">343Pet -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Pet HealthCare App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/343Pet -  Pet HealthCare App.png" class="w-full h-auto object-cover opacity-80" alt="343Pet">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 9: PORTFOLIO - AGRILO -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Agrilo -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Agritech AI Agent</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">4 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Agrilo -  Agritech AI Agent.png" class="w-full h-auto object-cover opacity-80" alt="Agrilo">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 10: PORTFOLIO - CART -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">CART -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Card Traders App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/CART -  Card Traders App.png" class="w-full h-auto object-cover opacity-80" alt="CART">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 11: PORTFOLIO - DEXULIN -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Dexulin -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Smart Health &amp; Fitness Tracking App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Dexulin -  Smart Health &amp; Fitness Tracking App.png" class="w-full h-auto object-cover opacity-80" alt="Dexulin">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 12: PORTFOLIO - DIAFIT -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">DiaFit -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Healthtech AI App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">4 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/DiaFit -  Healthtech AI App.png" class="w-full h-auto object-cover opacity-80" alt="DiaFit">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 13: PORTFOLIO - ELITE4PRINT -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Elite4print -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">E-commerce &amp; ERP Solution</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Elite4print -  E-commerce &amp; ERP Solution.png" class="w-full h-auto object-cover opacity-80" alt="Elite4print">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 14: PORTFOLIO - HACAMONG -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Hacamong -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Reliable Babysitter Finder App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Hacamong -  Reliable Babysitter Finder App.png" class="w-full h-auto object-cover opacity-80" alt="Hacamong">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 15: PORTFOLIO - K-TALK -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">K-Talk -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Korean Language Learning Platform</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/K-Talk -  Korean Language Learning Platform.png" class="w-full h-auto object-cover opacity-80" alt="K-Talk">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 16: PORTFOLIO - MALOHA -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Maloha -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Real-time Voice Translation App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Maloha -  Real-time Voice Translation App.png" class="w-full h-auto object-cover opacity-80" alt="Maloha">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 17: PORTFOLIO - MENTORA -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Mentora -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">AI Student Managment</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Mentora -  AI Student Managment.png" class="w-full h-auto object-cover opacity-80" alt="Mentora">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 18: PORTFOLIO - NEARWORK -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">NearWork -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Smart job portal website</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/NearWork -  Smart job portal website.png" class="w-full h-auto object-cover opacity-80" alt="NearWork">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 19: PORTFOLIO - OMNI -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Omni -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Fitness Tracking App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Omni -  Fitness Tracking App.png" class="w-full h-auto object-cover opacity-80" alt="Omni">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 20: PORTFOLIO - PARK PARK -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Park Park -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Smart Parking Lot Sharing Platform</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Park Park -  Smart Parking Lot Sharing Platform.png" class="w-full h-auto object-cover opacity-80" alt="Park Park">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 21: PORTFOLIO - PERSONAL EXPENSE TRACKING -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Personal Expense Tracking -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">AI Agent</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Personal Expense Tracking - AI Agent.png" class="w-full h-auto object-cover opacity-80" alt="Personal Expense Tracking">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 22: PORTFOLIO - SILVARA -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Silvara -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Personal Health Companion App</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">1 Month</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Silvara -  Personal Health Companion App.png" class="w-full h-auto object-cover opacity-80" alt="Silvara">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 23: PORTFOLIO - STOCKIFY -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Stockify -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">AI Business Automation</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Stockify -   AI Business Automation.png" class="w-full h-auto object-cover opacity-80" alt="Stockify">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 24: PORTFOLIO - THRILL -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Thrill -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Adventure Matching Platform</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Thrill -  Adventure Matching Platform.png" class="w-full h-auto object-cover opacity-80" alt="Thrill">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 25: PORTFOLIO - TOBEONE -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Tobeone -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Community app</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Tobeone -  Community app.png" class="w-full h-auto object-cover opacity-80" alt="Tobeone">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 26: PORTFOLIO - TUSTIX -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-8 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-5xl font-bold mb-4">Tustix -</h2>
+                <h2 class="text-5xl font-bold text-lime-400 mb-12">Ticket &amp; Supplier Management Dashboard</h2>
+                
+                <div class="grid grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Platform</div>
+                        <div class="text-xl text-lime-400 font-medium">Design &amp; Development</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">Project Duration</div>
+                        <div class="text-xl text-lime-400 font-medium">3 Months</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="bg-brand-purple text-white px-8 py-3 rounded-full font-medium hover:bg-brand-purple/90 transition">
+                        Live Link
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-span-8 stagger-enter relative">
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src=".claude/resources/case-studies/projects/Tustix -  Ticket &amp; Supplier Management Dashboard.png" class="w-full h-auto object-cover opacity-80" alt="Tustix">
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- SLIDE 10: WHAT IS BEHANCE -->
+    <section class="slide">
+        <!-- Background Glows -->
+        <div class="glow-blob glow-lime bottom-[-10%] left-[-10%] opacity-30"></div>
+        <div class="glow-blob glow-purple top-[-20%] right-[-10%] opacity-50"></div>
+
+        <div class="w-full max-w-[1400px] mx-auto px-6 relative z-20">
+            <div class="grid grid-cols-12 gap-16 items-start">
+
+                <!-- Left: Headline -->
+                <div class="col-span-5 stagger-enter">
+                    <h2 class="text-8xl leading-[0.95] tracking-tight">
+                        <span class="text-white block font-medium">What is</span>
+                        <span class="text-lime-400 block font-bold">Behance?</span>
+                    </h2>
+                </div>
+
+                <!-- Right: Content -->
+                <div class="col-span-7 flex flex-col gap-16 stagger-enter">
+                    <div>
+                        <p class="text-2xl leading-[1.4] text-white font-normal">
+                            Behance is the <span class="text-lime-400 font-bold">Biggest Portfolio platform</span> in the World owned by Adobe where creative professionals can showcase their portfolios
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Why it's difficult to be featured?</h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-start gap-3 text-xl text-gray-200 leading-relaxed font-normal">
+                                <span class="mt-2.5 mr-1">•</span>
+                                <span>It <span class="text-lime-400 font-bold">features only 1 project a week</span> in the world.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 11: FEATURED ON BEHANCE -->
+    <section class="slide">
+        <!-- Background Glows -->
+        <div class="glow-blob glow-lime bottom-[-10%] left-[-10%] opacity-20"></div>
+        <div class="glow-blob glow-purple top-[-10%] right-[-10%] opacity-40"></div>
+
+        <div class="w-full max-w-[1400px] mx-auto px-6 relative z-20">
+            <div class="grid grid-cols-12 gap-8 items-start">
+
+                <!-- Left: Title -->
+                <div class="col-span-5 stagger-enter">
+                    <h2 class="text-7xl leading-[0.9] tracking-tight font-bold">
+                        <span class="text-lime-400 block">Featured</span>
+                        <span class="text-white block">4 Times</span>
+                        <span class="text-white block text-5xl font-medium mt-2">on</span>
+                        <span class="text-white block">Behance</span>
+                    </h2>
+                </div>
+
+                <!-- Right: Project Grid -->
+                <div class="col-span-7 stagger-enter">
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <!-- Card 1 -->
+                        <div class="group">
+                            <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#161616] border border-white/5">
+                                <img src=".claude/resources/case-studies/projects/featured-1.png" alt="Featured Project" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                <div class="absolute top-0 right-8 bg-[#C5A519] w-10 h-14 flex items-start justify-center pt-2 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);">
+                                    <span class="text-black font-bold text-xs">UI</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-3">
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] text-white text-[11px] font-bold tracking-widest px-6 py-2.5 rounded-full uppercase transition">Check Out</button>
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] w-[34px] h-[34px] rounded-full flex items-center justify-center transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="group">
+                            <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#161616] border border-white/5">
+                                <img src=".claude/resources/case-studies/projects/featured-2.png" alt="Featured Project" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                <div class="absolute top-0 right-8 bg-[#C5A519] w-10 h-14 flex items-start justify-center pt-2 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);">
+                                    <span class="text-black font-bold text-xs">UI</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-3">
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] text-white text-[11px] font-bold tracking-widest px-6 py-2.5 rounded-full uppercase transition">Check Out</button>
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] w-[34px] h-[34px] rounded-full flex items-center justify-center transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="group">
+                            <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#161616] border border-white/5">
+                                <img src=".claude/resources/case-studies/projects/featured-3.png" alt="Featured Project" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                <div class="absolute top-0 right-8 bg-[#C5A519] w-10 h-14 flex items-start justify-center pt-2 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);">
+                                    <span class="text-black font-bold text-xs">UI</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-3">
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] text-white text-[11px] font-bold tracking-widest px-6 py-2.5 rounded-full uppercase transition">Check Out</button>
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] w-[34px] h-[34px] rounded-full flex items-center justify-center transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="group">
+                            <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#161616] border border-white/5">
+                                <img src=".claude/resources/case-studies/projects/featured-4.png" alt="Featured Project" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                <div class="absolute top-0 right-8 bg-[#C5A519] w-10 h-14 flex items-start justify-center pt-2 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);">
+                                    <span class="text-black font-bold text-xs">UI</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-3">
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] text-white text-[11px] font-bold tracking-widest px-6 py-2.5 rounded-full uppercase transition">Check Out</button>
+                                <button class="bg-brand-purple hover:bg-[#4b3ecc] w-[34px] h-[34px] rounded-full flex items-center justify-center transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 12: TECH STACK -->
+    <section class="slide">
+        <!-- Background Glow -->
+        <div class="glow-blob glow-purple bottom-[-10%] right-[-5%] opacity-40"></div>
+
+        <div class="w-full max-w-[1400px] mx-auto px-6 relative z-20 flex flex-col items-center">
+            <!-- Main Title -->
+            <div class="text-center mb-20 stagger-enter">
+                <h2 class="text-7xl font-medium tracking-tight">
+                    <span class="text-white">Tech</span> <span class="text-lime-400 font-bold">Stack</span>
+                </h2>
+            </div>
+
+            <!-- Tech Grid: 5 Columns -->
+            <div class="grid grid-cols-5 gap-x-8 gap-y-12 w-full stagger-enter">
+
+                <!-- COLUMN 1: Design & Motion -->
+                <div class="flex flex-col">
+                    <div class="bg-[#0A0A0A] rounded-2xl text-center py-3.5 font-semibold text-lg text-white mb-6">Design</div>
+                    <div class="flex flex-col gap-8 items-center mb-16">
+                        <img src=".claude/resources/brand/tech-stack/design/figma.png" alt="Figma" class="h-8 w-auto object-contain">
+                    </div>
+                    <div class="bg-[#0A0A0A] rounded-2xl text-center py-3.5 font-semibold text-lg text-white mb-6">Motion</div>
+                    <div class="flex flex-col gap-8 items-center">
+                        <img src=".claude/resources/brand/tech-stack/design/after-effects.png" alt="After Effects" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/design/cinema-4d.png" alt="Cinema 4D" class="h-8 w-auto object-contain">
+                    </div>
+                </div>
+
+                <!-- COLUMN 2: Frontend -->
+                <div class="flex flex-col">
+                    <div class="bg-[#0A0A0A] rounded-2xl text-center py-3.5 font-semibold text-lg text-white mb-6">Frontend</div>
+                    <div class="flex flex-col gap-8 items-center">
+                        <img src=".claude/resources/brand/tech-stack/front-end/react.png" alt="React" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/front-end/vue-js.png" alt="Vue.js" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/front-end/nextjs.png" alt="Next.js" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/front-end/angular.png" alt="Angular" class="h-8 w-auto object-contain">
+                    </div>
+                </div>
+
+                <!-- COLUMN 3: Backend -->
+                <div class="flex flex-col">
+                    <div class="bg-[#0A0A0A] rounded-2xl text-center py-3.5 font-semibold text-lg text-white mb-6">Backend</div>
+                    <div class="flex flex-col gap-8 items-center">
+                        <img src=".claude/resources/brand/tech-stack/backend/python.png" alt="Python" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/backend/django.png" alt="Django" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/backend/nodejs.png" alt="Node.js" class="h-8 w-auto object-contain">
+                    </div>
+                </div>
+
+                <!-- COLUMN 4: Flutter (Mobile) -->
+                <div class="flex flex-col">
+                    <div class="bg-[#0A0A0A] rounded-2xl text-center py-3.5 font-semibold text-lg text-white mb-6">Flutter</div>
+                    <div class="flex flex-col gap-8 items-center">
+                        <img src=".claude/resources/brand/tech-stack/mobile/flutter.png" alt="Flutter" class="h-8 w-auto object-contain">
+                        <img src=".claude/resources/brand/tech-stack/mobile/react-native.png" alt="React Native" class="h-8 w-auto object-contain">
+                    </div>
+                </div>
+
+                <!-- COLUMN 5: Infra -->
+                <div class="flex flex-col">
+                    <div class="bg-[#0A0A0A] rounded-2xl text-center py-3.5 font-semibold text-lg text-white mb-6">Infra</div>
+                    <div class="flex flex-col gap-8 items-center">
+                        <img src=".claude/resources/brand/tech-stack/infra/aws.png" alt="AWS" class="h-10 w-auto object-contain">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 11: OUR CLIENTS -->
+    <section class="slide">
+        <div class="w-full max-w-7xl mx-auto px-6 relative z-20">
+            <div class="text-center mb-10 ">
+                <h2 class="text-6xl font-bold">Our <span class="text-lime-400">Clients</span></h2>
+            </div>
+
+            <div class="grid grid-cols-5 gap-3">
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/saero.png" alt="Saero" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/ittech.png" alt="iTTech" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/yonsei-university.png" alt="Yonsei University" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/korea-university.png" alt="Korea University" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/payments.png" alt="Payments" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/dxi-soft.png" alt="Dx-i Soft" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/able.png" alt="Able" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/ai-solutions.png" alt="AI Solutions" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/dvsn-studios.png" alt="DVSN Studios" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/kongju-university.png" alt="Kongju National University" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/bgf-retail.png" alt="BGF Retail" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/silvara-ai.png" alt="Silvara.AI" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/maloha.png" alt="Maloha" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/elite4print.png" alt="Elite4Print" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/hakamong.png" alt="HaKaMong" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/nearwork.png" alt="NearWork" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/ktalk.png" alt="KTalk" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/cart.png" alt="CART" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/omni.png" alt="Omni" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/parkpark.png" alt="ParkPark" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/343pet.png" alt="343Pet" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/tobeone.png" alt="Tobeone" class="h-10 w-auto object-contain">
+                </div>
+                <div class="bg-white/5 h-20 rounded-lg flex items-center justify-center border border-white/5 hover:border-lime-400/50 transition p-3">
+                    <img src=".claude/resources/case-studies/client-logos/dexulin.png" alt="Dexulin" class="h-10 w-auto object-contain">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 11: OUR EXPERT TEAM (LEADERSHIP) - REDESIGNED -->
+    <section class="slide">
+        <!-- Background Glows specific to this design -->
+        <div class="glow-blob glow-purple bottom-[-30%] left-[-10%] opacity-60"></div>
+        <div class="glow-blob glow-purple top-[-30%] right-[-10%] opacity-50"></div>
+
+        <div class="w-full max-w-7xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <!-- Left Side: Title -->
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-7xl font-medium text-white mb-2 tracking-tight">Our Expert</h2>
+                <h2 class="text-7xl font-bold text-lime-400 mb-8 tracking-tight">Team</h2>
+            </div>
+            
+            <!-- Right Side: Cards -->
+            <div class="col-span-8 flex gap-8 stagger-enter justify-center pl-10">
+                <!-- Member 1 -->
+                <div class="flex flex-col w-[320px]">
+                    <div class="bg-[#0A0A0A] border border-white/10 rounded-2xl h-[400px] mb-6 overflow-hidden relative flex items-end justify-center group">
+                         <!-- Subtle pattern background -->
+                         <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent opacity-20"></div>
+                         <img src=".claude/resources/brand/team/ceo-cto/lukas.png" class="relative z-10 w-full h-full object-cover object-top transition duration-500 group-hover:scale-105" alt="Shin Lukas Dongsub">
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-1">Shin Lukas Dongsub</h3>
+                    <p class="text-gray-400 text-base">CEO Of Potential</p>
+                </div>
+
+                <!-- Member 2 -->
+                <div class="flex flex-col w-[320px]">
+                    <div class="bg-[#0A0A0A] border border-white/10 rounded-2xl h-[400px] mb-6 overflow-hidden relative flex items-end justify-center group">
+                         <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent opacity-20"></div>
+                         <img src=".claude/resources/brand/team/ceo-cto/siam.png" class="relative z-10 w-full h-full object-cover object-top transition duration-500 group-hover:scale-105" alt="Siam Maruf">
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-1">Siam Maruf</h3>
+                    <p class="text-gray-400 text-base">CTO &amp; Full-stack Team Lead</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 12: FULL-STACK TEAM (NEW) -->
+    <section class="slide">
+        <!-- Background Glows -->
+        <div class="glow-blob glow-lime bottom-[-10%] left-[-10%] opacity-20"></div>
+        <div class="glow-blob glow-purple bottom-[-10%] right-[-10%] opacity-30"></div>
+
+        <div class="w-full max-w-[1400px] mx-auto px-6 relative z-20 flex flex-col items-center">
+            <!-- Title -->
+            <div class="text-center mb-12 stagger-enter">
+                <h2 class="text-6xl font-bold">Full-Stack <span class="text-lime-400">Team</span></h2>
+            </div>
+            
+            <!-- Team Grid Container -->
+            <div class="flex flex-wrap justify-center gap-x-5 gap-y-12 stagger-enter w-full">
+                
+                <!-- ROW 1 (7 people) -->
+                <div class="flex justify-center gap-5 w-full">
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/rana.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Md Hossen Rana</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Associate Team Lead (Full Stack)</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/zulkar.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">G M Zulkar Nine</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Lead Backend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/atik.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Atik Bhuiyan</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Sr. Frontend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/abdur.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Abdur Rahman</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Senior Flutter Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/nomaan.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Abdullah Al Nomaan</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Full Stack Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/shamim.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Shamim Hossain</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Full Stack Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src="../images/team/Al_Amin_Rifat.webp" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">MD Al Amin Rifat</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Full Stack Developer</p>
+                    </div>
+                </div>
+
+                <!-- ROW 2 (6 people) -->
+                <div class="flex justify-center gap-5 w-full">
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/mohibulla.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Md. Mohibulla</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Full Stack Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/dolan.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Dolan Bairagi</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Backend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/meherab.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Meherab Irfan</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Backend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/talha.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Talha Mahmud</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Backend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/hasan.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Hasan Al Mahmud</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Backend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/muksitur.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Muksitur Rahman</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Flutter Developer</p>
+                    </div>
+                </div>
+
+                <!-- ROW 3 (4 people) -->
+                <div class="flex justify-center gap-5 w-full">
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/saiful.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Saiful Islam</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Jr. Frontend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/israt.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Israt Jahan Rothy</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Jr. Frontend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/tonmoy.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Md. Tonmoy Khan</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Jr. Frontend Developer</p>
+                    </div>
+                    <div class="flex flex-col w-[160px] group">
+                        <div class="h-40 bg-[#111] rounded-xl overflow-hidden mb-3 relative border border-white/5 transition-transform duration-300 group-hover:-translate-y-2">
+                            <img src=".claude/resources/brand/team/full-stack-team/zihad.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500">
+                        </div>
+                        <h4 class="text-sm font-bold text-white leading-tight mb-1">Md. Zihad Hossion</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Jr. Frontend Developer</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 13: CLUTCH REVIEWS -->
+    <section class="slide">
+        <!-- Background Glows -->
+        <div class="glow-blob glow-lime bottom-[-20%] left-[-10%] opacity-30"></div>
+        <div class="glow-blob glow-purple bottom-[-20%] right-[-10%] opacity-40"></div>
+
+        <div class="w-full max-w-[1400px] mx-auto px-6 relative z-20">
+            <!-- Hero Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 items-end stagger-enter">
+                <!-- Left: Headline -->
+                <div>
+                    <img src=".claude/resources/brand/logo/clutch_review_image.jpeg" alt="Clutch" class="w-16 h-16 rounded-xl object-cover mb-6">
+                    <h2 class="text-7xl leading-[0.95] tracking-tight">
+                        <span class="font-medium text-white block">Clutch</span>
+                        <span class="font-bold text-lime-400 block">Reviews</span>
+                    </h2>
+                </div>
+                <!-- Right: Text & Actions -->
+                <div class="lg:pl-10">
+                    <p class="text-xl leading-[1.4] font-medium text-white mb-8 max-w-3xl">
+                        Potential is known for delivering great value within budget, meeting deadlines, and assigning 2–5 team members per project to ensure clear communication and proactive problem-solving.
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <a href="#" class="h-[52px] px-8 bg-brand-purple hover:bg-[#4b3ecc] transition rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                            Live Link
+                        </a>
+                        <a href="#" class="w-[52px] h-[52px] bg-brand-purple hover:bg-[#4b3ecc] transition rounded-full flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 stagger-enter">
+                <!-- Card 1 -->
+                <div class="glass-card p-8 rounded-[32px] flex flex-col justify-between h-full min-h-[320px]">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-white font-bold text-lg">5.0</span>
+                            <div class="flex gap-1 text-[#FF3B30]">★★★★★</div>
+                        </div>
+                        <p class="text-gray-300 text-[15px] leading-relaxed mb-8">
+                            Thanks to the Potential team's efforts, the company saw a 30% increase in online banking engagement, a 25% reduction in customer support queries, and a 20% boost in mobile app downloads.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="../images/clutch-reviewer/Jackson L. CEO & President of RealEsti.png" alt="Jackson L." class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="text-white font-bold text-base leading-tight">Jackson L.</h4>
+                            <p class="text-gray-500 text-xs mt-0.5">CEO & President of RealEsti</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-card p-8 rounded-[32px] flex flex-col justify-between h-full min-h-[320px]">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-white font-bold text-lg">5.0</span>
+                            <div class="flex gap-1 text-[#FF3B30]">★★★★★</div>
+                        </div>
+                        <p class="text-gray-300 text-[15px] leading-relaxed mb-8">
+                            Thanks to Potential's efforts, the client obtained the desired software. The team provided timely deliverables and was responsive to needs throughout the engagement.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="../images/clutch-reviewer/Chung Eui-sun CEO of  AIforklift.png" alt="Chung Eui-sun" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="text-white font-bold text-base leading-tight">Chung Eui-sun</h4>
+                            <p class="text-gray-500 text-xs mt-0.5">CEO of Alforklift</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-card p-8 rounded-[32px] flex flex-col justify-between h-full min-h-[320px]">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-white font-bold text-lg">5.0</span>
+                            <div class="flex gap-1 text-[#FF3B30]">★★★★★</div>
+                        </div>
+                        <p class="text-gray-300 text-[15px] leading-relaxed mb-8">
+                            Potential successfully completed the linkage and operation process between the development results and the client's products without any problems. The team adhered to the agreed-upon schedule.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="../images/clutch-reviewer/Jongwon Kim  CE & Founder ITTECH.png" alt="Jongwon Kim" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="text-white font-bold text-base leading-tight">Jongwon Kim</h4>
+                            <p class="text-gray-500 text-xs mt-0.5">CE & Founder ITTECH</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="glass-card p-8 rounded-[32px] flex flex-col justify-between h-full min-h-[320px]">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-white font-bold text-lg">5.0</span>
+                            <div class="flex gap-1 text-[#FF3B30]">★★★★★</div>
+                        </div>
+                        <p class="text-gray-300 text-[15px] leading-relaxed mb-8">
+                            Potential delivered software that worked well without errors and all features were satisfying. The team had passionate team members and kept their time promises well.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="../images/clutch-reviewer/Byeongguk Ko  CEO of Tobeone.png" alt="Byeongguk Ko" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="text-white font-bold text-base leading-tight">Byeongguk Ko</h4>
+                            <p class="text-gray-500 text-xs mt-0.5">CEO of Tobeone</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 14: TO CLIENT (FAQ) -->
+    <section class="slide">
+        <!-- Background Glows -->
+        <div class="glow-blob glow-lime bottom-[-20%] left-[-10%] opacity-30"></div>
+        <div class="glow-blob glow-purple top-[-20%] right-[-10%] opacity-40"></div>
+
+        <div class="w-full max-w-[1400px] mx-auto px-6 relative z-20">
+            <div class="grid grid-cols-12 gap-12 items-start">
+
+                <!-- Left: Title -->
+                <div class="col-span-4 stagger-enter">
+                    <h2 class="text-8xl leading-[0.95] tracking-tight font-bold">
+                        <span class="text-white block">To</span>
+                        <span class="text-lime-400 block">Client</span>
+                    </h2>
+                </div>
+
+                <!-- Right: FAQ Cards -->
+                <div class="col-span-8 flex flex-col gap-3 stagger-enter">
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h3 class="text-gray-200 text-lg font-medium mb-3">When agreement will be finalized?</h3>
+                        <p class="text-gray-400 text-[15px] leading-relaxed">
+                            We've received a lot of requests for work from other companies, and we have a lot of clients waiting in line. Therefore, verbal agreements are not valid, and the schedule is finalized based on the written contract.
+                        </p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h3 class="text-gray-200 text-lg font-medium mb-3">How long does it take to finish my project?</h3>
+                        <p class="text-[15px] leading-relaxed font-semibold text-white">
+                            Only Design : 1 month / Design + Development : 3 month
+                        </p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h3 class="text-gray-200 text-lg font-medium mb-3">How much is it for hosting my own server?</h3>
+                        <p class="text-gray-400 text-[15px] leading-relaxed">
+                            It's less than $30/month. We are hosting your website in Amazon Web Service (Most popular/safe cloud service)
+                        </p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h3 class="text-gray-200 text-lg font-medium mb-3">How many member will join this project</h3>
+                        <ul class="text-gray-400 text-[15px] leading-relaxed space-y-1">
+                            <li>• 10 year experienced PM</li>
+                            <li>• 8 year SR backend developer</li>
+                            <li>• 7 year SR frontend developer</li>
+                            <li>• 8 year SR UI/UX designer</li>
+                            <li>• 5 year QA engineer</li>
+                            <li>• [Backup] 5 year frontend developer, 3 year frontend developer</li>
+                        </ul>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h3 class="text-gray-200 text-lg font-medium mb-3">Is there any extra cost for design, development ?</h3>
+                        <p class="text-gray-400 text-[15px] leading-relaxed">
+                            No, If your requirements are fixed, there is no change in cost.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 15: OUR PRICING -->
+    <section class="slide">
+        <div class="w-full max-w-6xl mx-auto px-6 grid grid-cols-12 gap-12 items-center relative z-20">
+            <div class="col-span-4 stagger-enter">
+                <h2 class="text-6xl font-bold mb-4">Our</h2>
+                <h2 class="text-6xl font-bold text-lime-400 mb-8">Pricing</h2>
+                <div class="inline-block bg-lime-400 text-black font-bold px-4 py-1 rounded-full text-sm">PROJECT BASED</div>
+            </div>
+            <div class="col-span-8 stagger-enter">
+                <div class="glass-card rounded-2xl p-1 overflow-hidden">
+                    <div class="bg-[#111] rounded-xl p-8">
+                        <h3 class="text-3xl font-bold mb-8">Only Design</h3>
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center text-gray-400 text-sm uppercase tracking-wider border-b border-white/10 pb-2">
+                                <span>Milestone</span>
+                                <span>Payment Due</span>
+                                <span>Amount (USD)</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-4 border-b border-white/10">
+                                <span class="text-lg">Project Kickoff (Contract Signed)</span>
+                                <span class="text-lg">50%</span>
+                                <span class="text-lg font-bold">$3,000</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-4 border-b border-white/10">
+                                <span class="text-lg">After Delivery</span>
+                                <span class="text-lg">50%</span>
+                                <span class="text-lg font-bold">$3,000</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-6">
+                                <span class="text-xl font-bold text-lime-400">Total Project Cost</span>
+                                <span class="text-xl font-bold text-lime-400">$6,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 14: CONTACT US (REDESIGNED) -->
+    <section class="slide active">
+        <!-- Background Glow -->
+        <div class="glow-blob glow-purple top-[-20%] right-[-10%] opacity-40"></div>
+        
+        <div class="w-full max-w-7xl mx-auto px-10 relative z-20">
+            <!-- Top Section -->
+            <div class="flex justify-between items-end mb-24 stagger-enter">
+                <!-- Left: Title & Buttons -->
+                <div>
+                    <h2 class="text-8xl font-bold leading-tight " data-ai-id="ai-el-bqfee44uf" style="font-size: 74px;">Contact Us</h2>
+                    <div class="flex items-center gap-4 mt-10">
+                        <button class="bg-[#5C4EFF] text-white px-8 py-3 rounded-full font-medium hover:bg-[#4b3ecc] transition">
+                            Contact us
+                        </button>
+                        <button class="w-12 h-12 rounded-full bg-[#5C4EFF] flex items-center justify-center text-white hover:bg-[#4b3ecc] transition transform -rotate-45">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right" aria-hidden="true" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Profile -->
+                <div class="flex items-center gap-6 mb-4">
+                    <img src=".claude/resources/brand/team/ceo-cto/lukas.png" class="w-24 h-24 rounded-full object-cover bg-gray-800 border-2 border-[#5C4EFF]">
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1 tracking-wider uppercase">Direct Contact:</div>
+                        <div class="text-3xl font-bold mb-1">Shin Lukas Dongsub</div>
+                        <div class="text-white text-lg">contact@potentialai.com</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider & Columns -->
+            <div class="stagger-enter grid grid-cols-3 border-t border-white/20">
+                
+                <!-- Korea -->
+                <div class="relative pt-12 pr-12">
+                    <!-- Map Icon Placeholder -->
+                    <div class="mb-6 w-16">
+                        <img src=".claude/resources/brand/offices/south-korea.png" alt="">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">HQ - South Korea</h3>
+                    <div class="space-y-1 text-gray-400 text-sm leading-relaxed mb-6">
+                        <p>WEWORK 4F, 147,</p>
+                        <p>Yanghwa-ro Mapo-guSeoul, Korea</p>
+                        <p>+82 10-2706-1463</p>
+                    </div>
+                    <p class="text-white">contact@potentialai.com</p>
+                </div>
+
+                <!-- USA -->
+                <div class="relative pt-12 pl-12 border-l border-white/20">
+                     <!-- Dot on the line -->
+                    <div class="absolute -top-[5px] -left-[5px] w-2.5 h-2.5 bg-lime-400 rounded-full box-border border-2 border-[#050505]"></div>
+                    
+                    <div class="mb-6 w-16">
+                       <img src=".claude/resources/brand/offices/usa.png" alt="">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">USA</h3>
+                     <div class="space-y-1 text-gray-400 text-sm leading-relaxed mb-6">
+                        <p>131 Continental Dr, Suite 305</p>
+                        <p>Newark, DE 19713, USA</p>
+                        <p>+1 (213) 214 2664</p>
+                    </div>
+                    <p class="text-white">contact@potentialai.com</p>
+                </div>
+
+                <!-- Bangladesh -->
+                <div class="relative pt-12 pl-12 border-l border-white/20">
+                     <!-- Dot on the line -->
+                    <div class="absolute -top-[5px] -left-[5px] w-2.5 h-2.5 bg-lime-400 rounded-full box-border border-2 border-[#050505]"></div>
+
+                   <div class="mb-6 w-16">
+                        <img src=".claude/resources/brand/offices/bangladesh.png" alt="">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Bangladesh</h3>
+                     <div class="space-y-1 text-gray-400 text-sm leading-relaxed mb-6">
+                        <p>dhanmondi, apartment</p>
+                        <p>#b-c, property palace, 1205</p>
+                        <p>+880-017 10956850</p>
+                    </div>
+                    <p class="text-white">contact@potentialai.com</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 15: THANK YOU -->
+    <section class="slide">
+        <!-- Centered glow for finale -->
+        <div class="glow-blob glow-purple inset-0 m-auto"></div>
+        
+        <div class="relative z-20 flex flex-col items-center justify-center stagger-enter">
+            <!-- 3D Logo Effect -->
+            <div class="mb-12 relative w-64 h-64">
+                <img src=".claude/resources/brand/logo/3d_potential.png" alt="" class="w-full h-full">
+            </div>
+            
+            <h2 class="text-8xl font-bold mb-12">Thank <span class="text-lime-400">You !</span></h2>
+            
+            <button class="bg-white/5 border border-white/10 px-8 py-3 rounded-full text-gray-400 flex items-center gap-3 hover:bg-white/10 transition">
+                <span>Let's grab an online coffee and talk more.</span>
+                <span class="text-xl">☕</span>
+            </button>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progress');
+        const slideCounter = document.getElementById('slide-counter');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+            // Update Progress
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Update Counter
+            slideCounter.innerText = `${String(currentSlide + 1).padStart(2, '0')} / ${slides.length}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Initialize
+        updateSlide();
+    </script>
+
+  
+
+</body></html>

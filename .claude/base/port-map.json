@@ -1,0 +1,18 @@
+{
+  "description": "Central port allocation. Each project gets 10 ports (base+0=backend, base+1=frontend, base+2+=dashboards/aux).",
+  "blockSize": 10,
+  "offsets": { "backend": 0, "frontend": 1, "dashboardBase": 2 },
+  "projects": {
+    "trustfix": 3000,
+    "hire-agent": 3010,
+    "cofoundry": 3020,
+    "ktalk": 3030,
+    "design-flow": 3040,
+    "tirebank-test": 3050,
+    "coaching-record": 3060,
+    "cc-analytics": 3070,
+    "remotion": 3080,
+    "elite4print": 3090,
+    "project-health-check": 3100
+  }
+}

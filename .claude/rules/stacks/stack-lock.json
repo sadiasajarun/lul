@@ -1,0 +1,34 @@
+{
+  "_comment": "Deterministic source of truth for the stack-lock gate checks (gates/lib/stack-lock.lib.sh, run by backend-gate.sh / frontend-gate.sh). This is the machine-readable form of the prose in rules/stacks/*.rules.md. 'forbidden' = dependencies that MUST NOT appear in a layer's package.json (wrong-stack drift); 'required' = dependencies that MUST be present. Keyed by the stack submodule name from PIPELINE_STATUS.md tech_stack (backend / frontends[0]). The gate logic stays generic — to change enforcement, edit ONLY this list, never the gate. An unlisted stack key is a no-op (checks pass), so other stacks are never falsely failed.",
+  "nestjs": {
+    "required": ["typeorm"],
+    "forbidden": [
+      "prisma",
+      "@prisma/client",
+      "mongoose",
+      "sequelize",
+      "sequelize-typescript",
+      "@mikro-orm/core",
+      "drizzle-orm",
+      "typegoose",
+      "@typegoose/typegoose"
+    ],
+    "forbidden_prose": ["prisma", "mongoose", "sequelize", "mikro[ _-]?orm", "drizzle[ _-]?orm", "typegoose"]
+  },
+  "react": {
+    "required": ["@reduxjs/toolkit"],
+    "forbidden": [
+      "@tanstack/react-query",
+      "react-query",
+      "zustand",
+      "mobx",
+      "mobx-react",
+      "mobx-react-lite",
+      "recoil",
+      "jotai",
+      "valtio",
+      "swr"
+    ],
+    "forbidden_prose": ["tanstack", "react[ _-]?query", "zustand", "mobx", "recoil", "jotai", "valtio"]
+  }
+}

@@ -1,0 +1,17 @@
+# Cell matrix for parallel multi-model runs.
+# Format: name | wave | backend | model | port
+#
+# name      = unique cell identifier
+# wave      = execution wave number (1-N, cells in same wave run in parallel)
+# backend   = "claude" or "opencode" (agent subprocess backend)
+# model     = model ID for opencode backend (empty string for claude default)
+# port      = backend dev port for this cell (must be unique across all cells)
+#
+# To use a custom matrix: CELLS_CONF=./my-cells.conf bash run-parallel.sh --from-baseline
+#
+deepseek-v4-pro-cake1 | 1 | opencode | opencode-go/deepseek-v4-pro | 3201
+qwen3.6-plus-cake1 | 1 | opencode | opencode-go/qwen3.6-plus | 3301
+# claude-opus-cake1 | 2 | claude | | 3101
+# claude-opus-cake2 | 2 | claude | | 3102
+deepseek-v4-pro-cake2 | 3 | opencode | opencode-go/deepseek-v4-pro | 3202
+qwen3.6-plus-cake2 | 3 | opencode | opencode-go/qwen3.6-plus | 3302

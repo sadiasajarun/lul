@@ -1,0 +1,194 @@
+#!/usr/bin/env node
+// scaffold-enums-from-spec.js — v90
+//
+// Parse `### XxxEnum` reference sections from PROJECT_DATABASE.md and emit
+// canonical TypeScript enum files under src/common/enums/.
+//
+// THE GAP: scaffold-entities (post-v88) correctly SKIPS enum reference
+// sections (they're not entities). But nothing generates enum FILES from
+// those reference sections either. Result: entities declare columns as
+// smallint/varchar with docstrings ("0=foo, 1=bar") and the application
+// layer must use magic numbers. Database evaluator flags this as missing
+// enum semantics.
+//
+// PROJECT_DATABASE.md format expected (project-agnostic, common convention):
+//
+//   ### RoleEnum
+//
+//   | DB Value | Name         | Description           |
+//   |----------|--------------|-----------------------|
+//   | 0        | foreign_worker | Foreign worker      |
+//   | 1        | company_staff  | Company staff       |
+//
+//   ### ServiceTypeEnum
+//
+//   | DB Value | Name          | Description    |
+//   |----------|---------------|----------------|
+//   | flight   | flight        | Air transport  |
+//   | bus      | bus           | Ground         |
+//
+// The DB Value column may be:
+//   - numeric (0, 1, 2) → TypeScript numeric enum
+//   - string ('flight', 'bus') → TypeScript string-valued enum
+// The Name column gives the TypeScript identifier (UPPERCASED via SCREAMING_SNAKE).
+//
+// OUTPUT: src/common/enums/<kebab-name>.enum.ts with:
+//   export enum XxxEnum {
+//     FOO = 0,
+//     BAR = 1,
+//   }
+//
+// Idempotent — skips files that already exist (project-specific overrides
+// take precedence). Use --force to overwrite.
+'use strict';
+
+var fs = require('fs');
+var path = require('path');
+
+function parseArgs(argv) {
+  var out = {};
+  for (var i = 2; i < argv.length; i++) {
+    var a = argv[i];
+    if (a === '--db') out.db = argv[++i];
+    else if (a === '--target') out.target = argv[++i];
+    else if (a === '--force') out.force = true;
+    else if (a === '--dry-run') out.dryRun = true;
+    else if (a === '--verbose' || a === '-v') out.verbose = true;
+  }
+  if (!out.db || !out.target) {
+    console.error('Usage: scaffold-enums-from-spec --db <PROJECT_DATABASE.md> --target <BACKEND_DIR> [--force] [--verbose]');
+    process.exit(1);
+  }
+  return out;
+}
+
+function pascalToKebab(s) {
+  return s.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+}
+
+function nameToUpperSnake(s) {
+  // foreign_worker → FOREIGN_WORKER
+  // FlightCash → FLIGHT_CASH
+  // already-UPPER stays as-is
+  return s.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
+}
+
+function parseEnumSections(dbMd) {
+  var sections = dbMd.split(/^### /m);
+  var enums = [];
+  for (var i = 1; i < sections.length; i++) {
+    var s = sections[i];
+    var firstLine = s.split(/\r?\n/)[0].trim();
+    // Only process *Enum-suffixed headings
+    if (!/Enum$/.test(firstLine)) continue;
+    var enumName = firstLine;
+    // Find `|...header...|` row. Supports:
+    //   3-col: | DB Value | Name | Description |
+    //   3-col: | Value | Name | Description |
+    //   2-col: | Value | Description |  (Value used as both dbVal and name)
+    var lines = s.split(/\r?\n/);
+    var headerIdx = -1, headerShape = null;
+    for (var j = 1; j < lines.length; j++) {
+      var hline = lines[j];
+      if (!/^\|/.test(hline)) continue;
+      var hparts = hline.split('|').map(function (p) { return p.trim(); }).filter(Boolean);
+      if (hparts.length < 2) continue;
+      var lc0 = (hparts[0] || '').toLowerCase();
+      var lc1 = (hparts[1] || '').toLowerCase();
+      var lc2 = (hparts[2] || '').toLowerCase();
+      if (/^(db\s+)?value$/.test(lc0) || lc0 === 'code') {
+        if (/^name$/.test(lc1)) { headerIdx = j; headerShape = '3col'; break; }
+        if (/^desc/.test(lc1)) { headerIdx = j; headerShape = '2col'; break; }
+        if (lc2 && (/^name$/.test(lc2) || /^desc/.test(lc2))) { headerIdx = j; headerShape = '3col'; break; }
+      }
+    }
+    if (headerIdx < 0) continue;
+    // Skip separator line
+    var values = [];
+    for (var k = headerIdx + 2; k < lines.length; k++) {
+      var line = lines[k];
+      if (!/^\|/.test(line)) break;
+      if (/^\|\s*-+/.test(line)) continue;
+      var parts = line.split('|').map(function (p) { return p.trim(); });
+      if (parts.length < 3) continue;
+      var dbVal = (parts[1] || '').replace(/`/g, '');
+      var name;
+      if (headerShape === '2col') {
+        // Value column doubles as the identifier source
+        name = dbVal;
+      } else {
+        name = (parts[2] || '').replace(/`/g, '');
+      }
+      if (!dbVal && !name) continue;
+      if (!name) continue;
+      values.push({ dbVal: dbVal, name: name });
+    }
+    if (values.length === 0) continue;
+    enums.push({ name: enumName, values: values });
+  }
+  return enums;
+}
+
+function renderEnum(parsed) {
+  var lines = [
+    '/**',
+    ' * ' + parsed.name + ' — generated by scaffold-enums-from-spec from PROJECT_DATABASE.md.',
+    ' */',
+    'export enum ' + parsed.name + ' {',
+  ];
+  // Decide numeric vs string by inspecting the FIRST dbVal.
+  // Numeric: 0/1/2; string: 'flight'/'foreign_worker'/etc.
+  var allNumeric = parsed.values.every(function (v) { return /^-?\d+$/.test(v.dbVal); });
+  parsed.values.forEach(function (v) {
+    var key = nameToUpperSnake(v.name);
+    if (allNumeric) {
+      lines.push('  ' + key + ' = ' + v.dbVal + ',');
+    } else {
+      // String-valued: use the dbVal if it's a string literal, else fall back to name
+      var literal = v.dbVal || v.name;
+      lines.push('  ' + key + " = '" + literal + "',");
+    }
+  });
+  lines.push('}');
+  lines.push('');
+  return lines.join('\n');
+}
+
+function main() {
+  var args = parseArgs(process.argv);
+  if (!fs.existsSync(args.db)) {
+    console.log('scaffold-enums-from-spec: PROJECT_DATABASE.md not found at ' + args.db);
+    return;
+  }
+  var dbMd = fs.readFileSync(args.db, 'utf-8');
+  var parsed = parseEnumSections(dbMd);
+  if (parsed.length === 0) {
+    console.log('scaffold-enums-from-spec: no `### XxxEnum` sections found — nothing to do');
+    return;
+  }
+
+  var enumsDir = path.join(args.target, 'src/common/enums');
+  fs.mkdirSync(enumsDir, { recursive: true });
+
+  var written = 0, skipped = 0;
+  parsed.forEach(function (e) {
+    var fileName = pascalToKebab(e.name) + '.ts';
+    var dst = path.join(enumsDir, fileName);
+    if (fs.existsSync(dst) && !args.force) {
+      skipped++;
+      if (args.verbose) console.log('  skip (exists): ' + path.relative(args.target, dst));
+      return;
+    }
+    var content = renderEnum(e);
+    if (args.dryRun) {
+      console.log('  [dry] would write ' + path.relative(args.target, dst) + ' (' + e.values.length + ' values)');
+    } else {
+      fs.writeFileSync(dst, content);
+      written++;
+      if (args.verbose) console.log('  wrote ' + path.relative(args.target, dst) + ' (' + e.values.length + ' values)');
+    }
+  });
+  console.log('scaffold-enums-from-spec: ' + written + ' written, ' + skipped + ' skipped');
+}
+
+main();

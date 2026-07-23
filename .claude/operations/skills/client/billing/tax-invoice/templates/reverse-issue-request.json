@@ -1,0 +1,32 @@
+{
+  "date": "2025-01-15",
+  "purpose": "CLAIM",
+  "supplier": {
+    "identificationNumber": "1234567890",
+    "organizationName": "공급자 상호 (발행 요청 대상)",
+    "representativeName": "홍길동",
+    "manager": {
+      "email": "supplier@example.com"
+    }
+  },
+  "supplied": {
+    "identificationNumber": "0987654321",
+    "organizationName": "공급받는자 상호 (발행 요청자)",
+    "representativeName": "김철수",
+    "managers": [
+      {
+        "email": "recipient@example.com"
+      }
+    ]
+  },
+  "items": [
+    {
+      "date": "2025-01-15",
+      "name": "품목명",
+      "unitPrice": 500000,
+      "quantity": 2,
+      "supplyCost": 1000000,
+      "tax": 100000
+    }
+  ]
+}

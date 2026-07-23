@@ -1,0 +1,7 @@
+.env
+.env.local
+.env.production
+# Explicit: 1Password reference files ARE committable (no secrets, only op:// refs)
+!.env.1password.*
+node_modules/
+*.log

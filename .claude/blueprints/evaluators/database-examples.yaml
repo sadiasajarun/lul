@@ -1,0 +1,189 @@
+# Few-shot calibration examples for the database evaluator.
+
+examples:
+
+  - criterion: domain_modeling_fit
+    correct_score: 0.3
+    excerpt: |
+      // PROJECT_DATABASE.md declares: User, Application, Document,
+      // PaymentRequest, RefundRecord, Notice, FAQ, Company, CompanyStaff,
+      // ServiceType, BankAccount.
+
+      // Actual entities:
+      //   user.entity.ts (User with role: 'worker' | 'admin')
+      //   application.entity.ts
+      //   notice.entity.ts
+      //   faq.entity.ts
+
+      // Missing: Document, PaymentRequest, RefundRecord, Company,
+      //          CompanyStaff, ServiceType, BankAccount.
+      //
+      // Application entity has fields: documents (jsonb), payments (jsonb),
+      // refundInfo (jsonb) — all the missing entities folded into JSON
+      // columns on Application.
+    rationale: >
+      Seven of eleven declared entities missing. Folded into JSON columns
+      on Application — kills queryability, breaks audit trails, makes
+      future migrations painful. Domain model not represented.
+
+  - criterion: domain_modeling_fit
+    correct_score: 0.95
+    excerpt: |
+      // All 11 declared entities exist as proper tables:
+      //   user.entity.ts          @Entity('users')
+      //   application.entity.ts   @Entity('applications')
+      //   document.entity.ts      @Entity('documents')
+      //   payment-request.entity.ts @Entity('payment_requests')
+      //   refund-record.entity.ts @Entity('refund_records')
+      //   notice.entity.ts        @Entity('notices')
+      //   faq.entity.ts           @Entity('faqs')
+      //   company.entity.ts       @Entity('companies')
+      //   company-staff.entity.ts @Entity('company_staff')
+      //   service-type.entity.ts  @Entity('service_types')
+      //   bank-account.entity.ts  @Entity('bank_accounts')
+      //
+      // Field names use domain vocabulary: reference_number (not "code"),
+      // service_type_id (not "type_id"), application_status (not "status").
+      // Status enum values use declared Korean keys + English mapping.
+    rationale: >
+      Every declared entity present as a proper table. Domain vocabulary
+      preserved in column names. Distinct concepts get distinct tables.
+
+  - criterion: relationships_correctness
+    correct_score: 0.2
+    excerpt: |
+      @Entity()
+      export class Application {
+        @Column() user_id: string;     // FK column but no @ManyToOne
+        @Column() service_type_id: string;
+      }
+
+      @Entity()
+      export class PaymentRequest {
+        @Column() application_id: string;
+        @ManyToOne(() => Application, { onDelete: 'CASCADE' })
+        application: Application;
+      }
+      // Deleting an Application CASCADE-deletes PaymentRequests.
+      // PRD says: "Payment audit trail must be retained 5 years even
+      // if application is cancelled."
+    rationale: >
+      Application has FK columns but no @ManyToOne — TypeORM won't
+      eager-load. PaymentRequest CASCADE-deletes when Application
+      removed, violating the explicit 5-year audit retention rule.
+
+  - criterion: relationships_correctness
+    correct_score: 0.95
+    excerpt: |
+      @Entity('applications')
+      export class Application {
+        @ManyToOne(() => User, { nullable: false })
+        @JoinColumn({ name: 'user_id' })
+        user: User;
+        @Column('uuid') user_id: string;
+
+        @ManyToOne(() => ServiceType, { nullable: false })
+        @JoinColumn({ name: 'service_type_id' })
+        serviceType: ServiceType;
+        @Column('uuid') service_type_id: string;
+      }
+
+      @Entity('payment_requests')
+      export class PaymentRequest {
+        @ManyToOne(() => Application, { onDelete: 'RESTRICT' })
+        @JoinColumn({ name: 'application_id' })
+        application: Application;
+        // 5-year retention required — RESTRICT prevents accidental cascade.
+      }
+    rationale: >
+      Both relationship sides explicit. @JoinColumn names match column.
+      RESTRICT on PaymentRequest preserves audit trail per PRD's
+      retention rule. CASCADE used only where children have no
+      standalone audit value.
+
+  - criterion: constraint_correctness
+    correct_score: 0.3
+    excerpt: |
+      @Entity('users')
+      export class User {
+        @PrimaryGeneratedColumn('uuid') id: string;
+        @Column() email: string;          // not unique
+        @Column() phone: string;          // nullable, no index
+        @Column() role: string;           // no index — every dashboard scans
+      }
+
+      @Entity('applications')
+      export class Application {
+        @Column() reference_number: string;  // not unique — collisions possible
+        @Column() status: string;            // no index — status filters scan
+      }
+    rationale: >
+      Email not unique — duplicate accounts allowed. Reference number
+      can collide. Status / role unindexed — every dashboard does a
+      sequential scan. No NOT NULL on email despite being a required
+      field per PRD.
+
+  - criterion: constraint_correctness
+    correct_score: 0.95
+    excerpt: |
+      @Entity('users')
+      @Index('idx_users_role', ['role'])
+      export class User {
+        @Column({ unique: true, nullable: false }) email: string;
+        @Column({ nullable: false }) phone: string;
+        @Column({ type: 'enum', enum: UserRole, default: UserRole.WORKER })
+        role: UserRole;
+      }
+
+      @Entity('applications')
+      @Index('idx_applications_status', ['status'])
+      @Index('idx_applications_user_status', ['user_id', 'status'])
+      @Unique('uq_applications_reference_number', ['reference_number'])
+      export class Application {
+        @Column({ nullable: false }) reference_number: string;
+        @Column({ type: 'enum', enum: ApplicationStatus }) status: ApplicationStatus;
+      }
+    rationale: >
+      Email + reference_number unique. NOT NULL on required fields.
+      Indexes on status (single-column) and (user_id, status)
+      composite for "my applications by status" — the worker home
+      dashboard's most common query.
+
+  - criterion: migration_safety
+    correct_score: 0.2
+    excerpt: |
+      // ormconfig.ts — production
+      synchronize: true,   // production auto-sync — data-corruption risk
+
+      // 003-add-fields.ts
+      await q.query(`ALTER TABLE applications ADD COLUMN priority varchar NOT NULL`);
+      await q.query(`DROP COLUMN applications.legacy_code`);
+      // Migration doesn't run successfully on populated DB:
+      //   - NOT NULL has no default, no backfill
+      //   - Legacy column dropped without grace period
+    rationale: >
+      synchronize:true in production = silent schema drift / data loss.
+      Migration would fail on any non-empty applications table. Legacy
+      column dropped in same step that adds new — clients still using
+      legacy_code break immediately on deploy.
+
+  - criterion: migration_safety
+    correct_score: 0.95
+    excerpt: |
+      // ormconfig.ts — production
+      synchronize: false,
+      migrationsRun: true,
+
+      // 003-add-priority-additive.ts
+      await q.query(`ALTER TABLE applications ADD COLUMN priority varchar`);  // nullable
+      await q.query(`UPDATE applications SET priority = 'normal' WHERE priority IS NULL`);
+      await q.query(`ALTER TABLE applications ALTER COLUMN priority SET NOT NULL`);
+      await q.query(`ALTER TABLE applications ALTER COLUMN priority SET DEFAULT 'normal'`);
+
+      // 004-deprecate-legacy-code.ts (run weeks later, after clients update)
+      await q.query(`ALTER TABLE applications DROP COLUMN legacy_code`);
+    rationale: >
+      Forward-safe NOT NULL addition (additive → backfill → enforce).
+      synchronize:false in production. Legacy column dropped in a
+      separate later migration after clients have updated. Reversible
+      if needed.

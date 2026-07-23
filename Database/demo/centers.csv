@@ -1,0 +1,41 @@
+center_id,center_name,program,division,district,upazila,union,po,to,shift,score,avg_attendance,days_since_visit,visit_count,students,atRisk
+3030000000,400 Nabajatak Prathomik Kendro,Catchup,Dhaka,Narayanganj,Ward 1,Union A,Salma Akter,TO 1,Day,3.7,76,34,7,100,1
+3030000001,401 Anandadhara Shishu Kendro,Catchup,Chattogram,Cumilla,Ward 1,Union B,Salma Akter,TO 2,Day,1.45,75,13,7,100,0
+3030000002,402 Kishalay Prathomik Kendro,Catchup,Rajshahi,Bogura,Ward 8,Union B,Habibur Rahman,TO 2,Day,3.81,75,32,6,100,0
+3030000003,403 Anandadhara Shikkha Kendro,Catchup,Khulna,Jashore,Ward 6,Union B,Rafiq Islam,TO 2,Morning,3.84,76,11,12,100,0
+3030000004,404 Nabajatak Shishu Kendro,Catchup,Barishal,Bhola,Ward 2,Union C,Shirin Sultana,TO 2,Morning,2.49,74,7,6,100,1
+3030000005,405 Shapla Shishu Kendro,ABAL,Sylhet,Moulvibazar,Ward 2,Union C,Salma Akter,TO 1,Morning,2.49,76,15,11,100,0
+3030000006,406 Nabajatak Prathomik Kendro,Catchup,Rangpur,Kurigram,Ward 3,Union B,Ruma Begum,TO 2,Morning,3.04,74,13,9,100,0
+3030000007,407 Anandadhara Prathomik Kendro,Catchup,Mymensingh,Jamalpur,Ward 2,Union C,Jahangir Alam,TO 1,Day,3,74,13,8,100,1
+3030000008,408 Shapla Prathomik Kendro,Catchup,Dhaka,Gazipur,Ward 7,Union A,Jahangir Alam,TO 2,Morning,3.49,76,4,8,100,0
+3030000009,409 Anandadhara Shishu Kendro,Catchup,Chattogram,Cumilla,Ward 6,Union C,Habibur Rahman,TO 2,Day,3.36,74,60,11,100,0
+3030000010,410 Shapla Shishu Kendro,Catchup,Rajshahi,Bogura,Ward 5,Union A,Jahangir Alam,TO 1,Morning,1.93,75,36,8,100,1
+3030000011,411 Anandadhara Prathomik Kendro,Innovation,Khulna,Satkhira,Ward 8,Union C,Jahangir Alam,TO 1,Day,3.72,76,21,12,100,0
+3030000012,412 Shapla Shikkha Kendro,Catchup,Barishal,Barishal,Ward 9,Union C,Ruma Begum,TO 1,Day,3.71,74,23,9,100,0
+3030000013,413 Projapoti Shishu Kendro,ABAL,Sylhet,Moulvibazar,Ward 1,Union B,Karim Uddin,TO 3,Day,2.2,75,9,11,100,0
+3030000014,414 Shapla Shikkha Kendro,Catchup,Rangpur,Dinajpur,Ward 6,Union A,Nasrin Jahan,TO 4,Day,3.63,74,62,7,100,1
+3030000015,415 Anandadhara Learning Centre,ABAL,Mymensingh,Netrokona,Ward 6,Union C,Shirin Sultana,TO 3,Morning,2.49,74,11,4,100,0
+3030000016,416 Shapla Learning Centre,Catchup,Dhaka,Narayanganj,Ward 4,Union C,Jahangir Alam,TO 2,Morning,3.76,76,44,5,100,0
+3030000017,417 Surjomukhi Shikkha Kendro,ABAL,Chattogram,Cumilla,Ward 4,Union B,Karim Uddin,TO 3,Morning,3.54,76,13,12,100,0
+3030000018,418 Shapla Shikkha Kendro,Catchup,Rajshahi,Bogura,Ward 9,Union A,Habibur Rahman,TO 2,Morning,3.55,74,1,4,100,0
+3030000019,419 Alokito Shishu Prathomik Kendro,Catchup,Khulna,Satkhira,Ward 2,Union A,Nasrin Jahan,TO 2,Morning,3.78,76,19,3,100,0
+3030000020,420 Shapla Prathomik Kendro,ABAL,Barishal,Patuakhali,Ward 1,Union A,Shirin Sultana,TO 4,Day,3.44,75,29,2,100,0
+3030000021,421 Shapla Shikkha Kendro,ABAL,Sylhet,Sylhet,Ward 1,Union A,Shirin Sultana,TO 1,Morning,3.49,76,13,12,100,0
+3030000022,422 Nabajatak Prathomik Kendro,Catchup,Rangpur,Dinajpur,Ward 5,Union A,Habibur Rahman,TO 2,Morning,1.2,76,21,10,100,0
+3030000023,423 Anandadhara Learning Centre,Catchup,Mymensingh,Mymensingh,Ward 3,Union B,Salma Akter,TO 2,Morning,2.7,74,39,4,100,0
+3030000024,424 Alokito Shishu Shishu Kendro,ABAL,Dhaka,Dhaka,Ward 3,Union B,Rafiq Islam,TO 3,Morning,2.81,74,29,9,100,0
+3030000025,425 Shapla Prathomik Kendro,ABAL,Chattogram,Cumilla,Ward 9,Union B,Nasrin Jahan,TO 2,Morning,3.17,74,45,6,100,1
+3030000026,426 Shapla Shishu Kendro,Catchup,Rajshahi,Rajshahi,Ward 5,Union A,Habibur Rahman,TO 4,Day,3.21,74,5,5,100,2
+3030000027,427 Alokito Shishu Shishu Kendro,Catchup,Khulna,Satkhira,Ward 5,Union B,Karim Uddin,TO 1,Day,3.18,77,40,4,100,1
+3030000028,428 Shapla Prathomik Kendro,Catchup,Barishal,Patuakhali,Ward 5,Union B,Habibur Rahman,TO 1,Morning,1.64,74,18,11,100,1
+3030000029,429 Shapla Shikkha Kendro,Catchup,Sylhet,Sylhet,Ward 2,Union C,Rafiq Islam,TO 1,Morning,3.35,78,25,10,100,0
+3030000030,430 Alokito Shishu Shishu Kendro,Catchup,Rangpur,Kurigram,Ward 8,Union A,Habibur Rahman,TO 2,Morning,1.39,74,64,5,100,1
+3030000031,431 Anandadhara Prathomik Kendro,ABAL,Mymensingh,Jamalpur,Ward 1,Union A,Jahangir Alam,TO 4,Day,3.61,74,55,12,100,0
+3030000032,432 Shapla Shikkha Kendro,Catchup,Dhaka,Narayanganj,Ward 2,Union B,Shirin Sultana,TO 3,Day,1.09,75,0,5,100,0
+3030000033,433 Nabajatak Learning Centre,ABAL,Chattogram,Chattogram,Ward 2,Union B,Nasrin Jahan,TO 1,Day,2.98,74,4,8,100,0
+3030000034,434 Projapoti Learning Centre,Catchup,Rajshahi,Bogura,Ward 9,Union C,Jahangir Alam,TO 2,Day,1.43,74,59,8,100,1
+3030000035,435 Alokito Shishu Shishu Kendro,Catchup,Khulna,Jashore,Ward 9,Union A,Ruma Begum,TO 3,Morning,3.01,74,38,7,100,0
+3030000036,436 Alokito Shishu Learning Centre,ABAL,Barishal,Bhola,Ward 5,Union B,Jahangir Alam,TO 2,Day,2.63,75,26,3,100,0
+3030000037,437 Anandadhara Learning Centre,ABAL,Sylhet,Habiganj,Ward 6,Union B,Karim Uddin,TO 2,Day,3.51,73,44,9,100,1
+3030000038,438 Alokito Shishu Shikkha Kendro,ABAL,Rangpur,Kurigram,Ward 9,Union C,Habibur Rahman,TO 3,Morning,2.83,74,37,10,100,1
+3030000039,439 Alokito Shishu Prathomik Kendro,ABAL,Mymensingh,Mymensingh,Ward 8,Union A,Karim Uddin,TO 1,Morning,2.34,76,24,3,100,0

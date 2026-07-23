@@ -1,0 +1,45 @@
+version: 1
+agent: validation-writer
+total_learnings: 3
+learnings:
+  - id: LRN-001
+    source: dto_mismatch-001
+    missed: >
+      Did not verify mismatch between frontend-sent field names and backend DTO field names.
+      400 "property should not exist" error occurs on form submission.
+    rule: >
+      In Tier 3/7 (Validation) stories, after form submission happy path,
+      must assert "server returns 2xx". On 400 response, check if error message
+      contains the rejected field name. In forbidNonWhitelisted environments,
+      add verification step that all fields in frontend payload are defined in server DTO.
+    date: "2026-03-19"
+
+  - id: LRN-002
+    source: form_input-001
+    missed: >
+      Did not cover the case where invalid data is sent to server from forms
+      with no client-side validation (email format, empty fields).
+    rule: >
+      In Tier 3 stories for all pages with forms, verify:
+      1) Inline error message displayed on empty field submission (client validation, not server error)
+      2) Field-level error displayed on format errors (email without @, letters in phone number, etc.)
+      3) On server error, verify specific error message is displayed rather than
+         generic message like "An error occurred".
+    date: "2026-03-19"
+
+  - id: LRN-003
+    source: rate_limiting-001
+    missed: >
+      Did not verify the case where login form has no blocking/limiting on repeated failures.
+      Fully exposed to brute force attacks.
+    rule: >
+      In Tier 7 stories for login/password reset pages, verify
+      "after N consecutive failures with wrong password, further attempts are blocked
+      or CAPTCHA is displayed". FAIL if unlimited attempts are possible without blocking.
+# Learnings are added by bug-feedback-loop when a bug is traced to this agent
+# Schema per learning:
+#   - id: LRN-001
+#     source: BUG-003
+#     missed: "what this agent should have caught"
+#     rule: "new rule to follow in future generations"
+#     date: "YYYY-MM-DD"

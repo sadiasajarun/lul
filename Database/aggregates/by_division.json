@@ -1,0 +1,18 @@
+{
+  "generated_by": "scripts/aggregate.mjs",
+  "source": "summary_dataset.json:divisions + teacher_profiles",
+  "students": {
+    "Dhaka": 108330,
+    "Chattogram": 60788,
+    "Mymensingh": 81503,
+    "Rangpur": 8,
+    "Sylhet": 3
+  },
+  "teachers": {
+    "Rangpur": 1,
+    "Sylhet": 709,
+    "Chattogram": 953,
+    "Dhaka": 1092,
+    "Mymensingh": 642
+  }
+}

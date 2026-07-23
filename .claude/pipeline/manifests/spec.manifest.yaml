@@ -1,0 +1,50 @@
+name: spec
+display_name: "Specification (Ouroboros)"
+phase_number: 0
+
+prerequisites:
+  phases: []
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/spec.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  existing_seed:
+    - glob: "{TARGET_DIR}/.claude-project/status/{project}/seed-*.yaml"
+      optional: true
+      purpose: "Check if seed already exists"
+  prd_chunks:
+    - glob: "{TARGET_DIR}/.claude-project/context/PRD_chunk_*.md"
+      optional: true
+      purpose: "PRD content — bash split 400-line chunks, orchestrator pre-injects in order (A-02 enforcement)"
+
+skills:
+  primary: ".claude/spec/commands/ouroboros/interview.md"
+  secondary:
+    - ".claude/spec/commands/ouroboros/seed.md"
+  agents:
+    - ".claude/spec/agents/ouroboros-interviewer.md"
+    - ".claude/spec/agents/ouroboros-seed-architect.md"
+
+tools:
+  allow: [Read, Write, Bash, Grep, Glob, AskUserQuestion]
+  deny: [WebSearch, WebFetch, Edit]
+  mcp: [sequential-thinking]
+
+gate:
+  pass_threshold: 0.8
+  evaluation_criteria:
+    - name: goal_defined
+      description: "Clear, measurable goal exists"
+    - name: constraints_listed
+      description: "Constraints are explicit"
+    - name: acceptance_criteria
+      description: "ACs are specific and testable"
+    - name: ontology_stable
+      description: "Key terms are defined"
+
+ralph:
+  - workflow: spec
+    trigger: "ambiguity > 0.2"

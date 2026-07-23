@@ -1,0 +1,275 @@
+name: prd-2
+description: |
+  PRD generation + conversion to project docs + user story YAML generation.
+  v2 blueprint with strict artifact contracts.
+version: 2
+manifest: prd
+
+nodes:
+  # ============================================================================
+  # TIER 1: PRE-FLIGHT (deterministic)
+  # ============================================================================
+
+  - id: split-prd-chunks
+    type: deterministic
+    description: "Reuse or create PRD chunks"
+    command: |
+      CHUNK_DIR="{TARGET_DIR}/{PROJECT_DIR}/context"
+      mkdir -p "$CHUNK_DIR"
+      EXISTING=$(ls "$CHUNK_DIR"/PRD_chunk_*.md 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$EXISTING" -gt 0 ]; then
+        echo "Reusing $EXISTING existing chunks"
+        exit 0
+      fi
+      PRD_FILE=""
+      for c in \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.md \
+        "{TARGET_DIR}/{PROJECT_DIR}/prd"/*.pdf \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PRD.md"; do
+        [ -f "$c" ] && PRD_FILE="$c" && break
+      done
+      if [ -z "$PRD_FILE" ]; then
+        echo "No existing PRD — will be generated fresh by agent"
+        exit 0
+      fi
+      TMP="$CHUNK_DIR/prd_raw.txt"
+      if [[ "$PRD_FILE" == *.pdf ]]; then
+        if command -v pdftotext &>/dev/null; then
+          pdftotext -layout "$PRD_FILE" "$TMP"
+        else
+          echo "[PDF_FALLBACK] ORIGINAL_PATH=$PRD_FILE" > "$CHUNK_DIR/PRD_chunk_00.md"
+          exit 0
+        fi
+      else
+        cp "$PRD_FILE" "$TMP"
+      fi
+      split -l 400 -d --additional-suffix=.md "$TMP" "$CHUNK_DIR/PRD_chunk_"
+      rm -f "$TMP"
+      echo "Split complete"
+    on_failure: ignore
+
+  - id: seed-check
+    type: deterministic
+    description: "Verify spec phase produced a seed file"
+    command: |
+      STATUS_DIR="{TARGET_DIR}/{STATUS_DIR}"
+      if ls "$STATUS_DIR"/seed*.yaml >/dev/null 2>&1; then
+        echo "Seed file(s) found"
+        exit 0
+      fi
+      echo "FAIL: No seed*.yaml in $STATUS_DIR — run spec phase first"
+      exit 1
+    on_failure: abort
+    abort_message: "Phase 0 (spec) must complete before prd phase"
+
+  # ============================================================================
+  # TIER 2: AGENTIC NODES WITH ARTIFACT CONTRACTS
+  # ============================================================================
+
+  - id: generate-prd
+    type: agentic
+    description: "Generate PROJECT_KNOWLEDGE.md from PRD chunks + seed"
+    required_output_file: "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+    verification_pattern: "^#\\s+PROJECT[_\\s]KNOWLEDGE|^#\\s+Project Knowledge"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/seed*.yaml"
+        - ".claude/{BACKEND}/guides/workflow-convert-prd-to-knowledge.md"
+        - "{TARGET_DIR}/{STATUS_DIR}/PIPELINE_STATUS.md"
+        - ".claude/rules/stacks/*.rules.md"
+        - "{TARGET_DIR}/CLAUDE.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Generate the PROJECT_KNOWLEDGE.md master document for project {project}.
+
+      SOURCES (pre-loaded as context):
+      - PRD_chunk_*.md — read in order; together they form the complete PRD
+      - seed*.yaml — constraints and acceptance criteria from spec phase
+      - workflow-convert-prd-to-knowledge.md — conversion guide for {BACKEND}
+
+      OUTPUT: {PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md
+
+      REQUIRED SECTIONS (must appear as markdown headers):
+      - # PROJECT_KNOWLEDGE
+      - ## Overview
+      - ## User Roles
+      - ## Core Features
+      - ## Functional Requirements
+      - ## Non-Functional Requirements
+      - ## Ontology / Glossary
+
+      TECH STACK SOURCE OF TRUTH (do NOT invent the stack):
+      - The tech stack is declared upstream, not chosen here. Derive every framework /
+        ORM / state-lib / database / data-fetching tool in PROJECT_KNOWLEDGE.md from the
+        declared source, in priority order:
+          1. PIPELINE_STATUS.md -> tech_stack: block (most authoritative)
+          2. the stack rules implied by it (.claude/{BACKEND}/, .claude/{FRONTEND}/,
+             .claude/rules/stacks/*.rules.md) -> these declare the ORM, data-layer, and
+             any prohibited libraries
+          3. project-root CLAUDE.md -> "Tech Stack" table
+      - If a PRD_chunk specifies a tool that CONTRADICTS the declared stack, the declared
+        stack WINS. Write the declared stack and note the conflict; never copy a
+        contradicting tool into PROJECT_KNOWLEDGE.md.
+      - Do NOT hardcode any specific library name — read whatever the declared source says
+        (it differs per project).
+      - Final self-check: confirm every technology in PROJECT_KNOWLEDGE.md traces to the
+        declared source; fix any that does not before finishing.
+
+      If chunk_00 contains [PDF_FALLBACK], use Read with pages parameter on ORIGINAL_PATH.
+      Do NOT create code, only the knowledge document.
+
+  - id: generate-api-doc
+    type: agentic
+    description: "Generate PROJECT_API.md listing every endpoint"
+    required_output_file: "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+    verification_pattern: "^(\\|\\s*Method\\s*\\||#+\\s*Endpoints|##\\s*[A-Z])"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/context/PRD_chunk_*.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Generate PROJECT_API.md — the canonical API contract for project {project}.
+
+      READ FIRST: PROJECT_KNOWLEDGE.md (produced in previous node)
+
+      OUTPUT: {PROJECT_DIR}/docs/PROJECT_API.md
+
+      STRUCTURE:
+      - Group endpoints by resource (Auth, Users, Projects, ...)
+      - For EACH endpoint include:
+        - HTTP method + path
+        - Short description
+        - Auth requirement (Public / User / Admin)
+        - Request body schema
+        - Success response schema + status code
+        - Error responses (400 / 401 / 403 / 404)
+
+      Every endpoint must be fully specified — this document drives Phase 5 (backend) TDD.
+
+  - id: generate-database-doc
+    type: agentic
+    description: "Generate PROJECT_DATABASE.md schema spec"
+    required_output_file: "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+    verification_pattern: "^(##\\s*Entities|#+\\s*Schema|##\\s*[A-Z])"
+    context:
+      additional_read:
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+    tool_profile:
+      allow: [Read, Write, Edit, Bash, Grep, Glob]
+      deny: [WebSearch, WebFetch]
+    prompt: |
+      Generate PROJECT_DATABASE.md — the canonical schema spec for project {project}.
+
+      READ FIRST:
+      - PROJECT_KNOWLEDGE.md (features, roles)
+      - PROJECT_API.md (request/response shapes)
+
+      OUTPUT: {PROJECT_DIR}/docs/PROJECT_DATABASE.md
+
+      STRUCTURE:
+      - ## Entities (one section per entity)
+        For each: fields (name, type, constraints), relationships, indexes
+      - ## Enums (enum definitions used in entities)
+      - ## Relationships (diagram or table of FK links)
+
+      CONSTRAINTS:
+      - UUID primary keys for all entities
+      - Soft delete (deleted_at) support by default
+      - Every field documented — this drives Phase 4 (database) schema generation
+
+  # User story authorship happens in Phase 3.5 (user-stories-2.yaml) because it
+  # requires the HTML pages generated in Phase 3 (design). PRD phase only
+  # produces the spec docs. See blueprints/user-stories-2.yaml.
+
+  # ============================================================================
+  # TIER 2.5: NORMALIZE — deterministic placeholder substitution (model-agnostic)
+  # v44a evidence: minimax intermittently left literal `{PROJECT_NAME}`,
+  # `YYYY-MM-DD`, `<ISO>`, `[TODO]`, or `<PLACEHOLDER>` tokens in the
+  # generated docs, tripping evidence-check's grep. Same model produced
+  # clean docs in v42/v43 — pure model variance. Substituting these
+  # tokens deterministically here is bulletproof regardless of which
+  # model authored what (kimi/minimax/deepseek/claude). Idempotent.
+  # ============================================================================
+
+  - id: normalize-docs
+    type: deterministic
+    description: "Substitute leftover template placeholders ({PROJECT_NAME}, YYYY-MM-DD, <ISO>, [TODO], <PLACEHOLDER>) in PRD docs — model-agnostic post-processor"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/normalize-docs.js {project} \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+    on_failure: ignore
+
+  # ============================================================================
+  # TIER 3: EVIDENCE CHECK (deterministic)
+  # ============================================================================
+
+  - id: evidence-check
+    type: deterministic
+    description: "Verify prd phase produced all canonical docs with meaningful content"
+    command: |
+      DOCS="{TARGET_DIR}/{PROJECT_DIR}/docs"
+      STORIES="{TARGET_DIR}/{PROJECT_DIR}/user_stories"
+      FAIL=0
+
+      # Files exist
+      [ -f "$DOCS/PROJECT_KNOWLEDGE.md" ] || { echo "FAIL: PROJECT_KNOWLEDGE.md missing"; FAIL=1; }
+      [ -f "$DOCS/PROJECT_API.md" ] || { echo "FAIL: PROJECT_API.md missing"; FAIL=1; }
+      [ -f "$DOCS/PROJECT_DATABASE.md" ] || { echo "FAIL: PROJECT_DATABASE.md missing"; FAIL=1; }
+      # user_stories/ is authored in Phase 3.5, not here.
+
+      # Content depth thresholds (L1 fix: prevent shallow docs from passing)
+      if [ -f "$DOCS/PROJECT_KNOWLEDGE.md" ]; then
+        LINES=$(wc -l < "$DOCS/PROJECT_KNOWLEDGE.md" | tr -d ' ')
+        [ "$LINES" -lt 50 ] && { echo "FAIL: PROJECT_KNOWLEDGE.md only $LINES lines (need >= 50)"; FAIL=1; }
+      fi
+
+      if [ -f "$DOCS/PROJECT_API.md" ]; then
+        VERBS=$(grep -cEi '\b(GET|POST|PUT|PATCH|DELETE)\b' "$DOCS/PROJECT_API.md" || echo 0)
+        VERBS=$(echo "$VERBS" | tr -d '[:space:]')
+        [ "${VERBS:-0}" -lt 5 ] && { echo "FAIL: PROJECT_API.md has only $VERBS HTTP verb mentions (need >= 5)"; FAIL=1; }
+      fi
+
+      if [ -f "$DOCS/PROJECT_DATABASE.md" ]; then
+        ENTITIES=$(grep -cE '^##\s+[A-Z][a-zA-Z]+\s*(Entity|Table)?$|^(Entity|Table):\s+[A-Z]' "$DOCS/PROJECT_DATABASE.md" || echo 0)
+        ENTITIES=$(echo "$ENTITIES" | tr -d '[:space:]')
+        [ "${ENTITIES:-0}" -lt 3 ] && { echo "FAIL: PROJECT_DATABASE.md has only $ENTITIES entities (need >= 3)"; FAIL=1; }
+      fi
+
+      # No template placeholders left over
+      for doc in PROJECT_KNOWLEDGE.md PROJECT_API.md PROJECT_DATABASE.md; do
+        if [ -f "$DOCS/$doc" ] && grep -qE '\{PROJECT_NAME\}|YYYY-MM-DD|<ISO>|\[TODO\]|<PLACEHOLDER>' "$DOCS/$doc"; then
+          echo "FAIL: $doc contains template placeholders"
+          FAIL=1
+        fi
+      done
+
+      [ "$FAIL" -eq 1 ] && exit 1
+      echo "PASS: prd docs (knowledge=$LINES lines, api=$VERBS verbs, db=$ENTITIES entities)"
+    on_failure: route_to_agent
+    route_to_agent_attempts: 2
+    fix_read_files:
+      - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+      - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_API.md"
+      - "{TARGET_DIR}/{PROJECT_DIR}/docs/PROJECT_DATABASE.md"
+    fix_context: |
+      The PRD documents failed content-depth checks. You need to EXPAND, not shorten:
+      - PROJECT_KNOWLEDGE.md must be >= 50 lines with Overview/Roles/Features/Requirements sections
+      - PROJECT_API.md must document >= 5 endpoints using HTTP verbs (GET/POST/PUT/PATCH/DELETE)
+      - PROJECT_DATABASE.md must describe >= 3 entities with ## headings
+      - No template placeholders like {PROJECT_NAME}, YYYY-MM-DD, <ISO>, [TODO]
+
+      Read the existing docs above and the PRD chunks in {PROJECT_DIR}/context/ to
+      fill in missing depth. Do NOT create new features — only document what the PRD specifies.
+
+tool_profile:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]

@@ -1,0 +1,257 @@
+#!/usr/bin/env node
+// scaffold-auth-bootstrap.js — v122. Make the SPA hydrate auth state from the
+// httpOnly session cookie on load, and reconcile guard role-comparisons to the
+// backend's NUMERIC role representation.
+//
+// v121 live evidence (RCA #5b): after the route-prefix fix, `goto /admin`
+// REDIRECTED to / making ZERO /api calls. grep found no /auth/me|getProfile|
+// checkAuth anywhere — the app never validates the cookie on load, so the redux
+// `auth` slice stays { isAuthenticated:false, isLoading:true→false } and AuthGuard
+// bounces EVERY protected route. The login flow works (POST /auth/login sets the
+// cookie) but nothing reads it back. v120 (85.6%) had a bootstrap; v121's fresh
+// convert dropped it.
+//
+// Two coupled defects, both fixed here:
+//   1. NO BOOTSTRAP → generate AuthBootstrap (GET /auth/me with credentials:'include'
+//      on mount → dispatch the slice's authenticate/unauthenticate action) + wire it
+//      inside the redux Provider.
+//   2. ROLE REPRESENTATION SPLIT → /auth/me returns role as a NUMBER (operator=10,
+//      worker=0) and the slice's AuthUser.role is numeric, but AdminGuard/CompanyGuard
+//      compare against STRING names (['operator','super_admin']) → includes(10) is
+//      false → redirect even when authenticated. Normalize guard role-name literals to
+//      their canonical numbers so every guard speaks the backend's representation.
+//
+// Detects the slice's action names + payload shape (robust to LLM variance).
+// Idempotent: AuthBootstrap carries a marker; guard rewrites skip already-numeric.
+'use strict';
+
+var fs = require('fs');
+var path = require('path');
+
+function parseArgs(argv) {
+  var out = {};
+  for (var i = 2; i < argv.length; i++) {
+    var a = argv[i];
+    if (a === '--target') out.target = argv[++i];
+    else if (a === '--dry-run') out.dryRun = true;
+    else if (a === '--verbose' || a === '-v') out.verbose = true;
+  }
+  if (!out.target) { console.error('Usage: scaffold-auth-bootstrap --target FRONTEND_DIR'); process.exit(1); }
+  return out;
+}
+
+// Canonical FSP role name → numeric (PRD discriminator). Legacy aliases mapped to
+// their closest privilege tier so older convert output still normalizes.
+var NAME_TO_NUM = {
+  foreign_worker: 0, company_staff: 1, company_lead: 2, operator: 10, super_admin: 99,
+  user: 0, manager: 10, company_manager: 2, admin: 99,
+};
+
+function walk(dir, test, out) {
+  out = out || [];
+  if (!fs.existsSync(dir)) return out;
+  fs.readdirSync(dir, { withFileTypes: true }).forEach(function (e) {
+    if (e.name === 'node_modules' || e.name[0] === '.') return;
+    var p = path.join(dir, e.name);
+    if (e.isDirectory()) walk(p, test, out);
+    else if (e.isFile() && test(e.name, p)) out.push(p);
+  });
+  return out;
+}
+
+// Find the auth slice: a redux slice file that owns `isAuthenticated`.
+function findAuthSlice(target) {
+  var feats = path.join(target, 'app/redux/features');
+  var cands = walk(feats, function (n) { return /slice\.ts$/i.test(n); });
+  for (var i = 0; i < cands.length; i++) {
+    var src = fs.readFileSync(cands[i], 'utf-8');
+    if (/isAuthenticated/.test(src) && /createSlice/.test(src)) return { file: cands[i], src: src };
+  }
+  return null;
+}
+
+// From the slice source, detect:
+//   authAction  — the reducer that sets isAuthenticated = true (+ payload shape)
+//   unauthAction— the reducer that sets isAuthenticated = false
+function detectActions(src) {
+  var exported = {};
+  var ex = src.match(/export\s+const\s+\{([^}]+)\}\s*=\s*\w+\.actions/);
+  if (ex) ex[1].split(',').forEach(function (n) { var t = n.trim(); if (t) exported[t] = true; });
+
+  var auth = null, unauth = null;
+  // reducer bodies: name(state, action...) { ... }  /  name(state) { ... }
+  var re = /(\w+)\s*\(\s*state[^)]*\)\s*\{([\s\S]*?)\n\s*\}/g, m;
+  while ((m = re.exec(src))) {
+    var name = m[1], body = m[2];
+    if (!exported[name]) continue;
+    if (/isAuthenticated\s*=\s*true/.test(body) && !auth) {
+      auth = { name: name, hasUser: /action\.payload\.user/.test(body), hasToken: /action\.payload\.token/.test(body) };
+    } else if (/isAuthenticated\s*=\s*false/.test(body) && !unauth) {
+      unauth = { name: name };
+    }
+  }
+  return { auth: auth, unauth: unauth };
+}
+
+function importPathFor(target, file) {
+  // app/redux/features/authSlice.ts → ~/redux/features/authSlice
+  var rel = path.relative(path.join(target, 'app'), file).replace(/\\/g, '/').replace(/\.tsx?$/, '');
+  return '~/' + rel;
+}
+
+function buildBootstrap(slicePath, actions) {
+  var authName = actions.auth.name, unauthName = actions.unauth ? actions.unauth.name : null;
+  var dispatchAuth = actions.auth.hasUser
+    ? (actions.auth.hasToken ? authName + "({ user, token: '' })" : authName + '({ user })')
+    : authName + '(user)';
+  var dispatchUnauth = unauthName ? unauthName + '()' : null;
+  var imports = unauthName ? '{ ' + authName + ', ' + unauthName + ' }' : '{ ' + authName + ' }';
+  var lines = [
+    '// Generated by scaffold-auth-bootstrap — DO NOT EDIT BY HAND. Re-run to refresh.',
+    '/**',
+    ' * AuthBootstrap — hydrates the redux auth slice from the httpOnly session',
+    ' * cookie on app load. Without this the slice stays unauthenticated and every',
+    ' * protected route redirects (RCA #5b). Runs ONCE on the client (the cookie is',
+    ' * only available in the browser); during the in-flight check the slice keeps',
+    " * isLoading=true so guards render their loading state instead of redirecting.",
+    ' */',
+    "import { useEffect } from 'react';",
+    "import { useAppDispatch } from '~/hooks/useAppDispatch';",
+    'import ' + imports + " from '" + slicePath + "';",
+    '',
+    "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';",
+    '',
+    '// Backend role is NUMERIC (operator=10, foreign_worker=0). Keep it numeric so it',
+    '// matches the slice type + the (normalized) guards.',
+    'interface MeResponse {',
+    '  id: string; email: string; name?: string; role: number;',
+    '  companyId?: string | null; requirePasswordChange?: boolean;',
+    '}',
+    '',
+    'export function AuthBootstrap({ children }: { children: React.ReactNode }) {',
+    '  const dispatch = useAppDispatch();',
+    '  useEffect(() => {',
+    '    let active = true;',
+    '    (async () => {',
+    '      try {',
+    "        const res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });",
+    "        if (!res.ok) throw new Error('unauthenticated');",
+    '        const body = await res.json();',
+    '        const u: MeResponse = body?.data ?? body;',
+    "        if (!u || !u.id) throw new Error('no user');",
+    '        if (!active) return;',
+    '        const user = {',
+    '          id: u.id,',
+    '          email: u.email,',
+    "          name: u.name ?? '',",
+    '          role: Number(u.role),',
+    '          companyId: u.companyId ?? null,',
+    '          mustChangePassword: u.requirePasswordChange ?? false,',
+    '        };',
+    '        dispatch(' + dispatchAuth + ');',
+    '      } catch {',
+    '        if (active) ' + (dispatchUnauth ? 'dispatch(' + dispatchUnauth + ')' : '{ /* no unauth action */ }') + ';',
+    '      }',
+    '    })();',
+    '    return () => { active = false; };',
+    '  }, [dispatch]);',
+    '  return <>{children}</>;',
+    '}',
+    '',
+  ];
+  return lines.join('\n');
+}
+
+function wireIntoProviders(target, dryRun) {
+  // Wrap children with <AuthBootstrap> inside the redux Provider.
+  var prov = path.join(target, 'app/hooks/providers/providers.tsx');
+  if (!fs.existsSync(prov)) {
+    // fallback: search for the file rendering <Provider store=...>
+    var hits = walk(path.join(target, 'app'), function (n) { return /\.tsx$/.test(n); })
+      .filter(function (f) { return /<Provider\s+store=/.test(fs.readFileSync(f, 'utf-8')); });
+    if (hits.length) prov = hits[0]; else return { wired: false, reason: 'no Provider host' };
+  }
+  var src = fs.readFileSync(prov, 'utf-8');
+  if (/AuthBootstrap/.test(src)) return { wired: false, reason: 'already wired' };
+  // Insert import + wrap {children}.
+  var importLine = "import { AuthBootstrap } from '~/components/auth/AuthBootstrap';\n";
+  var withImport = importLine + src;
+  // Wrap the {children} expression rendered inside <Provider …>{children}</Provider>.
+  var wrapped = withImport.replace(/>\s*\{\s*children\s*\}\s*</, '><AuthBootstrap>{children}</AuthBootstrap><');
+  if (wrapped === withImport) return { wired: false, reason: 'no {children} slot found' };
+  if (!dryRun) fs.writeFileSync(prov, wrapped);
+  return { wired: true, file: prov };
+}
+
+// Fix the role guards two ways:
+//   (a) NUMERIC roles: replace canonical role-NAME string literals with their numbers
+//       so guards compare against the backend/slice numeric representation.
+//   (b) isLoading GATE: a role guard that only checks `user` REDIRECTS during the
+//       auth-bootstrap window (user still null) and never comes back — v121 trace:
+//       AdminGuard rendered 4× with user=null → Navigate('/'), THEN 2× with role 10
+//       (too late). So make each role guard read `isLoading` and render nothing while
+//       auth is still hydrating, deciding only once it resolves.
+function fixGuards(target, dryRun, verbose) {
+  var guards = walk(path.join(target, 'app/components/guards'), function (n) { return /\.tsx$/.test(n); });
+  var changed = 0;
+  guards.forEach(function (f) {
+    var src = fs.readFileSync(f, 'utf-8');
+    var base = path.basename(f);
+    // AuthGuard already handles isLoading; only patch the ROLE guards (which gate on user.role).
+    var isRoleGuard = /Guard/.test(base) && base !== 'AuthGuard.tsx' && base !== 'GuestGuard.tsx';
+    var out = src;
+
+    // (a) role-name → number (skip ambiguous legacy words)
+    Object.keys(NAME_TO_NUM).forEach(function (name) {
+      if (['user', 'manager', 'admin'].indexOf(name) !== -1) return;
+      out = out.replace(new RegExp("(['\"])" + name + "\\1", 'g'), String(NAME_TO_NUM[name]));
+    });
+
+    // (b) isLoading gate for role guards that read `s.auth` and don't already check isLoading
+    if (isRoleGuard && /useAppSelector\(\s*\(s\)\s*=>\s*s\.auth\s*\)/.test(out) && !/isLoading/.test(out)) {
+      // pull isLoading out of the selector
+      out = out.replace(/const\s*\{\s*([^}]*?)\}\s*=\s*useAppSelector\(\s*\(s\)\s*=>\s*s\.auth\s*\)\s*;/,
+        function (m, inner) {
+          var names = inner.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+          if (names.indexOf('isLoading') === -1) names.push('isLoading');
+          return 'const { ' + names.join(', ') + ' } = useAppSelector((s) => s.auth);';
+        });
+      // insert a wait-for-hydration line before the first `if (` in the component body
+      out = out.replace(/(\n(\s*)if\s*\()/, '\n$2// Wait for auth bootstrap to resolve — never redirect mid-hydration (v122).\n$2if (isLoading) return null;\n$2if (');
+    }
+
+    if (out !== src) {
+      if (!dryRun) fs.writeFileSync(f, out);
+      changed++;
+      if (verbose) console.log('  guard fixed: ' + path.relative(target, f) + (isRoleGuard ? ' (roles+isLoading)' : ' (roles)'));
+    }
+  });
+  return changed;
+}
+
+function main() {
+  var args = parseArgs(process.argv);
+  var slice = findAuthSlice(args.target);
+  if (!slice) { console.log('scaffold-auth-bootstrap: no auth slice (isAuthenticated) found — skipping'); return; }
+  var actions = detectActions(slice.src);
+  if (!actions.auth) {
+    console.log('scaffold-auth-bootstrap: could not detect an authenticate action in ' + path.relative(args.target, slice.file) + ' — skipping');
+    return;
+  }
+  var slicePath = importPathFor(args.target, slice.file);
+  if (args.verbose) console.log('  slice: ' + slicePath + ' — auth=' + actions.auth.name + '(' + (actions.auth.hasUser ? (actions.auth.hasToken ? '{user,token}' : '{user}') : 'user') + ') unauth=' + (actions.unauth ? actions.unauth.name : 'NONE'));
+
+  var dst = path.join(args.target, 'app/components/auth/AuthBootstrap.tsx');
+  var content = buildBootstrap(slicePath, actions);
+  var exists = fs.existsSync(dst) && /Generated by scaffold-auth-bootstrap/.test(fs.readFileSync(dst, 'utf-8'));
+  if (!args.dryRun) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, content); }
+  console.log('scaffold-auth-bootstrap: AuthBootstrap.tsx ' + (exists ? 'refreshed' : 'created'));
+
+  var w = wireIntoProviders(args.target, args.dryRun);
+  console.log('scaffold-auth-bootstrap: providers ' + (w.wired ? 'wired AuthBootstrap' : 'NOT wired (' + w.reason + ')'));
+
+  var g = fixGuards(args.target, args.dryRun, args.verbose);
+  console.log('scaffold-auth-bootstrap: fixed ' + g + ' guard file(s) (numeric roles + isLoading gate)');
+}
+
+main();

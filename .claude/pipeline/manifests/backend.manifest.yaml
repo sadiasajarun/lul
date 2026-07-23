@@ -1,0 +1,64 @@
+name: backend
+display_name: "API Implementation + Test Generation"
+phase_number: 5
+
+prerequisites:
+  phases: [database]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/backend.rules.md"
+  - ".claude/rules/stacks/{$BACKEND}.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_API.md"
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_DATABASE.md"
+  phase_docs:
+    - glob: ".claude/{$BACKEND}/guides/*.md"
+      exclude: "workflow-*.md"
+      purpose: "All backend submodule patterns and conventions"
+  current_state:
+    - "{TARGET_DIR}/.claude-project/status/backend/API_IMPLEMENTATION_STATUS.md"
+  code_patterns:
+    - glob: "{TARGET_DIR}/backend/src/modules/*/entities/*.entity.ts"
+      sample: 2
+      purpose: "Existing entity patterns"
+    - glob: "{TARGET_DIR}/backend/src/modules/*/controllers/*.controller.ts"
+      sample: 1
+      optional: true
+      purpose: "Existing controller patterns"
+
+skills:
+  primary: ".claude/{$BACKEND}/skills/api-development/SKILL.md"
+  secondary:
+    - ".claude/{$BACKEND}/guides/workflow-generate-e2e-tests.md"
+  agents:
+    - ".claude/{$BACKEND}/agents/backend-developer.md"
+    - ".claude/{$BACKEND}/agents/auto-error-resolver.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  script: ".claude/gates/backend-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: all_endpoints_exist
+      description: "Every PRD endpoint has a controller route"
+    - name: dtos_match_spec
+      description: "Request/response DTOs match PRD"
+    - name: error_handling
+      description: "404, 400, 401, 403 handled"
+    - name: tests_generated
+      description: "At least one e2e test per endpoint"
+    - name: tests_compile
+      description: "All test files compile without errors"
+
+ralph:
+  - workflow: backend-qa
+    trigger: "endpoints incomplete"
+  - workflow: backend-e2e
+    trigger: "after endpoints done"

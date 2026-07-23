@@ -1,0 +1,558 @@
+name: pre-build-2
+description: |
+  Slim-pipeline pre-flight (replaces init + spec + prd + design + user-stories).
+
+  Two prerequisites at the workspace canonical (`<SOURCE_DIR>/.claude-project/<project>/`):
+    - PRD docs:      docs/PROJECT_KNOWLEDGE.md + PROJECT_API.md + PROJECT_DATABASE.md
+    - HTML pages:    design/html/**/*.html
+    - DESIGN_SYSTEM: design/DESIGN_SYSTEM.md (canonical, no A/B/C suffix)
+    - user_stories:  user_stories/*.yaml + user_stories/_fixtures.yaml
+
+  v53+ slim pipeline rationale (from v50-v52 variance experiment):
+    - v50/v51/v52 ran the same code 3 times. Only v50 reached test-browser.
+    - Variance was concentrated in the upstream creative phases
+      (design-full-generation, prd generation). Downstream phases run
+      consistently when reached.
+    - User decision: freeze the creative output. Iterate only on the
+      deterministic-er phases (database → backend → frontend → integrate
+      → test-api → test-browser → ship).
+    - Manual refresh: rebuild the post-design baseline only when PRD/HTML
+      genuinely change.
+
+  All nodes here are deterministic — no LLM in pre-flight. Idempotent.
+
+version: 2
+manifest: pre-build
+
+nodes:
+
+  # ===========================================================================
+  # TIER 1: SETUP (deterministic) — same as init-2.yaml first two nodes
+  # ===========================================================================
+
+  - id: ensure-target-dir
+    type: deterministic
+    description: "Verify TARGET_DIR exists or create it"
+    command: |
+      T="{TARGET_DIR}"
+      mkdir -p "$T"
+      [ -d "$T" ] || { echo "FAIL: $T missing"; exit 1; }
+      echo "target=$T"
+    on_failure: abort
+    abort_message: "Target directory unwritable"
+
+  - id: bootstrap-claude-submodule
+    type: deterministic
+    description: "Init git repo + bootstrap .claude submodule from SOURCE workspace"
+    command: |
+      T="{TARGET_DIR}"
+      SRC="{SOURCE_DIR}"
+      cd "$T"
+      [ -d .git ] || git init -q
+      if [ ! -d .claude ]; then
+        # Quick copy from source workspace — the upstream submodule init
+        # would re-clone, but for pipeline runs we just want the same SHA.
+        cp -R "$SRC/.claude" "$T/.claude"
+      fi
+      [ -d .claude/blueprints ] || { echo "FAIL: .claude/blueprints missing after bootstrap"; exit 1; }
+      echo "claude_submodule_present=true"
+    on_failure: abort
+    abort_message: "Could not bootstrap .claude submodule"
+
+  # ===========================================================================
+  # TIER 2: PREREQUISITE VERIFICATION (deterministic — fail-fast if canonical
+  # workspace is incomplete; tells the user exactly what to refresh)
+  # ===========================================================================
+
+  - id: verify-prerequisites
+    type: deterministic
+    description: "Fail with a clear remediation message if any canonical prerequisite is missing"
+    command: |
+      SRC="{SOURCE_DIR}/.claude-project/{project}"
+      MISSING=0
+      MISSING_LIST=""
+
+      check_file() {
+        local p="$1"
+        if [ ! -f "$p" ]; then
+          MISSING=$((MISSING+1))
+          MISSING_LIST="$MISSING_LIST  - $p\n"
+        fi
+      }
+
+      check_file "$SRC/docs/PROJECT_KNOWLEDGE.md"
+      check_file "$SRC/docs/PROJECT_API.md"
+      check_file "$SRC/docs/PROJECT_DATABASE.md"
+      check_file "$SRC/design/DESIGN_SYSTEM.md"
+
+      # Design status must be approved
+      if [ ! -f "$SRC/design/DESIGN_STATUS.md" ] || ! grep -q '^approved:[[:space:]]*true' "$SRC/design/DESIGN_STATUS.md"; then
+        MISSING=$((MISSING+1))
+        MISSING_LIST="$MISSING_LIST  - $SRC/design/DESIGN_STATUS.md (must contain 'approved: true')\n"
+      fi
+
+      # HTML pages (recursive, multi-frontend layouts welcome)
+      HTML_COUNT=$(find "$SRC/design/html" -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$HTML_COUNT" -lt 1 ]; then
+        MISSING=$((MISSING+1))
+        MISSING_LIST="$MISSING_LIST  - $SRC/design/html/**/*.html (need at least 1 file)\n"
+      fi
+
+      # user_stories: at least 1 story YAML + the _fixtures.yaml
+      STORY_COUNT=$(find "$SRC/user_stories" -maxdepth 1 -name '*.yaml' ! -name '_*' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$STORY_COUNT" -lt 1 ]; then
+        MISSING=$((MISSING+1))
+        MISSING_LIST="$MISSING_LIST  - $SRC/user_stories/*.yaml (need at least 1 story)\n"
+      fi
+      check_file "$SRC/user_stories/_fixtures.yaml"
+
+      if [ "$MISSING" -gt 0 ]; then
+        printf "FAIL: %d canonical prerequisite(s) missing at %s:\n" "$MISSING" "$SRC"
+        printf "$MISSING_LIST"
+        printf "\nThe slim pipeline requires PRD docs + HTML pages + user_stories\n"
+        printf "to be present at the canonical workspace before any run can start.\n"
+        printf "To rebuild from scratch, switch back to the full pipeline\n"
+        printf "(--run-all) and copy the result here, or restore from a known-\n"
+        printf "good post-design baseline.\n"
+        exit 1
+      fi
+      echo "prerequisites_ok=true html=$HTML_COUNT stories=$STORY_COUNT"
+    on_failure: abort
+    abort_message: "Slim pipeline requires PRD + HTML + user_stories at canonical workspace"
+
+  # ===========================================================================
+  # TIER 3: COPY CANONICAL INTO RUN DIR (deterministic)
+  # The downstream phases (database/backend/frontend/integrate/test-api/
+  # test-browser) all read from {TARGET_DIR}/.claude-project/{project}/,
+  # so we mirror the canonical structure there.
+  # ===========================================================================
+
+  - id: copy-canonical-artifacts
+    type: deterministic
+    description: "Copy canonical PRD + design + user_stories into the run dir"
+    command: |
+      SRC="{SOURCE_DIR}/.claude-project/{project}"
+      DST="{TARGET_DIR}/.claude-project/{project}"
+      mkdir -p "$DST/docs" "$DST/design" "$DST/user_stories" "$DST/status"
+
+      # PRD docs (3 files)
+      for f in PROJECT_KNOWLEDGE.md PROJECT_API.md PROJECT_DATABASE.md; do
+        cp -f "$SRC/docs/$f" "$DST/docs/$f"
+      done
+
+      # Design — copy the whole tree (html/ subdirs included, DESIGN_SYSTEM.md,
+      # DESIGN_STATUS.md, variants, VARIATIONS_INDEX.md)
+      cp -RfH "$SRC/design/." "$DST/design/"
+
+      # user_stories — all *.yaml including _fixtures.yaml
+      cp -RfH "$SRC/user_stories/." "$DST/user_stories/"
+
+      echo "copied:"
+      echo "  prd_docs=3"
+      echo "  html_files=$(find $DST/design/html -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
+      echo "  user_stories=$(find $DST/user_stories -name '*.yaml' 2>/dev/null | wc -l | tr -d ' ')"
+    on_failure: abort
+    abort_message: "Could not copy canonical artifacts into run dir"
+
+  # ===========================================================================
+  # TIER 4: SCAFFOLD backend/ + frontend/ TS PROJECTS (deterministic)
+  # Identical to init-2.yaml's scaffold-backend-ts + scaffold-frontend-ts.
+  # These nodes write package.json + tsconfig.json + .env + npm install per
+  # frontend dir. Idempotent: package.json is always overwritten from
+  # canonical templates so submodule updates propagate.
+  # ===========================================================================
+
+  - id: scaffold-backend-ts
+    type: deterministic
+    description: "Write canonical backend package.json + .env + npm install (mirrors init-2.yaml/scaffold-backend-ts)"
+    command: |
+      set -e
+      T="{TARGET_DIR}"
+      mkdir -p "$T/backend"
+      cd "$T/backend"
+
+      # Always-sync from canonical (no [! -f] guard — see v43/v48 evidence).
+      cat > package.json <<'JSON'
+      {
+        "name": "backend",
+        "version": "0.1.0",
+        "private": true,
+        "scripts": {
+          "typecheck": "tsc --noEmit",
+          "build": "tsc",
+          "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+          "test": "jest --passWithNoTests --runInBand",
+          "test:e2e": "jest --testRegex='\\.e2e-spec\\.ts$' --passWithNoTests --runInBand"
+        },
+        "jest": {
+          "moduleFileExtensions": ["js", "json", "ts"],
+          "rootDir": "./",
+          "testRegex": "\\.(spec|e2e-spec)\\.ts$",
+          "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+          "testEnvironment": "node",
+          "moduleNameMapper": {
+            "^src/(.*)$": "<rootDir>/src/$1"
+          }
+        },
+        "dependencies": {
+          "@nestjs/common": "^10.3.0",
+          "@nestjs/core": "^10.3.0",
+          "@nestjs/typeorm": "^10.0.2",
+          "@nestjs/platform-express": "^10.3.0",
+          "@nestjs/config": "^3.2.2",
+          "@nestjs/jwt": "^10.2.0",
+          "@nestjs/passport": "^10.0.3",
+          "@nestjs/swagger": "^7.3.1",
+          "nestjs-i18n": "^10.4.5",
+          "bcrypt": "^5.1.1",
+          "class-transformer": "^0.5.1",
+          "class-validator": "^0.14.1",
+          "cookie-parser": "^1.4.6",
+          "passport": "^0.7.0",
+          "passport-jwt": "^4.0.1",
+          "pg": "^8.11.5",
+          "reflect-metadata": "^0.2.2",
+          "rxjs": "^7.8.1",
+          "typeorm": "^0.3.20"
+        },
+        "devDependencies": {
+          "@nestjs/testing": "^10.3.0",
+          "@types/bcrypt": "^5.0.2",
+          "@types/cookie-parser": "^1.4.7",
+          "@types/express": "^4.17.21",
+          "@types/jest": "^29.5.12",
+          "@types/multer": "^1.4.12",
+          "@types/node": "^20.12.7",
+          "@types/passport-jwt": "^4.0.1",
+          "@types/supertest": "^6.0.2",
+          "jest": "^29.7.0",
+          "supertest": "^7.0.0",
+          "ts-jest": "^29.1.2",
+          "ts-node-dev": "^2.0.0",
+          "typescript": "^5.4.5"
+        }
+      }
+      JSON
+      echo "synced backend/package.json"
+
+      if [ ! -f tsconfig.json ]; then
+        cat > tsconfig.json <<'JSON'
+      {
+        "compilerOptions": {
+          "module": "commonjs",
+          "target": "es2021",
+          "lib": ["es2021"],
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "strict": true,
+          "strictPropertyInitialization": false,
+          "esModuleInterop": true,
+          "skipLibCheck": true,
+          "forceConsistentCasingInFileNames": true,
+          "resolveJsonModule": true,
+          "noEmit": true,
+          "outDir": "./dist",
+          "baseUrl": "./"
+        },
+        "include": ["src/**/*.ts"],
+        "exclude": ["node_modules", "dist", "test"]
+      }
+      JSON
+      fi
+
+      # Dev .env (matches Mac mini local PG: user=whoami, trust auth, db=fsp)
+      if [ ! -f .env ]; then
+        PG_USER="${POSTGRES_USER:-$(whoami)}"
+        cat > .env <<ENV
+      PORT={BACKEND_PORT}
+      MODE=DEV
+      POSTGRES_HOST=localhost
+      POSTGRES_PORT=5432
+      POSTGRES_USER=$PG_USER
+      POSTGRES_PASSWORD=trust
+      POSTGRES_DATABASE={project}
+      AUTH_JWT_SECRET=dev-jwt-secret-replace-in-production-please-replace-32chars
+      AUTH_TOKEN_COOKIE_NAME=access_token
+      AUTH_TOKEN_EXPIRE_TIME=86400
+      AUTH_REFRESH_TOKEN_COOKIE_NAME=refresh_token
+      AUTH_REFRESH_TOKEN_EXPIRE_TIME=2592000
+      ALLOW_ORIGINS=http://localhost:{BACKEND_PORT},http://localhost:{FRONTEND_PORT}
+      FRONTEND_URL=http://localhost:5173
+      ENV
+      fi
+
+      echo "reconciling backend deps (npm install)..."
+      npm install --legacy-peer-deps --no-audit --no-fund --silent 2>&1 | tail -5 || true
+    on_failure: abort
+    abort_message: "Failed to scaffold backend"
+
+  # FROM_BACKEND mode (FREEZE_BACKEND=1): overlay the canonical FROZEN backend
+  # (src + test + package.json) onto the scaffolded shell so the database+backend
+  # phases can be skipped (marked Complete in seed-pipeline-status). No-op in a
+  # normal slim run. Re-runs npm install because the frozen package.json may
+  # carry deps the scaffold template doesn't (e.g. @nestjs/swagger).
+  - id: freeze-restore-backend
+    type: deterministic
+    description: "FROM_BACKEND: overlay the frozen canonical backend so database+backend are skipped (no-op unless FREEZE_BACKEND=1)"
+    command: |
+      if [ "${FREEZE_BACKEND:-0}" != "1" ]; then
+        echo "freeze-restore-backend: FREEZE_BACKEND not set — normal slim run, skipping"
+        exit 0
+      fi
+      CANON="${BACKEND_CANONICAL_DIR:?BACKEND_CANONICAL_DIR not set}"
+      T="{TARGET_DIR}/backend"
+      if [ ! -d "$CANON/src" ]; then echo "FAIL: frozen backend missing at $CANON/src"; exit 1; fi
+      echo "[freeze] overlaying frozen backend from $CANON"
+      rm -rf "$T/src" "$T/test"
+      cp -R "$CANON/src" "$T/src"
+      [ -d "$CANON/test" ] && cp -R "$CANON/test" "$T/test"
+      for f in package.json package-lock.json tsconfig.json tsconfig.build.json nest-cli.json; do
+        [ -f "$CANON/$f" ] && cp "$CANON/$f" "$T/$f"
+      done
+      ( cd "$T" && npm install --legacy-peer-deps --no-audit --no-fund --silent 2>&1 | tail -3 || true )
+      echo "[freeze] backend restored: $(find "$T/src/modules" -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ') module dir(s)"
+    on_failure: abort
+    abort_message: "FROM_BACKEND: failed to restore frozen backend"
+
+  # v128: stamp owner FKs (worker_id/user_id/actor_id/created_by/…) from the
+  # authenticated user on owned-resource create endpoints. Runs unconditionally
+  # (idempotent) so it self-heals BOTH the overlaid frozen backend (FROM_BACKEND)
+  # and a normal slim backend before tests run. v127 evidence: 50 `null value in
+  # column "<fk>" violates not-null` e2e failures because BaseController.create
+  # persisted the DTO verbatim and the owner FK was never supplied. See RULE-B8
+  # context (owner identity must come from JWT, not the request body).
+  - id: scaffold-owner-stamp-doctor
+    type: deterministic
+    description: "v128: inject @CurrentUser owner-FK stamping into owned-resource create() controllers"
+    command: |
+      node {CLAUDE_DIR}/v2/scripts/scaffold-owner-stamp-doctor.js --target "{TARGET_DIR}" --verbose || true
+    on_failure: ignore
+
+  - id: scaffold-frontend-ts
+    type: deterministic
+    description: "Scaffold each declared frontend dir (copies React template package.json + npm install)"
+    command: |
+      set -e
+      T="{TARGET_DIR}"
+
+      # Frontend dirs come from canonical PRD's PROJECT_KNOWLEDGE.md or from
+      # the design/html/<subdir>/ layout. We use the html subdirs as the
+      # source of truth — every <DST>/design/html/<X>/ becomes a frontend
+      # directory at <T>/<X>/.
+      DST="$T/.claude-project/{project}"
+      FE_DIRS=$(find "$DST/design/html" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null | sort | tr '\n' ' ')
+      # Fallback: one default frontend
+      [ -z "$FE_DIRS" ] && FE_DIRS="frontend"
+
+      echo "frontend dirs: $FE_DIRS"
+
+      TPL_PKG="{CLAUDE_DIR}/{FRONTEND}/templates/package.json"
+
+      for FE_DIR in $FE_DIRS; do
+        echo ""
+        echo "--- scaffolding $FE_DIR ---"
+        mkdir -p "$T/$FE_DIR"
+        cd "$T/$FE_DIR"
+
+        if [ -f "$TPL_PKG" ]; then
+          sed "s/\"name\":[[:space:]]*\"[^\"]*\"/\"name\": \"$FE_DIR\"/" "$TPL_PKG" > package.json
+          echo "synced $FE_DIR/package.json from React template"
+        else
+          echo "WARN: $TPL_PKG missing — skipping $FE_DIR"
+          continue
+        fi
+
+        # Copy the canonical React template tree (app/, tsconfig.json,
+        # vite.config.ts, react-router.config.ts, components.json, etc.)
+        TPL_DIR="{CLAUDE_DIR}/{FRONTEND}/templates"
+        for f in components.json react-router.config.ts tsconfig.json vite.config.ts Dockerfile .dockerignore .gitignore .env.example; do
+          [ -f "$TPL_DIR/$f" ] && [ ! -f "./$f" ] && cp "$TPL_DIR/$f" "./$f"
+        done
+        if [ -d "$TPL_DIR/app" ] && [ ! -d "./app" ]; then
+          cp -R "$TPL_DIR/app" "./app"
+        fi
+
+        # v61 additive backfill: when app/ already exists (baseline already
+        # had it scaffolded), copy any template files that aren't present
+        # yet — picks up new template additions (guards/, httpMethods/, i18n/,
+        # hooks/, env.d.ts, pages/not-found.tsx) without overwriting any
+        # existing LLM-authored files.
+        if [ -d "$TPL_DIR/app" ] && [ -d "./app" ]; then
+          (cd "$TPL_DIR" && find app -type f) | while read -r f; do
+            if [ ! -f "./$f" ]; then
+              mkdir -p "$(dirname "./$f")"
+              cp "$TPL_DIR/$f" "./$f"
+            fi
+          done
+        fi
+
+        # Sanity: v61 frontend templates must exist after scaffold (single
+        # source of truth — fail loud if the additive backfill missed any).
+        for f in app/env.d.ts app/i18n/index.ts app/hooks/useAppDispatch.ts app/hooks/useAppSelector.ts app/components/guards/AuthGuard.tsx app/components/guards/RoleGuard.tsx app/components/guards/GuestGuard.tsx app/services/httpMethods/index.ts app/pages/not-found.tsx; do
+          [ -f "./$f" ] || { echo "FAIL: $f missing in $FE_DIR after scaffold (template additive copy failed)"; exit 1; }
+        done
+
+        echo "reconciling $FE_DIR deps (npm install)..."
+        npm install --legacy-peer-deps --no-audit --no-fund --silent 2>&1 | tail -5 || true
+      done
+    on_failure: abort
+    abort_message: "Failed to scaffold frontend(s)"
+
+  # ===========================================================================
+  # TIER 4.5: CODEGRAPH INIT (v68+)
+  # Pre-index the cell's scaffolded backend + frontend so opencode-spawned
+  # mimo agents (implement-fanout, convert-pages, etc.) can query codegraph
+  # MCP tools (codegraph_search / callers / impact / context) instead of
+  # burning tokens on grep + Read cycles.
+  #
+  # Why here: scaffold-backend-ts + scaffold-frontend-ts have just run; the
+  # base classes + canonical templates + 3 frontend shells are on disk. LLM-
+  # implement runs in the backend phase and will modify code further —
+  # codegraph's file watcher inside `serve --mcp` picks up those changes on
+  # demand. Initial indexing is small (just scaffolded boilerplate) so this
+  # step is fast.
+  #
+  # Best-effort: skips silently if codegraph isn't installed. Pipeline still
+  # works without it; agents just fall back to grep.
+  # ===========================================================================
+
+  - id: codegraph-init
+    type: deterministic
+    description: "v68: init codegraph in cell dir for MCP/agent token savings (best-effort)"
+    command: |
+      # Locate codegraph — PATH first, then default install location.
+      if command -v codegraph >/dev/null 2>&1; then
+        CG=$(command -v codegraph)
+      elif [ -x "$HOME/.local/bin/codegraph" ]; then
+        CG="$HOME/.local/bin/codegraph"
+      else
+        echo "[codegraph-init] codegraph not installed — skipping (agents will fall back to grep)"
+        exit 0
+      fi
+      echo "[codegraph-init] using $CG"
+      cd "{TARGET_DIR}" || exit 0
+      # init -i = initialize + run initial indexing. Per-cell run dirs are
+      # ~50-200MB of scaffold code; indexing finishes in <30s. node_modules
+      # is skipped via the standard .gitignore inside backend/ and frontend/.
+      "$CG" init -i 2>&1 | tail -10
+      echo "[codegraph-init] done"
+    on_failure: ignore
+
+  # TIER 5: SEED PIPELINE_STATUS.md (mark phases 1-5 already Complete so the
+  # orchestrator skips them when it iterates). Down-stream phases read this
+  # to short-circuit.
+  # ===========================================================================
+
+  - id: seed-pipeline-status
+    type: deterministic
+    description: "Write PIPELINE_STATUS.md marking init/spec/prd/design/user-stories Complete (uses structured tech_stack.frontends so config.js's getFrontends + getTechStack pick up the right framework + dir list)"
+    command: |
+      DST="{TARGET_DIR}/.claude-project/{project}/status"
+      DESIGN_HTML="{TARGET_DIR}/.claude-project/{project}/design/html"
+      mkdir -p "$DST"
+      DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+      # v53 RCA: previous version wrote `tech_stack.frontends: [<dir>,<dir>,...]`
+      # which made getTechStack capture the first dir as the framework name
+      # (e.g. {FRONTEND}=frontend instead of react). scaffold-frontend-shell
+      # then looked at .claude/frontend/templates/app — doesn't exist. Use
+      # the structured `frontends:\n - name:`/`dir:`/`html_dir:`/`dev_port:`
+      # form per config.js parser comments — tech_stack.backend stays scalar
+      # ("nestjs"), tech_stack.frontends becomes a structured per-app list,
+      # and config.js's getTechStack falls through to the default "react"
+      # framework which IS the submodule dir name (.claude/react/templates).
+      FE_DIRS=$(find "$DESIGN_HTML" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null | sort)
+      # Fallback: single "frontend" entry if no html subdirs
+      [ -z "$FE_DIRS" ] && FE_DIRS="frontend"
+
+      # Write the file in two passes — header first, then append frontends list,
+      # then progress + footer. Easier than juggling multiline sed.
+      {
+        echo "# Fullstack Pipeline Status - {project}"
+        echo ""
+        echo "## Configuration"
+        echo ""
+        echo '```yaml'
+        echo "project: {project}"
+        echo "created: $DATE"
+        echo "last_run: $DATE"
+        echo "generation: 1"
+        echo "pipeline_score: 0"
+        echo "quality_target: 0.95"
+        echo "seed_id: pre-build"
+        echo "mode: slim"
+        echo "tech_stack:"
+        echo "  backend: nestjs"
+        echo "  frontends:"
+        port=5173
+        for fe in $FE_DIRS; do
+          echo "    - name: $fe"
+          echo "      dir: $fe"
+          echo "      html_dir: $fe"
+          echo "      dev_port: $port"
+          port=$((port + 1))
+        done
+        echo "  dashboards: []"
+        echo "format_version: 3"
+        echo '```'
+        echo ""
+        echo "## Progress"
+        echo ""
+        echo "| Phase | Status | Score | Output | Loop Runs | Gate Run At | Notes |"
+        echo "|-------|--------|-------|--------|-----------|-------------|-------|"
+        # FROM_BACKEND (FREEZE_BACKEND=1): database+backend are frozen (restored by
+        # freeze-restore-backend) → mark Complete so the orchestrator skips their
+        # ~2h regeneration and the slim run starts at frontend.
+        COMPLETE_PHASES="spec init prd user-stories design"
+        PENDING_PHASES="database backend frontend integrate test-api test-browser ship"
+        if [ "${FREEZE_BACKEND:-0}" = "1" ]; then
+          COMPLETE_PHASES="$COMPLETE_PHASES database backend"
+          PENDING_PHASES="frontend integrate test-api test-browser ship"
+        fi
+        for phase in $COMPLETE_PHASES; do
+          NOTE="slim mode — frozen from canonical"
+          OUT="pre-build"
+          if [ "$phase" = "database" ] || [ "$phase" = "backend" ]; then OUT="frozen-backend"; NOTE="FROM_BACKEND — frozen canonical backend"; fi
+          echo "| $phase | Complete | 1 | $OUT | 0 | $DATE | $NOTE |"
+        done
+        for phase in $PENDING_PHASES; do
+          echo "| $phase | Pending | - | - | 0 | - | - |"
+        done
+        echo ""
+        echo "## Generation Log"
+        echo ""
+        echo "| Gen | Score | Phases Run | Improved | Stagnant | Duration |"
+      } > "$DST/PIPELINE_STATUS.md"
+
+      echo "PIPELINE_STATUS.md seeded ($(wc -l < $DST/PIPELINE_STATUS.md) lines, $(echo $FE_DIRS | wc -w | tr -d ' ') frontends declared structured)"
+    on_failure: abort
+    abort_message: "Could not seed PIPELINE_STATUS.md"
+
+  # ===========================================================================
+  # TIER 6: EVIDENCE CHECK (deterministic — verify the whole pre-build worked)
+  # ===========================================================================
+
+  - id: evidence-check
+    type: deterministic
+    description: "Confirm run dir has every artifact the slim pipeline depends on"
+    command: |
+      DST="{TARGET_DIR}/.claude-project/{project}"
+      FAIL=0
+      [ -f "$DST/docs/PROJECT_KNOWLEDGE.md" ] || { echo "FAIL: PROJECT_KNOWLEDGE.md missing in run"; FAIL=1; }
+      [ -f "$DST/docs/PROJECT_API.md" ] || { echo "FAIL: PROJECT_API.md missing in run"; FAIL=1; }
+      [ -f "$DST/docs/PROJECT_DATABASE.md" ] || { echo "FAIL: PROJECT_DATABASE.md missing in run"; FAIL=1; }
+      [ -f "$DST/design/DESIGN_SYSTEM.md" ] || { echo "FAIL: DESIGN_SYSTEM.md missing in run"; FAIL=1; }
+      [ -f "$DST/design/DESIGN_STATUS.md" ] || { echo "FAIL: DESIGN_STATUS.md missing in run"; FAIL=1; }
+      [ -f "$DST/user_stories/_fixtures.yaml" ] || { echo "FAIL: _fixtures.yaml missing in run"; FAIL=1; }
+      [ -d "{TARGET_DIR}/backend" ] && [ -f "{TARGET_DIR}/backend/package.json" ] || { echo "FAIL: backend not scaffolded"; FAIL=1; }
+      [ -f "$DST/status/PIPELINE_STATUS.md" ] || { echo "FAIL: PIPELINE_STATUS.md not seeded"; FAIL=1; }
+      grep -q 'init | Complete' "$DST/status/PIPELINE_STATUS.md" || { echo "FAIL: PIPELINE_STATUS doesn't mark init Complete"; FAIL=1; }
+      [ "$FAIL" -eq 0 ] || exit 1
+      echo "PASS: pre-build complete, slim pipeline can start at database"
+    on_failure: abort
+    abort_message: "pre-build evidence-check failed — downstream phases would not work"
+
+tool_profile:
+  allow: []
+  deny: [WebSearch, WebFetch]

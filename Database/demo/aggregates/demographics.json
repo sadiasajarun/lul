@@ -1,0 +1,139 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo",
+  "by_program": {
+    "abal": {
+      "rows": 1400,
+      "gender": {
+        "Boy": 674,
+        "Girl": 726
+      },
+      "disability": {
+        "None": 1303,
+        "Vision": 20,
+        "Speech": 28,
+        "Multiple": 8,
+        "Physical": 17,
+        "Hearing": 15,
+        "Mental": 9
+      },
+      "ethnicity": {
+        "Bengali": 1280,
+        "Garo": 21,
+        "Chakma": 36,
+        "Other": 9,
+        "Tripura": 12,
+        "Santal": 16,
+        "Marma": 26
+      },
+      "religion": {
+        "Islam": 1224,
+        "Christian": 28,
+        "Buddhist": 33,
+        "Hindu": 115
+      },
+      "nutrition": {
+        "Good": 1185,
+        "Fair": 176,
+        "Bad": 39
+      },
+      "division": {
+        "Sylhet": 400,
+        "Mymensingh": 300,
+        "Chattogram": 300,
+        "Barishal": 200,
+        "Dhaka": 100,
+        "Rangpur": 100
+      }
+    },
+    "catchup": {
+      "rows": 2500,
+      "gender": {
+        "Boy": 1234,
+        "Girl": 1266
+      },
+      "disability": {
+        "None": 2347,
+        "Mental": 23,
+        "Vision": 36,
+        "Speech": 41,
+        "Hearing": 27,
+        "Multiple": 9,
+        "Physical": 17
+      },
+      "ethnicity": {
+        "Bengali": 2298,
+        "Marma": 43,
+        "Santal": 33,
+        "Chakma": 53,
+        "Tripura": 23,
+        "Garo": 39,
+        "Other": 11
+      },
+      "religion": {
+        "Islam": 2189,
+        "Hindu": 207,
+        "Buddhist": 62,
+        "Christian": 42
+      },
+      "nutrition": {
+        "Good": 2104,
+        "Fair": 336,
+        "Bad": 60
+      },
+      "division": {
+        "Dhaka": 400,
+        "Chattogram": 200,
+        "Rajshahi": 500,
+        "Khulna": 400,
+        "Barishal": 300,
+        "Rangpur": 400,
+        "Mymensingh": 200,
+        "Sylhet": 100
+      }
+    },
+    "innovation": {
+      "rows": 100,
+      "gender": {
+        "Girl": 53,
+        "Boy": 47
+      },
+      "disability": {
+        "Vision": 3,
+        "None": 95,
+        "Speech": 2
+      },
+      "ethnicity": {
+        "Bengali": 90,
+        "Marma": 3,
+        "Chakma": 5,
+        "Garo": 1,
+        "Santal": 1
+      },
+      "religion": {
+        "Islam": 88,
+        "Hindu": 8,
+        "Christian": 3,
+        "Buddhist": 1
+      },
+      "nutrition": {
+        "Good": 81,
+        "Fair": 17,
+        "Bad": 2
+      },
+      "division": {
+        "Khulna": 100
+      }
+    }
+  },
+  "disability_by_division": {
+    "Dhaka": 36,
+    "Chattogram": 29,
+    "Rajshahi": 33,
+    "Khulna": 31,
+    "Barishal": 26,
+    "Sylhet": 29,
+    "Rangpur": 38,
+    "Mymensingh": 33
+  }
+}

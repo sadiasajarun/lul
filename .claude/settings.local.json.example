@@ -1,0 +1,14 @@
+{
+  "env": {
+    "PHC_EMAIL": "",
+    "PHC_PASSWORD": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx *)",
+      "Bash(git *)",
+      "Bash(echo \"done exit=$?\")"
+    ]
+  }
+}

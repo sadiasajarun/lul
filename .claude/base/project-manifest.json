@@ -1,0 +1,54 @@
+{
+  "_schema": "https://raw.githubusercontent.com/.claude/base/project-manifest.schema.json",
+  "_description": "FSP project: NestJS backend + 2 Vite frontends (worker + admin dashboard)",
+
+  "version": 1,
+
+  "portSlotMultiplier": 100,
+  "docsUrl": "http://localhost:{backendPort}/api/docs",
+  "pm2Prefix": "fsp",
+
+  "services": [
+    {
+      "name": "backend",
+      "dir": "backend",
+      "install": "npm install",
+      "start": "npm run start:dev",
+      "buildCheck": "npx tsc --noEmit",
+      "defaultPort": 3000,
+      "envFile": ".env",
+      "envPortKey": "PORT",
+      "healthCheck": "/api"
+    },
+    {
+      "name": "frontend",
+      "dir": "frontend",
+      "install": "npm install",
+      "start": "npm run dev -- --port {PORT}",
+      "buildCheck": "npx tsc --noEmit",
+      "defaultPort": 5173,
+      "envFile": ".env",
+      "envTemplate": "VITE_API_URL=http://localhost:{backendPort}/api",
+      "healthCheck": "/"
+    },
+    {
+      "name": "frontend-admin-dashboard",
+      "dir": "frontend-admin-dashboard",
+      "install": "npm install",
+      "start": "npm run dev -- --port {PORT}",
+      "buildCheck": "npx tsc --noEmit",
+      "defaultPort": 5174,
+      "envFile": ".env",
+      "envTemplate": "VITE_API_URL=http://localhost:{backendPort}/api",
+      "healthCheck": "/"
+    }
+  ],
+
+  "patches": [
+    {
+      "file": "backend/.env",
+      "description": "Add worktree frontend origins to ALLOW_ORIGINS",
+      "sed": "s|ALLOW_ORIGINS=.*|ALLOW_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:{frontendPort},http://localhost:{frontend-admin-dashboardPort}|"
+    }
+  ]
+}

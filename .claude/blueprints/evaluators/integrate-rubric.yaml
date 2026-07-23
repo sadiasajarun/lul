@@ -1,0 +1,159 @@
+# Rubric for grading integrate-phase output (frontend↔backend wiring).
+#
+# Like the frontend phase, integrate has internal LLM steps that can drift
+# into self-eval bias (contract-validation reports its own mismatches; the
+# integrate agent self-reports its own coverage). This evaluator runs as a
+# fresh subprocess on the wired output and grades it on dimensions the
+# deterministic gates can't measure: meaningful error handling, walkable
+# user flows, breadth of API consumption beyond simple page count.
+
+name: integrate-evaluation
+version: 1
+
+scope: >
+  Wired frontend code under frontend/app/ (pages calling hooks, services,
+  state stores) — RR7 framework mode uses `app/` as the source root, not
+  `src/`. Graded against the backend's actual API surface
+  (PROJECT_API_ROUTES.md / @Controller decorators) and the source HTML
+  prototypes that defined the expected user flows. The evaluator does not
+  check whether routes match (verify-page-coverage handles that) or whether
+  contracts match (contract-validation handles that) — it grades whether
+  the integration is *useful*: do users actually get a working app?
+
+criteria:
+
+  api_coverage:
+    weight: 0.25
+    question: >
+      Beyond the deterministic "≥X% pages wired" check, are the *important*
+      flows wired? Auth + primary CRUD + dashboards + key admin views? Or
+      did the wiring cherry-pick easy targets (5 read endpoints) and leave
+      the hard ones (mutations, file uploads, real-time) on mock data?
+    anchors:
+      - score: 1.0
+        description: >
+          Every backend endpoint defined in @Controller decorators has at
+          least one frontend consumer. Auth flows, primary CRUD,
+          file uploads, and admin actions all hit real APIs. No mock data
+          on critical paths.
+      - score: 0.7
+        description: >
+          All read endpoints wired. Primary CRUD wired. 1-2 specialized
+          endpoints (file upload, bulk action, websocket) still on mock
+          data with TODOs.
+      - score: 0.4
+        description: >
+          Read endpoints wired but mutations missing or partial. Dashboards
+          wired but role-specific admin pages still on mock. Auth happens
+          but logout doesn't invalidate.
+      - score: 0.1
+        description: >
+          Only happy-path GETs are wired. Most pages still render mock
+          data. Looks integrated on the surface but most actions don't
+          actually persist.
+
+  error_ux:
+    weight: 0.25
+    question: >
+      When an API call fails (4xx, 5xx, network), does the user see a
+      meaningful message? Are validation errors surfaced inline on form
+      fields? Are 401 responses handled (redirect to login, refresh token)?
+      Or does the app fail silently / show "[object Object]" / crash?
+    anchors:
+      - score: 1.0
+        description: >
+          Every mutation surfaces server errors to the user (toast, inline
+          message, error state). 401 triggers refresh-then-retry, then
+          logout on second failure. Form validation errors map to the
+          relevant field. Network errors show retry UI. No console-only
+          errors.
+      - score: 0.7
+        description: >
+          Most mutations surface errors. 401 handling present. Form
+          validation reaches the user. 1-2 paths show generic "Something
+          went wrong" instead of the server's actual message.
+      - score: 0.4
+        description: >
+          Errors caught but mostly logged to console. User sees toasts on
+          some paths, nothing on others. 401 not handled — user sees
+          stale data after token expiry.
+      - score: 0.1
+        description: >
+          API failures crash the page or render "[object Object]". No
+          401 handling. Form errors invisible to user. Network errors
+          leave UI in a broken state.
+
+  flow_walkability:
+    weight: 0.25
+    question: >
+      Can a user complete primary task paths end-to-end through the wired
+      app? Login → dashboard → create primary entity → view detail →
+      edit → see persisted change. Are inter-page links wired (router
+      navigation after mutation)? Or do flows have dead ends where the
+      next step exists as a page but isn't reachable?
+    anchors:
+      - score: 1.0
+        description: >
+          Every primary flow declared in DOMAIN_RESEARCH or PROJECT_KNOWLEDGE
+          completes end-to-end. Login → home → create → detail → edit, plus
+          admin equivalents. Mutations route to the right next page on
+          success. Back/cancel buttons go where users expect.
+      - score: 0.7
+        description: >
+          Primary flows walkable. 1-2 flows have minor friction (extra click,
+          page reload required, missing breadcrumb). Mutations sometimes
+          land users on a generic page instead of the relevant detail.
+      - score: 0.4
+        description: >
+          Major flows partially walkable. Login works but creating a primary
+          entity dead-ends or doesn't update the list. Admin flows broken.
+          Setting a value doesn't show it on subsequent loads.
+      - score: 0.1
+        description: >
+          App is "wired" but not walkable. Pages exist and call APIs but
+          flows don't connect. After login user lands on a page with no
+          way forward. Or mutations succeed but the rest of the app shows
+          stale data.
+
+  state_handling:
+    weight: 0.25
+    question: >
+      Does every async data view have explicit loading + error + empty
+      states? Or does the app render blank/undefined while data is in
+      flight, throw on undefined.map(), or show "0 items" without
+      explaining whether that's truly empty or still loading?
+    anchors:
+      - score: 1.0
+        description: >
+          Every list page has LoadingSkeleton/ErrorState/EmptyState. Every
+          detail page handles 404 gracefully. Mutations show pending state
+          on the trigger button. Nothing renders against undefined.
+      - score: 0.7
+        description: >
+          Most pages have all three states. 1-2 pages show a generic
+          spinner instead of a skeleton. EmptyState missing on one or two
+          obscure pages.
+      - score: 0.4
+        description: >
+          LoadingState present but inconsistent. Many pages still render
+          against undefined (causing flicker or crashes). EmptyStates
+          missing on most list pages — "0 items" looks identical to
+          "still loading."
+      - score: 0.1
+        description: >
+          No explicit states. Pages render blank or crash on undefined.
+          Mutation buttons don't disable on submit (double-click bugs).
+
+output_format:
+  type: json
+  required_fields:
+    - overall_score
+    - weighted_breakdown
+    - blockers
+    - rationale
+  blocker_severities: [P0, P1, P2]
+  notes: >
+    P0 = unshippable: critical flow broken (login dead-ends), API errors
+    crash the app, mutations don't persist. P1 = should fix: minor flow
+    friction, missing error-message detail, missing EmptyState on a key
+    list page. P2 = nice-to-fix.

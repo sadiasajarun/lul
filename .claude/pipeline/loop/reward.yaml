@@ -1,0 +1,129 @@
+# Reward Function Configuration
+# Read by the infinite loop engine to calculate RL rewards per generation.
+# Objective: Zero production escapes — bugs caught early earn more, escaped bugs are catastrophic.
+
+---
+
+# Level 1: Phase Reward (calculated after each phase gate)
+#
+# R_phase = phase_weight × Δ(phase_score)
+#         + shift_left_bonus × (bugs caught in this phase × multiplier)
+#         - late_bug_penalty × (bugs that RCA says should have been caught earlier)
+
+phase_reward:
+  # Per-phase weight applied to Δscore. Foundational phases get higher weight
+  # because a bug/gap here propagates through the whole pipeline.
+  # Added during Stage 1 tuning (2026-04-10) — base reward was being swamped
+  # by cost penalty on low-weight phases, distorting the R_episode signal.
+  phase_weight:
+    init: 2.0
+    spec: 2.5          # Spec quality sets the ceiling for everything downstream
+    prd: 3.0           # PRD is the single source of truth for API + DB + stories
+    design: 1.5
+    database: 2.5      # Schema mistakes cascade through backend + frontend
+    user-stories: 1.5
+    backend: 2.0
+    frontend: 1.5
+    integrate: 1.5
+    test-api: 1.5
+    test-browser: 2.0  # QA catches real bugs, weight reflects that
+    ship: 3.0          # Ship is terminal — must be right
+
+  # Cost penalty coefficient. Multiplied by cost_usd for the phase.
+  # Tuned from 2.0 → 0.5 on 2026-04-10 after the Stage 1 reward audit showed
+  # a perfect run scoring only +0.20 because an ~$0.40 agentic phase lost -$0.80
+  # to cost penalty. 0.5 lets cost nudge the policy toward cheaper solutions
+  # when they tie in quality, without dominating the reward signal.
+  cost_penalty_coefficient: 0.5
+
+  # Artifact verification failure penalty (flat per failure). Failing the
+  # required_output_file contract is a strong "agent tried to skip work" signal.
+  artifact_failure_penalty: 10
+
+  # Shift-left multipliers: earlier detection = higher reward
+  # Applied to each bug caught, multiplied by severity weight
+  shift_left_multiplier:
+    spec: 5.0        # Caught as ambiguity in spec = best possible
+    prd: 4.0          # Caught as gap in PRD = very early
+    database: 3.5     # Schema issue caught before code
+    backend: 3.0      # Caught during TDD RED/GREEN cycle
+    frontend: 2.5     # Caught during component build
+    integrate: 2.0    # Caught during API wiring
+    test-api: 1.5     # Caught in backend API tests
+    test-browser: 1.0 # Caught in browser testing = baseline
+    production: -50.0 # Escaped to production = catastrophic penalty
+
+  # Late bug penalty: when RCA shows a bug found in Phase N should have been caught in Phase M (M < N)
+  late_bug_penalty_multiplier: 1.5
+
+---
+
+# Level 2: Generation Reward (calculated after each loop iteration)
+#
+# R_generation = α × Δ(pipeline_score)
+#              + β × (-Σ(severity_weight × new_bug_count))
+#              + γ × (stories_passed / total_stories)
+#              + δ × (depth_score_improvement)
+#              + ε × (gap_patterns_reused / gap_patterns_total)
+#              - ζ × stagnation_penalty
+
+generation_reward:
+  weights:
+    pipeline_score_improvement: 0.15   # α — score delta between generations
+    bug_penalty: 0.35                  # β — PRIMARY: severity-weighted bug count
+    story_pass_rate: 0.15              # γ — user story pass ratio
+    coverage_depth: 0.10               # δ — story depth score improvement
+    pattern_reuse: 0.15                # ε — gap pattern reuse ratio (learning efficiency)
+    stagnation_penalty: 0.10           # ζ — cost of not improving
+
+  # Severity weights for bug penalty (β term)
+  # Higher absolute value = worse bug = more negative reward
+  severity_weights:
+    P0: -10   # Crash / data loss
+    P1: -5    # Wrong behavior / broken feature
+    P2: -2    # Cosmetic / layout issue
+    P3: -1    # Minor / polish
+
+  # Stagnation penalty: applied when pipeline_score unchanged across generations
+  stagnation:
+    threshold_generations: 3   # How many unchanged generations before penalty kicks in
+    penalty_per_generation: 5  # Penalty multiplied by consecutive stagnant generations
+
+---
+
+# Level 3: Terminal Reward (calculated once at episode end)
+#
+# R_terminal = convergence_bonus × (1 if converged)
+#            + speed_bonus × (max_gen - generations_used) / max_gen
+#            - escape_penalty × Σ(severity_weight × escaped_bug_count)
+#            + coverage_completeness × final_depth_score
+
+terminal_reward:
+  convergence_bonus: 100       # Flat bonus for reaching quality target (loop mode, all phases Complete)
+  single_phase_success_bonus: 20 # Smaller terminal bonus for successful single-phase runs
+                                 # (added 2026-04-10 so single-phase runs don't look "failed" in audit)
+  speed_bonus_max: 50          # Max bonus for fast convergence (scaled by unused generations)
+  escape_penalty_multiplier: 50 # Multiplied by severity_weight for each production escape
+  coverage_completeness_weight: 25 # Multiplied by final story depth score (0.0-1.0)
+
+---
+
+# Total Episode Reward
+#
+# R_episode = Σ(R_phase) + Σ(R_generation) + R_terminal
+#
+# This value is logged per episode and used to update policy memory.
+# Higher R_episode = the pipeline made better decisions this run.
+
+---
+
+# Reward Normalization
+# Raw rewards are normalized to [-1.0, 1.0] for cross-episode comparison.
+# normalization: (R - R_min) / (R_max - R_min) × 2 - 1
+
+normalization:
+  # Estimated bounds (updated by policy memory as more episodes complete)
+  initial_min: -500   # Worst case: multiple P0 escapes
+  initial_max: 300    # Best case: fast convergence, zero bugs, full coverage
+  # After 5+ episodes, use observed min/max from policy memory instead
+  use_observed_bounds_after_episodes: 5

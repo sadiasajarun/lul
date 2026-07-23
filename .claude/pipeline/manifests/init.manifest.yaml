@@ -1,0 +1,37 @@
+name: init
+display_name: "Project Scaffolding"
+phase_number: 1
+
+prerequisites:
+  phases: [spec]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/stacks/base.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/status/{project}/seed-*.yaml"
+  templates:
+    - ".claude/templates/rules/common.claude-rules.template"
+    - ".claude/templates/claude.template.md"
+
+skills:
+  primary: ".claude/skills/operation/init-project.md"
+
+tools:
+  allow: [Read, Write, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: []
+
+gate:
+  pass_threshold: 1.0
+  evaluation_criteria:
+    - name: dirs_exist
+      description: ".claude-project/ directory structure created"
+    - name: rules_generated
+      description: ".claude-rules files generated from templates"
+    - name: git_initialized
+      description: "Git repo initialized (if --path used)"
+    - name: claude_md_generated
+      description: "CLAUDE.md generated from template with all placeholders resolved"

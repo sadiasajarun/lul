@@ -1,0 +1,779 @@
+name: frontend-phase
+description: Convert HTML designs to React components with validation gates
+version: 2
+manifest: frontend
+
+outputs:
+  - type: page_components
+    glob: "frontend/app/pages/**/*.tsx"
+  - type: shared_components
+    glob: "frontend/app/components/**/*.tsx"
+  - type: route_config
+    glob: "frontend/app/routes.ts"
+
+nodes:
+  # --- DETERMINISTIC: Design approval check ---
+  - id: design-approval-check
+    type: deterministic
+    description: "Block frontend if design not approved by client"
+    command: |
+      STATUS=$(find {TARGET_DIR}/{STATUS_DIR} -name 'DESIGN_STATUS.md' 2>/dev/null | head -1)
+      if [ -z "$STATUS" ]; then
+        echo "FAIL: No DESIGN_STATUS.md — Phase 3 not complete"
+        exit 1
+      fi
+      if ! grep -q 'approved: true' "$STATUS" 2>/dev/null; then
+        echo "FAIL: Design not approved. Client has not confirmed design variation."
+        echo "Run Phase 3 (design) with client confirmation first."
+        exit 1
+      fi
+      VARIATION=$(grep 'selected_variation:' "$STATUS" 2>/dev/null | sed 's/.*: *//' | tr -d ' ')
+      echo "Design approved (variation: ${VARIATION:-unknown})"
+    on_failure: abort
+    abort_message: "Phase 3 (design) must be approved before frontend. Client has not confirmed design variation. Run: /fullstack <project> --phase design"
+
+  # --- DETERMINISTIC: Design System (QA output) exists ---
+  # A-07: Verify that 3f Design QA has run and DESIGN_SYSTEM_{variation}.md was generated
+  # design-approval-check only checks approved:true, this check verifies QA output existence
+  - id: design-system-exists
+    type: deterministic
+    description: "Verify DESIGN_SYSTEM_{variation}.md exists (Design QA phase must have run)"
+    command: |
+      STATUS_FILE=""
+      for candidate in "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md" "{TARGET_DIR}/{STATUS_DIR}/DESIGN_STATUS.md"; do
+        [ -f "$candidate" ] && STATUS_FILE="$candidate" && break
+      done
+      if [ -z "$STATUS_FILE" ]; then exit 0; fi
+      VARIATION=$(grep 'selected_variation:' "$STATUS_FILE" 2>/dev/null | sed 's/.*: *//' | tr -d ' "')
+      if [ -z "$VARIATION" ]; then exit 0; fi
+      for candidate in \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_SYSTEM_${VARIATION}.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/docs/DESIGN_SYSTEM_${VARIATION}.md" \
+        "{TARGET_DIR}/{PROJECT_DIR}/design/DESIGN_SYSTEM.md"; do
+        [ -f "$candidate" ] && echo "Design system verified: $(basename $candidate)" && exit 0
+      done
+      echo "FAIL: DESIGN_SYSTEM_${VARIATION}.md not found — Design QA (Phase 3f) incomplete"
+      exit 1
+    on_failure: abort
+    abort_message: "Design QA (Phase 3f) must complete before frontend. Run Phase 3 fully including Step 3f."
+
+  # --- DETERMINISTIC: Pre-check (detect HTML presence — drives conversion mode) ---
+  - id: pre-check
+    type: deterministic
+    description: "Detect HTML prototypes — sets HAS_HTML=true/false for downstream nodes"
+    command: |
+      HTML_COUNT=0
+      HTML_DIR=""
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html HTML; do
+        if [ -d "{TARGET_DIR}/$dir" ]; then
+          HTML_COUNT=$(find "{TARGET_DIR}/$dir" -name '*.html' 2>/dev/null | wc -l)
+          if [ "$HTML_COUNT" -gt 0 ]; then
+            HTML_DIR="$dir"
+            break
+          fi
+        fi
+      done
+      if [ "$HTML_COUNT" -gt 0 ]; then
+        echo "HAS_HTML=true"
+        echo "HTML_DIR=$HTML_DIR"
+        echo "HTML_COUNT=$HTML_COUNT"
+        echo "MODE: HTML-to-React conversion (HTML prototypes found)"
+      else
+        echo "HAS_HTML=false"
+        echo "HTML_COUNT=0"
+        echo "MODE: PRD-driven design (no HTML prototypes — agent designs from PRD/KNOWLEDGE)"
+      fi
+    on_failure: ignore
+
+  # --- DETERMINISTIC: Extract PRD role/layout requirements ---
+  - id: prd-role-layout-check
+    type: deterministic
+    description: "Extract roles, layouts, and route guards from PRD so the convert agent implements all of them"
+    command: |
+      TARGET="${TARGET_DIR}"
+      OUTPUT="$TARGET/{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+      mkdir -p "$(dirname "$OUTPUT")"
+
+      # Find PRD or KNOWLEDGE file
+      PRD_FILE=""
+      for candidate in \
+        "$TARGET/{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md" \
+        "$TARGET/{PROJECT_DIR}/docs/PRD.md" \
+        "$TARGET/{PROJECT_DIR}/prd/PRD.md"; do
+        [ -f "$candidate" ] && PRD_FILE="$candidate" && break
+      done
+
+      if [ -z "$PRD_FILE" ]; then
+        echo "No PRD/KNOWLEDGE file found — skipping role extraction"
+        exit 0
+      fi
+
+      echo "# PRD Role & Layout Requirements (Auto-generated)" > "$OUTPUT"
+      echo "" >> "$OUTPUT"
+      echo "> Auto-extracted from $PRD_FILE" >> "$OUTPUT"
+      echo "> Frontend MUST implement all roles, layouts, and route guards listed below." >> "$OUTPUT"
+      echo "" >> "$OUTPUT"
+
+      # Extract user types / roles
+      echo "## User Roles" >> "$OUTPUT"
+      grep -i 'admin\|user\|client\|manager\|super.admin\|owner\|viewer\|editor\|moderator\|staff\|role' \
+        "$PRD_FILE" 2>/dev/null | grep -iv 'database\|column\|entity\|migration\|typeorm\|prisma' | \
+        head -30 >> "$OUTPUT"
+      echo "" >> "$OUTPUT"
+
+      # Extract layout references
+      echo "## Layout Requirements" >> "$OUTPUT"
+      grep -i 'layout\|sidebar\|navbar\|header\|footer\|navigation\|dark.*header\|light.*header' \
+        "$PRD_FILE" 2>/dev/null | head -20 >> "$OUTPUT"
+      echo "" >> "$OUTPUT"
+
+      # Extract route guard / auth references
+      echo "## Route Guards / Access Control" >> "$OUTPUT"
+      grep -i 'guard\|protect\|auth.*route\|role.*based\|access.*control\|permission\|restrict\|private.*route' \
+        "$PRD_FILE" 2>/dev/null | head -20 >> "$OUTPUT"
+      echo "" >> "$OUTPUT"
+
+      # Extract page-role mapping (which pages are for which roles)
+      echo "## Page-Role Mapping" >> "$OUTPUT"
+      grep -i 'page\|screen\|dashboard\|panel' "$PRD_FILE" 2>/dev/null | \
+        grep -i 'admin\|user\|client\|manager\|super\|owner\|role' | \
+        head -30 >> "$OUTPUT"
+
+      ROLE_COUNT=$(grep -ci 'admin\|user\|client\|manager\|super.admin\|owner' "$OUTPUT" 2>/dev/null || echo 0)
+      echo ""
+      echo "Extracted $ROLE_COUNT role references into PROJECT_PRD_ROLES.md"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: Start dev-watch (frontend server for real-time error feedback) ---
+  - id: start-dev-watch
+    type: deterministic
+    description: "Start frontend dev server in watch mode for real-time compilation error feedback"
+    command: |
+      cd {TARGET_DIR}
+
+      # Detect frontend directory (require package.json)
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "$candidate" ] && [ -f "$candidate/package.json" ] && FRONTEND_DIR="$candidate" && break
+      done
+      [ -z "$FRONTEND_DIR" ] && { echo "No frontend directory found, skipping dev-watch"; exit 0; }
+
+      # Detect dev script from package.json (priority: dev > start > serve > develop)
+      FRONTEND_SCRIPT=$(node -e "
+        const s=Object.keys(require('./$FRONTEND_DIR/package.json').scripts||{});
+        for(const p of['dev','start','serve','develop']){if(s.includes(p)){console.log(p);process.exit()}}
+        console.log('')
+      " 2>/dev/null)
+      [ -z "$FRONTEND_SCRIPT" ] && { echo "No dev script found in $FRONTEND_DIR/package.json, skipping dev-watch"; exit 0; }
+
+      # Read PM2 prefix
+      PREFIX=""
+      if [ -f ecosystem.config.js ]; then
+        PREFIX=$(node -e "const c=require('./ecosystem.config.js');const a=c.apps?.[0];console.log(a?.name?.split('-')[0]||'')" 2>/dev/null)
+      fi
+      [ -z "$PREFIX" ] && PREFIX=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+      # Check if already running
+      RUNNING="no"
+      if command -v pm2 &>/dev/null; then
+        RUNNING=$(pm2 jlist 2>/dev/null | node -e "
+          let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+            try{const r=JSON.parse(d).find(p=>p.name==='${PREFIX}-frontend'&&p.pm2_env.status==='online');console.log(r?'yes':'no')}catch(e){console.log('no')}
+          })" 2>/dev/null || echo "no")
+      fi
+
+      if [ "$RUNNING" = "yes" ]; then
+        echo "Frontend already running via PM2 (${PREFIX}-frontend) — skipping start"
+      else
+        # Read port from ecosystem.config.js, .env, package.json script, or default
+        FRONTEND_PORT=""
+        if [ -f ecosystem.config.js ]; then
+          FRONTEND_PORT=$(node -e "const c=require('./ecosystem.config.js');const a=(c.apps||[]).find(a=>(a.name||'').includes('frontend')||(a.name||'').includes('web')||(a.name||'').includes('client'));console.log(a?.env?.PORT||(a?.args?.match(/--port\s+(\d+)/)?.[1])||'')" 2>/dev/null)
+        fi
+        [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=$(grep '^PORT=' "$FRONTEND_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d ' "')
+        [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=$(node -e "
+          const s=(require('./$FRONTEND_DIR/package.json').scripts||{})['$FRONTEND_SCRIPT']||'';
+          const m=s.match(/--port\s+(\d+)|-p\s+(\d+)/);console.log(m?(m[1]||m[2]):'')" 2>/dev/null)
+        [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=5173
+
+        # Kill stale process on port
+        lsof -ti:${FRONTEND_PORT} | xargs kill -9 2>/dev/null || true
+        sleep 1
+
+        # Start via PM2 or nohup fallback — use PORT env var (universal)
+        if command -v pm2 &>/dev/null; then
+          cd "$FRONTEND_DIR"
+          PORT=$FRONTEND_PORT pm2 start npm --name "${PREFIX}-frontend" -- run $FRONTEND_SCRIPT 2>&1
+          cd ..
+        else
+          cd "$FRONTEND_DIR"
+          PORT=$FRONTEND_PORT nohup npm run $FRONTEND_SCRIPT > /tmp/dev-watch-${PREFIX}-frontend.log 2>&1 &
+          echo $! > /tmp/dev-watch-${PREFIX}-frontend.pid
+          cd ..
+        fi
+        sleep 5
+
+        # Health check — accept any non-connection-refused response
+        for i in 1 2 3; do
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${FRONTEND_PORT} 2>/dev/null)
+          [ "$STATUS" != "000" ] && echo "Frontend healthy on port ${FRONTEND_PORT} (HTTP $STATUS)" && break
+          echo "Frontend not ready (attempt $i/3)..."
+          sleep 3
+        done
+      fi
+
+      # Read port for sentinel (re-derive)
+      FRONTEND_PORT=""
+      if [ -f ecosystem.config.js ]; then
+        FRONTEND_PORT=$(node -e "const c=require('./ecosystem.config.js');const a=(c.apps||[]).find(a=>(a.name||'').includes('frontend')||(a.name||'').includes('web')||(a.name||'').includes('client'));console.log(a?.env?.PORT||(a?.args?.match(/--port\s+(\d+)/)?.[1])||'')" 2>/dev/null)
+      fi
+      [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=$(grep '^PORT=' "$FRONTEND_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d ' "')
+      [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=5173
+
+      # Write sentinel
+      mkdir -p {STATUS_DIR}
+      cat > {STATUS_DIR}/DEV_WATCH_ACTIVE.md <<SENTINEL
+      DEV_WATCH=true
+      PREFIX=${PREFIX}
+      LAYER=frontend
+      FRONTEND_PM2=${PREFIX}-frontend
+      FRONTEND_PORT=${FRONTEND_PORT}
+      CHECK_FRONTEND=pm2 logs ${PREFIX}-frontend --lines 30 --nostream 2>/dev/null
+      CHECK_STATUS=pm2 jlist 2>/dev/null
+      SENTINEL
+      echo "Dev-watch active: frontend server running"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: HTML prototype inventory (skipped if no HTML) ---
+  - id: html-inventory
+    type: deterministic
+    description: "List HTML prototype files — skipped if no HTML exists"
+    command: |
+      cd {TARGET_DIR}
+      HTML_DIR=""
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html HTML; do
+        if [ -d "$dir" ] && [ "$(find "$dir" -name '*.html' 2>/dev/null | wc -l)" -gt 0 ]; then
+          HTML_DIR="$dir"
+          break
+        fi
+      done
+      if [ -z "$HTML_DIR" ]; then
+        echo "NO_HTML=true"
+        echo "Skipping HTML inventory — agent will design from PRD"
+        exit 0
+      fi
+      echo "HTML_DIR=$HTML_DIR"
+      echo "--- HTML FILES ---"
+      find "$HTML_DIR" -name '*.html' -exec basename {} \; | sort
+      echo "--- COUNT ---"
+      find "$HTML_DIR" -name '*.html' | wc -l | tr -d ' '
+    on_failure: ignore
+
+  # --- AGENTIC: Read and extract structure from every HTML prototype (RULE-F9) ---
+  # This node is SKIPPED if no HTML prototypes exist (agent designs from PRD instead)
+  - id: html-extract
+    type: agentic
+    description: "Read EVERY HTML prototype and extract structural inventory per page"
+    skill: "$FRONTEND/skills/converters/html-to-react-converter.md"
+    context:
+      additional_read:
+        # Must match ALL candidate dirs from pre-check/html-inventory nodes
+        - "{PROJECT_DIR}/generated-screens/**/*.html"
+        - "{PROJECT_DIR}/design/html/**/*.html"
+        - "design/html/**/*.html"
+        - "HTML/**/*.html"
+    prompt: |
+      DO NOT WRITE ANY REACT CODE. This node is READ-ONLY extraction.
+
+      For EVERY HTML prototype file found in the design directory:
+        1. Read the COMPLETE file using the Read tool (entire file, not skim)
+        2. Extract and record into {TARGET_DIR}/{PROJECT_DIR}/docs/HTML_STRUCTURE_INVENTORY.md:
+
+      For each HTML file, write a section:
+
+        ## {filename}
+        ### Semantic Structure
+        - Root container: (tag, classes — e.g., div.max-w-[402px].bg-white)
+        - Layout type: (flex/grid, direction, alignment)
+        - Major sections: (list each semantic block — header, form, card, footer, sidebar)
+        ### Content Text (exact strings — copy character-for-character)
+        - Page title: "..."
+        - Headings: ["...", "..."]
+        - Button labels: ["...", "..."]
+        - Placeholder text: ["...", "..."]
+        - Link text: ["...", "..."]
+        - Other visible text: ["...", "..."]
+        ### CSS Values (from <style> block and inline Tailwind classes)
+        - padding: [list exact values, e.g., p-8 = 32px, px-[36px] = 36px]
+        - margin: [list exact values]
+        - border-radius: [list exact values]
+        - font-size: [list exact values]
+        - box-shadow: [list exact values]
+        - width/height: [list exact values, e.g., h-[48px], max-w-[402px]]
+        - colors: [list exact hex values, e.g., #4A90D9, #1E293B]
+        ### Interactive Elements
+        - Forms: [list with field names, input types, placeholders]
+        - Buttons: [list with exact text, type, onclick behavior]
+        - Links: [list with exact text, href target]
+        ### Commonly-Missed Elements (check IF present — write "none" if not found)
+        - Social/OAuth buttons: [present? describe — or "none"]
+        - Dividers/separators: [present? describe — or "none"]
+        - Consent/terms checkboxes: [present? describe — or "none"]
+        - Password visibility toggles: [present? describe — or "none"]
+        - Input prefix/suffix icons: [present? list — or "none"]
+        - Animations/transitions: [present? describe — or "none"]
+
+      After ALL files processed, add summary:
+
+        ## Summary
+        - Total HTML files in directory: N
+        - Total HTML files read completely: N (MUST equal above)
+        - Files with forms: [list filenames — or "none"]
+        - Files with modals/drawers: [list filenames — or "none"]
+        - Files with commonly-missed elements: [list filenames — or "none"]
+
+      CHECKPOINT: If "read completely" != "in directory", STOP and read the missing files.
+    condition: |
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html HTML; do
+        find {TARGET_DIR}/$dir -name "*.html" 2>/dev/null | head -1 | grep -q . && exit 0
+      done
+      exit 1
+    scope_guard:
+      allow:
+        - "{PROJECT_DIR}/docs/HTML_STRUCTURE_INVENTORY.md"
+      deny:
+        - "frontend/**"
+
+  # --- AGENTIC: HTML-to-React conversion (or PRD-driven design if no HTML) ---
+  - id: convert
+    type: agentic
+    skill: "$FRONTEND/skills/converters/html-to-react-converter.md"
+    context:
+      additional_read:
+        - "{PROJECT_DIR}/docs/PROJECT_KNOWLEDGE.md"
+        - "{PROJECT_DIR}/docs/PROJECT_PRD_ROLES.md"
+        - "{PROJECT_DIR}/docs/HTML_STRUCTURE_INVENTORY.md"
+        - ".claude/$FRONTEND/docs/best-practices.md"
+        - ".claude/$FRONTEND/docs/component-patterns.md"
+        - ".claude/$FRONTEND/docs/routing-guide.md"
+        - ".claude/$FRONTEND/docs/styling-guide.md"
+        - ".claude/$FRONTEND/docs/data-fetching.md"
+        - ".claude/$FRONTEND/docs/authentication-architecture.md"
+        - ".claude/$FRONTEND/docs/typescript-standards.md"
+        - ".claude/$FRONTEND/docs/file-organization.md"
+        - ".claude/$FRONTEND/docs/loading-and-error-states.md"
+        - ".claude/$FRONTEND/docs/auth-guards.md"
+        # Dev-watch — real-time error feedback
+        - "{STATUS_DIR}/DEV_WATCH_ACTIVE.md"
+        - ".claude/skills/dev/dev-watch/prompt-fragment.md"
+        # HTML prototypes — source of truth for UI structure (RULE-F7)
+        # Must match ALL candidate dirs from pre-check/html-inventory nodes
+        - "{PROJECT_DIR}/generated-screens/**/*.html"
+        - "{PROJECT_DIR}/design/html/**/*.html"
+        - "design/html/**/*.html"
+        - "HTML/**/*.html"
+    prompt: |
+      Build React components following project conventions. TWO MODES exist:
+
+      === MODE A: HTML EXISTS (HTML_STRUCTURE_INVENTORY.md found) ===
+      HTML prototypes are the SOURCE OF TRUTH. Follow this MANDATORY per-page workflow:
+        1. Read HTML_STRUCTURE_INVENTORY.md to get the extraction for this page
+        2. Re-read the ACTUAL HTML file using Read tool to see full structure
+        3. Write React component matching:
+           a. EXACT content text from inventory (titles, buttons, placeholders — character-for-character)
+           b. EXACT CSS values from inventory using Tailwind arbitrary values [Xpx] when standard scale doesn't match
+           c. ALL interactive elements from inventory (every form, button, toggle, checkbox listed)
+           d. ALL "Commonly-Missed Elements" from inventory (every non-"none" item must appear)
+        4. SELF-CHECK before moving to next page:
+           === PAGE FIDELITY CHECK: {filename} ===
+           Content text match: [list any text differences between inventory and React]
+           CSS values match: [list any value differences]
+           Missing elements: [list any elements from inventory not in React]
+           === END PAGE CHECK ===
+           ❌ If ANY differences found: fix them NOW before proceeding.
+
+      CRITICAL (RULE-F7): HTML_STRUCTURE_INVENTORY.md is your checklist. Every item MUST appear in React.
+      CRITICAL (RULE-F8): Use [Xpx] arbitrary values when standard scale doesn't match:
+        - padding: 40px → p-[40px] (NOT p-8 which is 32px)
+        - border-radius: 24px → rounded-[24px] (NOT rounded-2xl)
+        - height: 48px → h-[48px] (NOT py-2)
+        - box-shadow → shadow-[...] (DO NOT omit)
+      Do NOT design independently — copy the HTML structure faithfully.
+      CRITICAL (RULE-F10): Do NOT add elements, features, or interactions that DO NOT exist in HTML:
+        - HTML has only grid view → do NOT add list view or search input
+        - HTML shows <table> → do NOT convert to card list — keep <table>
+        - HTML has no feature → do NOT "improve" by adding it
+        - Your job is CONVERSION, not REDESIGN. Only add loading/error/empty states (functional necessity).
+
+      === MODE B: NO HTML (HTML_STRUCTURE_INVENTORY.md not found) ===
+      No HTML prototypes exist. Design React pages from scratch using:
+        1. PROJECT_KNOWLEDGE.md for features, roles, user flows
+        2. PROJECT_PRD_ROLES.md for role-based layouts and route guards
+        3. DESIGN_SYSTEM.md for colors, typography, spacing tokens
+        4. Coding guides (component-patterns.md, styling-guide.md, etc.)
+      Design each page with:
+        - Proper layout structure (mobile-first, responsive)
+        - All features defined in PROJECT_KNOWLEDGE.md
+        - Role-based route guards and layouts
+        - Loading, error, and empty states
+        - Proper form validation (react-hook-form + zod)
+
+      In BOTH modes: Check PROJECT_PRD_ROLES.md for all user roles — every role MUST have its layout variant and route guard.
+
+      === ROUTE WIRING (MANDATORY — BOTH MODES) ===
+      After all pages are created, split routes into separate files under app/routes/:
+        1. app/routes/auth.routes.ts — guest-only routes (exported as array)
+        2. app/routes/protected.routes.ts — auth routes (exported as RouteConfigEntry with layout wrapper)
+        3. app/routes/admin.routes.ts — admin routes if applicable (exported as RouteConfigEntry)
+        4. app/routes.ts MUST only import and assemble — NO inline route definitions
+      Follow .claude/react/docs/routing-guide.md EXACTLY.
+
+      DEV-WATCH: If {STATUS_DIR}/DEV_WATCH_ACTIVE.md exists, a dev server is running.
+      After EACH file you create or modify, check for errors using the protocol in prompt-fragment.md.
+      Fix errors immediately before proceeding to the next file.
+
+  # --- DETERMINISTIC: Validate route splitting (runs immediately after convert) ---
+  # Prevents: Agent defining all routes inline in routes.ts instead of splitting into routes/*.routes.ts
+  # This check runs BEFORE design fidelity so the agent fixes routes early, not at end-of-phase gate
+  - id: route-splitting-check
+    type: deterministic
+    description: "Verify routes are split into routes/*.routes.ts — routes.ts must be aggregator only"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+      [ -z "$FRONTEND_DIR" ] && echo "No frontend directory found" && exit 0
+
+      SRC_DIR="$FRONTEND_DIR/app"
+      [ ! -d "$SRC_DIR" ] && SRC_DIR="$FRONTEND_DIR/src"
+      [ ! -d "$SRC_DIR" ] && echo "No app/ or src/ directory found" && exit 0
+
+      ERRORS=0
+
+      # Check 1: routes/*.routes.ts files must exist
+      ROUTE_FILES=$(find "$SRC_DIR/routes" -name '*.routes.ts' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$ROUTE_FILES" -eq 0 ]; then
+        echo "FAIL: No *.routes.ts files found in $SRC_DIR/routes/"
+        echo "  → Routes must be split into auth.routes.ts, protected.routes.ts, admin.routes.ts"
+        echo "  → Read .claude/react/docs/routing-guide.md for exact pattern"
+        ERRORS=$((ERRORS + 1))
+      else
+        echo "PASS: $ROUTE_FILES route file(s) found in routes/"
+      fi
+
+      # Check 2: routes.ts must not have inline route()/index() calls (max 2 for catch-all/unauthorized)
+      if [ -f "$SRC_DIR/routes.ts" ]; then
+        INLINE_ROUTES=$(grep -E '^\s*(route|index)\(' "$SRC_DIR/routes.ts" 2>/dev/null | grep -v '^\s*//' | wc -l | tr -d ' ')
+        if [ "$INLINE_ROUTES" -gt 2 ]; then
+          echo "FAIL: routes.ts has $INLINE_ROUTES inline route()/index() calls (max 2 allowed)"
+          echo "  → routes.ts must be an aggregator only — import from routes/*.routes.ts"
+          echo "  → Only catch-all route('*', ...) and route('unauthorized', ...) may be inline"
+          ERRORS=$((ERRORS + 1))
+        else
+          echo "PASS: routes.ts is aggregator only ($INLINE_ROUTES inline calls, ≤2 allowed)"
+        fi
+
+        # Check 3: routes.ts must import from ./routes/
+        ROUTE_IMPORTS=$(grep -E "from ['\"]\.\/routes\/" "$SRC_DIR/routes.ts" 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$ROUTE_IMPORTS" -eq 0 ] && [ "$ROUTE_FILES" -gt 0 ]; then
+          echo "FAIL: routes.ts does not import from ./routes/ — route files exist but are unused"
+          ERRORS=$((ERRORS + 1))
+        elif [ "$ROUTE_IMPORTS" -gt 0 ]; then
+          echo "PASS: routes.ts imports $ROUTE_IMPORTS route file(s)"
+        fi
+      fi
+
+      if [ "$ERRORS" -gt 0 ]; then
+        echo ""
+        echo "FIX: Read .claude/react/docs/routing-guide.md and split routes into routes/*.routes.ts"
+        exit 1
+      fi
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # --- AGENTIC: Design fidelity check (code level, no server needed) ---
+  # Detect major mismatches early within Phase 6. Separate from Phase 9 screenshot comparison.
+  - id: design-fidelity-check
+    type: agentic
+    skill: "$FRONTEND/skills/qa/design-qa-html.md"
+    context:
+      additional_read:
+        - "{PROJECT_DIR}/design/DESIGN_SYSTEM.md"
+        # Must match ALL candidate dirs from pre-check/html-inventory nodes
+        - "{PROJECT_DIR}/generated-screens/**/*.html"
+        - "{PROJECT_DIR}/design/html/**/*.html"
+        - "design/html/**/*.html"
+        - "HTML/**/*.html"
+    prompt: |
+      Quick code-level fidelity check (Phase 6 — no server, no screenshots).
+      Read each HTML prototype and its corresponding React TSX:
+      1. Tailwind class inventory comparison (layout, spacing, typography, colors)
+      2. Layout structure (flex/grid hierarchy) match verification
+      3. Copy text match verification (titles, button text, descriptions)
+      4. CSS value accuracy (RULE-F8):
+         - Compare px values from HTML <style> blocks with React Tailwind classes
+         - Verify exact match of padding, margin, border-radius, font-size, etc.
+         - Classify approximate values (p-8 vs padding:40px) as Critical mismatch
+         - Compare shared component/CSS variable values against HTML originals
+      Pages with fidelity < 70% must be fixed immediately and re-verified.
+      Target: overall average >= 85%.
+    condition: |
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html HTML; do
+        find {TARGET_DIR}/$dir -name "*.html" 2>/dev/null | head -1 | grep -q . && exit 0
+      done
+      exit 1
+
+  # --- DETERMINISTIC: CSS value accuracy check (RULE-F8 enforcement) ---
+  # Compares HTML <style> px values against React Tailwind classes deterministically
+  - id: css-value-check
+    type: deterministic
+    description: "Verify React components use exact CSS values from HTML prototypes (RULE-F8)"
+    command: |
+      cd {TARGET_DIR}
+      HTML_DIR=""
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html HTML; do
+        if [ -d "$dir" ] && [ "$(find "$dir" -name '*.html' 2>/dev/null | wc -l)" -gt 0 ]; then
+          HTML_DIR="$dir"
+          break
+        fi
+      done
+      [ -z "$HTML_DIR" ] && echo "NO_HTML=true — skipping CSS check" && exit 0
+
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "$candidate" ] && FRONTEND_DIR="$candidate" && break
+      done
+      [ -z "$FRONTEND_DIR" ] && echo "No frontend directory found" && exit 0
+
+      SRC_DIR="$FRONTEND_DIR/app"
+      [ ! -d "$SRC_DIR" ] && SRC_DIR="$FRONTEND_DIR/src"
+
+      MISMATCHES=0
+      REPORT=""
+
+      # Extract px values from HTML <style> blocks and check for approximate Tailwind usage
+      for html_file in $(find "$HTML_DIR" -name '*.html' 2>/dev/null); do
+        PAGE=$(basename "$html_file" .html)
+
+        # Extract non-standard px values from HTML (skip common Tailwind-aligned values: 4,8,12,16,20,24,32,48,64,96)
+        HTML_PX=$(sed -n '/<style/,/<\/style>/p' "$html_file" 2>/dev/null | grep -oE '[0-9]+px' | sort -u | while read val; do
+          NUM=$(echo "$val" | tr -dc '0-9')
+          case "$NUM" in 0|1|2|4|6|8|10|12|14|16|20|24|28|32|36|40|44|48|56|64|80|96) ;; *) echo "$val" ;; esac
+        done)
+
+        if [ -n "$HTML_PX" ]; then
+          # Check if React files use these values as arbitrary [Xpx] or approximate standard classes
+          for px_val in $HTML_PX; do
+            NUM=$(echo "$px_val" | tr -dc '0-9')
+            # Search React pages/views/screens for this arbitrary value pattern
+            FOUND=$(grep -r "\[${NUM}px\]" "$SRC_DIR/pages/" "$SRC_DIR/views/" "$SRC_DIR/screens/" --include="*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+            if [ "$FOUND" -eq 0 ]; then
+              MISMATCHES=$((MISMATCHES + 1))
+              REPORT="$REPORT\n  MISMATCH: $PAGE — HTML has ${px_val}, React missing [${NUM}px] arbitrary value"
+            fi
+          done
+        fi
+      done
+
+      if [ "$MISMATCHES" -gt 5 ]; then
+        echo "WARN: $MISMATCHES CSS value mismatches found (RULE-F8 violations):"
+        echo -e "$REPORT"
+        echo ""
+        echo "Fix: Use Tailwind arbitrary values [Xpx] to match HTML exactly"
+        exit 1
+      else
+        echo "PASS: CSS values mostly match ($MISMATCHES minor mismatches)"
+      fi
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # --- DETERMINISTIC: Layout structure diff check (RULE-F10 enforcement) ---
+  # Detects when agent converts HTML <table> to card list, or adds elements not in HTML
+  - id: layout-structure-check
+    type: deterministic
+    description: "Verify React preserves HTML layout structures (tables stay tables, no extra features added)"
+    command: |
+      cd {TARGET_DIR}
+      HTML_DIR=""
+      for dir in {PROJECT_DIR}/generated-screens {PROJECT_DIR}/design/html design/html HTML; do
+        if [ -d "$dir" ] && [ "$(find "$dir" -name '*.html' 2>/dev/null | wc -l)" -gt 0 ]; then
+          HTML_DIR="$dir"
+          break
+        fi
+      done
+      [ -z "$HTML_DIR" ] && echo "NO_HTML=true — skipping layout check" && exit 0
+
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "$candidate" ] && FRONTEND_DIR="$candidate" && break
+      done
+      [ -z "$FRONTEND_DIR" ] && echo "No frontend directory found" && exit 0
+
+      SRC_DIR="$FRONTEND_DIR/app"
+      [ ! -d "$SRC_DIR" ] && SRC_DIR="$FRONTEND_DIR/src"
+
+      ERRORS=0
+
+      # Check 1: HTML files with <table> should have corresponding React with <table> or <Table>
+      HTML_WITH_TABLE=$(grep -rl '<table' "$HTML_DIR" --include="*.html" 2>/dev/null)
+      if [ -n "$HTML_WITH_TABLE" ]; then
+        REACT_TABLE_COUNT=$(grep -rl '<table\|<Table\|<thead\|<Thead' "$SRC_DIR/pages/" "$SRC_DIR/views/" "$SRC_DIR/screens/" --include="*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+        HTML_TABLE_COUNT=$(echo "$HTML_WITH_TABLE" | wc -l | tr -d ' ')
+        if [ "$REACT_TABLE_COUNT" -lt "$HTML_TABLE_COUNT" ]; then
+          echo "WARN: $HTML_TABLE_COUNT HTML files use <table>, but only $REACT_TABLE_COUNT React pages have tables"
+          echo "  HTML files with tables:"
+          echo "$HTML_WITH_TABLE" | while read f; do echo "    - $(basename "$f")"; done
+          echo "  → Agent may have converted tables to card lists (RULE-F10 violation)"
+          ERRORS=$((ERRORS + 1))
+        else
+          echo "PASS: Table structure preserved ($REACT_TABLE_COUNT React tables >= $HTML_TABLE_COUNT HTML tables)"
+        fi
+      fi
+
+      # Check 2: React pages should not have significantly more interactive elements than HTML
+      # Detect common "extra features" pattern: search inputs, view mode toggles not in HTML
+      REACT_SEARCH=$(grep -rl 'placeholder.*[Ss]earch\|type="search"' "$SRC_DIR/pages/" "$SRC_DIR/views/" "$SRC_DIR/screens/" --include="*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+      HTML_SEARCH=$(grep -rl 'placeholder.*[Ss]earch\|type="search"' "$HTML_DIR" --include="*.html" 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$REACT_SEARCH" -gt "$HTML_SEARCH" ]; then
+        EXTRA=$((REACT_SEARCH - HTML_SEARCH))
+        echo "WARN: React has $EXTRA more search inputs than HTML prototypes (RULE-F10: no extra features)"
+        ERRORS=$((ERRORS + 1))
+      fi
+
+      # Generic view toggle detection (not tied to any specific icon library)
+      REACT_VIEWTOGGLE=$(grep -rl 'viewMode\|gridView\|listView\|view.*[Tt]oggle\|toggle.*[Vv]iew\|displayMode' "$SRC_DIR/pages/" "$SRC_DIR/views/" "$SRC_DIR/screens/" --include="*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+      HTML_VIEWTOGGLE=$(grep -rl 'viewMode\|gridView\|listView\|view.*[Tt]oggle\|toggle.*[Vv]iew\|displayMode' "$HTML_DIR" --include="*.html" 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$REACT_VIEWTOGGLE" -gt "$HTML_VIEWTOGGLE" ]; then
+        EXTRA=$((REACT_VIEWTOGGLE - HTML_VIEWTOGGLE))
+        echo "WARN: React has $EXTRA more view toggle features than HTML prototypes (RULE-F10: no extra features)"
+        ERRORS=$((ERRORS + 1))
+      fi
+
+      if [ "$ERRORS" -gt 0 ]; then
+        echo ""
+        echo "$ERRORS layout/feature mismatches found. Fix: match HTML structure exactly, do not add extra features."
+        exit 1
+      else
+        echo "PASS: Layout structures and feature set match HTML prototypes"
+      fi
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # --- DETERMINISTIC: Auto-fix lint ---
+  - id: lint-fix
+    type: deterministic
+    description: "Auto-fix ESLint issues"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+      [ -n "$FRONTEND_DIR" ] && cd "$FRONTEND_DIR" && npx eslint app/ --fix 2>&1 || true
+    on_failure: ignore
+
+  # --- DETERMINISTIC: TypeScript compile ---
+  - id: typecheck
+    type: deterministic
+    description: "Verify frontend compiles"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+      [ -n "$FRONTEND_DIR" ] && cd "$FRONTEND_DIR" && npx tsc --noEmit 2>&1
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # --- DETERMINISTIC: Build check ---
+  - id: build
+    type: deterministic
+    description: "Verify production build succeeds"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+      [ -n "$FRONTEND_DIR" ] && cd "$FRONTEND_DIR" && npm run build 2>&1
+    on_failure: route_to_agent
+    max_retries: 1
+
+  # --- DETERMINISTIC: Stop dev-watch (cleanup frontend server after implementation) ---
+  - id: stop-dev-watch
+    type: deterministic
+    description: "Stop frontend dev server started by dev-watch after implementation is complete"
+    command: |
+      cd {TARGET_DIR}
+      [ ! -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md ] && echo "No dev-watch active" && exit 0
+      PREFIX=$(grep '^PREFIX=' {STATUS_DIR}/DEV_WATCH_ACTIVE.md 2>/dev/null | head -1 | sed 's/.*=//' | tr -d ' ')
+      [ -z "$PREFIX" ] && { rm -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md; exit 0; }
+
+      if command -v pm2 &>/dev/null; then
+        pm2 delete ${PREFIX}-frontend 2>/dev/null || true
+      else
+        [ -f /tmp/dev-watch-${PREFIX}-frontend.pid ] && kill $(cat /tmp/dev-watch-${PREFIX}-frontend.pid) 2>/dev/null || true
+        rm -f /tmp/dev-watch-${PREFIX}-frontend.pid /tmp/dev-watch-${PREFIX}-frontend.log
+      fi
+
+      rm -f {STATUS_DIR}/DEV_WATCH_ACTIVE.md
+      echo "Dev-watch stopped"
+    on_failure: ignore
+
+  # --- DETERMINISTIC: Evidence check (Layer 3) ---
+  - id: evidence-check
+    type: deterministic
+    description: "Verify frontend phase produced page components and HTML coverage"
+    command: |
+      FRONTEND_DIR=""
+      for candidate in frontend frontend-web web client app; do
+        [ -d "{TARGET_DIR}/$candidate" ] && FRONTEND_DIR="{TARGET_DIR}/$candidate" && break
+      done
+
+      # Check: page components exist
+      PAGE_COUNT=$(find "$FRONTEND_DIR/app" -name '*.tsx' -path '*/pages/*' -o -name '*.tsx' -path '*/views/*' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$PAGE_COUNT" -eq 0 ]; then
+        echo "FAIL: No page/view TSX components found in frontend/app"
+        exit 1
+      fi
+
+      # Check: HTML coverage >= 80% (HTML prototypes → React pages)
+      HTML_COUNT=$(find {TARGET_DIR}/{PROJECT_DIR}/generated-screens {TARGET_DIR}/{PROJECT_DIR}/design/html {TARGET_DIR}/design/html {TARGET_DIR}/HTML -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$HTML_COUNT" -gt 0 ]; then
+        THRESHOLD=$((HTML_COUNT * 80 / 100))
+        [ "$THRESHOLD" -lt 1 ] && THRESHOLD=1
+        if [ "$PAGE_COUNT" -lt "$THRESHOLD" ]; then
+          echo "FAIL: $PAGE_COUNT React pages < $THRESHOLD (80% of $HTML_COUNT HTML prototypes)"
+          exit 1
+        fi
+        echo "PASS: $PAGE_COUNT React pages cover $HTML_COUNT HTML prototypes (>= 80%)"
+      else
+        echo "PASS: $PAGE_COUNT page components found (no HTML prototypes to compare)"
+      fi
+    on_failure: abort
+    abort_message: "Frontend phase must produce page components matching HTML prototypes. Re-run the phase."
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/frontend-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.85"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/frontend.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for frontend. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/frontend-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch]
+  mcp: [playwright, sequential-thinking]

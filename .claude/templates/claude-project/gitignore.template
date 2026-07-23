@@ -1,0 +1,7 @@
+# Claude Code secrets (keep .gitkeep)
+.claude-project/secrets/*
+!.claude-project/secrets/.gitkeep
+
+# Temporary plans (keep .gitkeep)
+.claude-project/status/temp/*
+!.claude-project/status/temp/.gitkeep

@@ -1,0 +1,51 @@
+{
+  "version": "631801009bf8",
+  "rules": {
+    "mainstream": {
+      "winAtOrAbovePct": 50,
+      "issueBelowPct": 15
+    },
+    "attendance": {
+      "captionBelowCoveragePct": 90,
+      "criticalBelowCoveragePct": 10,
+      "qualityBelowCoveragePct": 50
+    },
+    "centerGrade": {
+      "goodAtOrAbove": 3,
+      "fairAtOrAbove": 2,
+      "outOf": 4
+    },
+    "genderParity": {
+      "minGirlPct": 45,
+      "maxGirlPct": 55
+    },
+    "smallDivisionBelow": 100,
+    "baselineBands": [
+      {
+        "maxExclusive": 40,
+        "band": "Red"
+      },
+      {
+        "maxExclusive": 50,
+        "band": "Yellow"
+      },
+      {
+        "maxExclusive": 60,
+        "band": "Green"
+      },
+      {
+        "maxExclusive": 80,
+        "band": "Pink"
+      },
+      {
+        "maxExclusive": null,
+        "band": "Blue"
+      }
+    ],
+    "riskBands": {
+      "criticalAtOrAbove": 81,
+      "highAtOrAbove": 61,
+      "elevatedAtOrAbove": 31
+    }
+  }
+}

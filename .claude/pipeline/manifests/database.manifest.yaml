@@ -1,0 +1,54 @@
+name: database
+display_name: "Schema Design"
+phase_number: 4
+
+prerequisites:
+  phases: [prd]
+
+rules:
+  - ".claude/rules/common.rules.md"
+  - ".claude/rules/phases/database.rules.md"
+  - ".claude/rules/stacks/{$BACKEND}.rules.md"
+
+pre_hydrate:
+  spec_context:
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_DATABASE.md"
+    - "{TARGET_DIR}/.claude-project/docs/PROJECT_KNOWLEDGE.md"
+  phase_docs:
+    - glob: ".claude/{$BACKEND}/guides/*.md"
+      exclude: "workflow-*.md"
+      purpose: "All backend submodule patterns and conventions"
+  code_patterns:
+    - glob: "{TARGET_DIR}/backend/src/modules/*/entities/*.entity.ts"
+      sample: 2
+      optional: true
+      purpose: "Existing entity patterns to follow"
+
+skills:
+  primary: ".claude/{$BACKEND}/guides/workflow-design-database.md"
+  agents:
+    - ".claude/{$BACKEND}/agents/backend-developer.md"
+
+tools:
+  allow: [Read, Write, Edit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [sequential-thinking]
+
+gate:
+  script: ".claude/gates/database-gate.sh"
+  pass_threshold: 0.9
+  evaluation_criteria:
+    - name: schema_compiles
+      description: "TypeORM schema has no errors"
+    - name: no_orphans
+      description: "All entities in at least one relationship"
+    - name: naming_consistent
+      description: "camelCase DTOs, snake_case columns"
+    - name: indexes_present
+      description: "Lookup fields have indexes"
+    - name: migrations_run
+      description: "Migrations apply cleanly"
+
+ralph:
+  - workflow: database-qa
+    trigger: "schema issues found"

@@ -1,0 +1,115 @@
+name: test-api-phase
+description: Smoke test all routes + execute backend API tests with stability verification
+version: 4
+manifest: test-api
+
+outputs:
+  - type: smoke_results
+    glob: "{STATUS_DIR}/SMOKE_TEST_STATUS.md"
+  - type: backend_test_results
+    glob: "backend/test-results/*.xml"
+
+nodes:
+  # --- DETERMINISTIC: Pre-check ---
+  - id: pre-check
+    type: deterministic
+    description: "Verify integration is complete before testing"
+    command: |
+      # Check backend exists and compiles
+      cd {TARGET_DIR}/backend && npx tsc --noEmit 2>&1 || exit 1
+    on_failure: abort
+    abort_message: "Phase 7 (integrate) must complete first — backend must compile before testing"
+
+  # --- DETERMINISTIC: Ensure servers are running (Step 1 prerequisite) ---
+  - id: ensure-servers
+    type: deterministic
+    description: "Start backend + frontend servers via PM2"
+    command: |
+      cd {TARGET_DIR}
+      # Read ports from ecosystem.config.js
+      if [ -f ecosystem.config.js ]; then
+        BACKEND_PORT=$(node -e "const c=require('./ecosystem.config.js');console.log(c.apps?.find(a=>a.name?.includes('backend'))?.env?.PORT || 3000)")
+        FRONTEND_PORT=$(node -e "const c=require('./ecosystem.config.js');const a=c.apps?.find(a=>a.name?.includes('frontend'));console.log(a?.env?.VITE_DEV_PORT || a?.env?.PORT || 5173)")
+      else
+        BACKEND_PORT=3000
+        FRONTEND_PORT=5173
+      fi
+
+      BACKEND_URL="http://localhost:$BACKEND_PORT/api"
+      FRONTEND_URL="http://localhost:$FRONTEND_PORT"
+
+      # Health check backend
+      for i in 1 2 3 4 5; do
+        curl -sf "$BACKEND_URL" >/dev/null 2>&1 && break
+        [ $i -eq 5 ] && { echo "Backend not reachable at $BACKEND_URL"; exit 1; }
+        sleep 2
+      done
+
+      # Health check frontend
+      for i in 1 2 3 4 5; do
+        curl -sf "$FRONTEND_URL" >/dev/null 2>&1 && break
+        [ $i -eq 5 ] && { echo "Frontend not reachable at $FRONTEND_URL"; exit 1; }
+        sleep 2
+      done
+
+      echo "BACKEND_URL=$BACKEND_URL"
+      echo "FRONTEND_URL=$FRONTEND_URL"
+      echo "Servers healthy"
+    on_failure: abort
+    abort_message: "Servers must be running. Start with: pm2 start ecosystem.config.js"
+
+  # --- AGENTIC: Smoke test all routes (Step 1) ---
+  - id: smoke-test
+    type: agentic
+    skill: "skills/qa/test-smoke/SKILL.md"
+    context:
+      additional_read:
+        - "{STATUS_DIR}/routes.yaml"
+    prompt: |
+      Visit all routes from routes.yaml via playwright-cli. For each route:
+      1. Navigate and take snapshot
+      2. Check for console errors (TypeError, ReferenceError, uncaught exceptions)
+      3. Verify content renders (root element has visible children)
+      4. Check for unexpected network errors (401 on public route, 500)
+      Smoke test is BLOCKING — all routes must pass before backend tests run.
+      Generate SMOKE_TEST_STATUS.md with results.
+
+  # --- DETERMINISTIC: Run backend tests (Step 2) ---
+  - id: run-backend-tests
+    type: deterministic
+    description: "Execute backend API tests"
+    command: |
+      cd {TARGET_DIR}/backend && \
+      if grep -q '"test:e2e"' package.json 2>/dev/null; then
+        npm run test:e2e -- --forceExit 2>&1
+      else
+        npm test -- --forceExit 2>&1
+      fi
+    on_failure: route_to_agent
+    max_retries: 2
+
+  # --- DETERMINISTIC: Quality gate ---
+  - id: gate
+    type: deterministic
+    command: "bash {CLAUDE_DIR}/gates/test-api-gate.sh {TARGET_DIR}"
+    parse: json
+    pass_condition: ".score >= 0.9"
+
+  - id: verify-gate-proof
+    type: deterministic
+    command: |
+      PROOF="{TARGET_DIR}/{GATE_PROOFS_DIR}/test-api.proof"
+      if [ ! -f "$PROOF" ]; then
+        echo "FATAL: Gate proof missing for test-api. Gate script never executed."
+        echo "Run: bash {CLAUDE_DIR}/gates/test-api-gate.sh {TARGET_DIR}"
+        exit 1
+      fi
+      cat "$PROOF"
+      echo ""
+      echo "Gate proof verified. Status updates applied by gate-runner."
+    on_failure: abort
+
+tool_profile:
+  allow: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob]
+  deny: [WebSearch, WebFetch]
+  mcp: [playwright, sequential-thinking]

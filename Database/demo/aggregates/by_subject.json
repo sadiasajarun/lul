@@ -1,0 +1,33 @@
+{
+  "generated_by": "scripts/generate-demo-db.mjs",
+  "source": "Database/demo",
+  "subject_averages": {
+    "abal": {
+      "Bangla": 54.52,
+      "Mathematics": 50.68,
+      "English": 46.64,
+      "Science": 42.59,
+      "BGS": 48.66,
+      "Life Skills": 34.47,
+      "Religion": 52.37
+    },
+    "catchup": {
+      "Bangla": 54.7,
+      "Mathematics": 50.4,
+      "English": 46.67,
+      "Science": 42.53,
+      "BGS": 48.48,
+      "Life Skills": 34.62,
+      "Religion": 52.55
+    },
+    "innovation": {
+      "Bangla": 55.42,
+      "Mathematics": 49.35,
+      "English": 45.85,
+      "Science": 42.63,
+      "BGS": 47.67,
+      "Life Skills": 33.93,
+      "Religion": 51.8
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "generated_by": "scripts/aggregate.mjs",
+  "source": "Database/*.csv + summary_dataset.json",
+  "programs": {
+    "abal": {
+      "students": 55200,
+      "boys": 24868,
+      "girls": 30323,
+      "mainstreamed": 21006,
+      "mainstream_rate": 0.38054347826086954,
+      "dropout_reasons": {
+        "Others": 3067,
+        "Inattentive": 4522,
+        "Poverty": 17291,
+        "Family Awareness": 3922,
+        "Distance": 1153,
+        "Working child": 244,
+        "Migration": 356
+      },
+      "attendance": {
+        "recorded_mean": 86.43338906241861,
+        "coverage": 0.7054892256561242,
+        "recorded_count": 39058,
+        "raw_mean_including_zeros": 60.977824720480214,
+        "summary_dataset_value": 60.98
+      }
+    },
+    "catchup": {
+      "students": 191555,
+      "boys": 84478,
+      "girls": 107031,
+      "mainstreamed": 188223,
+      "mainstream_rate": 0.982605517997442,
+      "dropout_reasons": {
+        "Poverty": 46755,
+        "Family Awareness": 11984,
+        "Others": 20602,
+        "Inattentive": 4969,
+        "Migration": 520,
+        "Distance": 5259,
+        "Working child": 614
+      },
+      "attendance": {
+        "recorded_mean": 86.53708707671038,
+        "coverage": 0.015107853578065945,
+        "recorded_count": 2894,
+        "raw_mean_including_zeros": 1.3073896406272831,
+        "summary_dataset_value": 1.31
+      }
+    },
+    "innovation": {
+      "students": 3877,
+      "boys": 1981,
+      "girls": 1895,
+      "mainstreamed": 385,
+      "mainstream_rate": 0.09930358524632447,
+      "dropout_reasons": {
+        "Others": 112,
+        "Family Awareness": 9,
+        "Poverty": 89,
+        "Inattentive": 1,
+        "Migration": 17,
+        "Working child": 6,
+        "Distance": 1
+      },
+      "attendance": {
+        "recorded_mean": 97.02,
+        "coverage": 0.017539334537013153,
+        "recorded_count": 68,
+        "raw_mean_including_zeros": 1.7016662367810163,
+        "summary_dataset_value": 1.7
+      }
+    }
+  },
+  "totals": {
+    "students": 250632,
+    "teachers": 3397,
+    "programs": 3,
+    "mainstreamed": 209614,
+    "mainstream_rate": 0.8363417281113346
+  }
+}
