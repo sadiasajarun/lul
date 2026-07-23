@@ -16,7 +16,10 @@ function figmaAssetResolver() {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves this project site under /lul/, so production assets must be prefixed with it.
+  // Dev server stays at '/'. Change this if the repo (and thus the Pages path) is ever renamed.
+  base: command === 'build' ? '/lul/' : '/',
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
@@ -33,4 +36,4 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
-})
+}))
