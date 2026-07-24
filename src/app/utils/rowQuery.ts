@@ -77,7 +77,7 @@ export function isRowQuery(prompt: string): boolean {
   if (isMEQuery(p)) return true;
   // A centre/division named with a metric or ranking word → a group question (e.g. "worse center in
   // bangla marks", "lowest attendance centre") — route to the row engine, not the LLM/subject branch.
-  if (/\b(centre|center|division|district)s?\b/.test(p) && /\b(marks?|score|subject|attendance|risk|dropout|nutrition|best|worst|worse|lowest|highest|top|bottom|most|least|rank|bangla|math|english|science|religion|life ?skill|bgs)\b/.test(p)) return true;
+  if (/\b(centre|center|division|district)s?\b/.test(p) && /\b(marks?|score|subject|result|attendance|risk|dropout|nutrition|concern|weak|bad|poor|struggl|best|worst|worse|lowest|highest|top|bottom|most|least|rank|bangla|math|english|science|religion|life ?skill|bgs)\b/.test(p)) return true;
   if (/result sheet|report card|mark ?sheet|marksheet/.test(p)) return true;
   const perStudent = /\bstudents?\b|\blearners?\b|\bpupils?\b|\bchild(ren)?\b/.test(p);
   const ranking = /\btop\s*\d+\b|\b\d+\s*(?:st|nd|rd|th)\b|\b(top|bottom|best|worst|highest|lowest|strongest|weakest|most|least|fewest)\b/.test(p);
@@ -233,6 +233,63 @@ export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse
     for (const k of Object.keys(SUBJECTS)) if (p.includes(k)) { subject = SUBJECTS[k]; break; }
     const avgAttendance = /attendance|present|absent/.test(p);
     const avgScore = !avgAttendance && (subject !== null || /\b(score|marks?|result|grade|performance|perform)\b/.test(p)) && !/\brisk\b/.test(p);
+
+    // ── ALL-SUBJECTS CONCERN: "which centre is weak in all subjects / needs serious concern" ──
+    // Rank centres by the mean of their per-subject averages (weakest first), with every subject shown.
+    const allSubjectsConcern = !subject && !avgAttendance && !/\brisk\b/.test(p) &&
+      /\ball ?subjects?\b|every subject|across (all )?subject|each subject|serious concern|\bconcern\b|weak (in|across|overall|everywhere)|(bad|poor) (result|marks?|score|performance|in|across)|struggl|underperform/.test(p);
+    if (allSubjectsConcern) {
+      const { rows: aRows } = await loadAssessments();
+      const grp = new Map(filtered.map((r) => [r.student_id, r[dimKey]] as const));
+      const bySubject = new Map<string, Map<string, { sum: number; n: number }>>();
+      const subjects = new Set<string>();
+      for (const a of aRows) {
+        const g = grp.get(a.student_id);
+        if (g === undefined || !a.subject) continue;
+        subjects.add(a.subject);
+        const v = Number(a.latest);
+        if (!Number.isFinite(v)) continue;
+        if (!bySubject.has(g)) bySubject.set(g, new Map());
+        const sm = bySubject.get(g)!;
+        const cur = sm.get(a.subject) ?? { sum: 0, n: 0 };
+        cur.sum += v; cur.n += 1; sm.set(a.subject, cur);
+      }
+      const subjList = [...subjects].sort();
+      const groups = [...bySubject.entries()].map(([g, sm]) => {
+        const subjAvgs: Record<string, number> = {};
+        let sum = 0, cnt = 0;
+        for (const s of subjList) {
+          const a = sm.get(s);
+          const avg = a && a.n ? Math.round((a.sum / a.n) * 10) / 10 : 0;
+          subjAvgs[s] = avg;
+          if (a && a.n) { sum += avg; cnt++; }
+        }
+        return { g, overall: cnt ? Math.round((sum / cnt) * 10) / 10 : 0, subjAvgs };
+      });
+      if (!groups.length) return { summary: `* No subject data to analyse by ${dimLabelG.toLowerCase()} in scope (${scope}).`, widgets: [] };
+      groups.sort((a, b) => a.overall - b.overall); // weakest overall first
+      const show = groups.slice(0, 12);
+      const worst = groups[0];
+      const worstDetail = subjList.map((s) => `${s} ${worst.subjAvgs[s]}`).join(", ");
+      const tableData = show.map((e, i) => {
+        const row: Record<string, unknown> = { Rank: i + 1, [dimLabelG]: nameOfG(e.g), Overall: e.overall };
+        for (const s of subjList) row[s] = e.subjAvgs[s];
+        return row;
+      });
+      return {
+        summary: `* **${nameOfG(worst.g)}** is the weakest across all subjects — overall **${worst.overall}** (${worstDetail}) — the most serious concern.\n* All ${groups.length} ${dimLabelG.toLowerCase()}s ranked weakest-first; the per-subject breakdown below shows they are low across the board.`,
+        widgets: [
+          { type: "metrics", title: "Most concern", width: "full", metricsList: [
+            { label: `Weakest ${dimLabelG.toLowerCase()}`, value: nameOfG(worst.g), sub: `overall ${worst.overall} across ${subjList.length} subjects`, trendDirection: "down" },
+            { label: `${dimLabelG}s ranked`, value: String(groups.length), sub: scope },
+          ]},
+          { type: "chart", title: `Overall subject average by ${dimLabelG.toLowerCase()} (weakest first)`, width: "full", chartType: "bar", xAxisKey: "name", seriesKeys: ["Overall"],
+            data: show.map((e) => ({ name: nameOfG(e.g).length > 16 ? nameOfG(e.g).slice(0, 15) + "…" : nameOfG(e.g), Overall: e.overall })) },
+          { type: "table", title: `${dimLabelG}s by all-subject performance (weakest first)`, width: "full", tableHeaders: ["Rank", dimLabelG, "Overall", ...subjList], data: tableData },
+        ],
+      };
+    }
+
     if (avgAttendance || avgScore) {
       const metricLabel = avgAttendance ? "Avg attendance %" : subject ? `${subject} avg` : "Avg score";
       const unit = avgAttendance ? "%" : "";
@@ -261,7 +318,7 @@ export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse
       }
       const rowsA = [...agg.entries()].map(([g, s]) => ({ g, avg: Math.round((s.sum / s.n) * 10) / 10, n: s.n }));
       if (!rowsA.length) return { summary: `* No ${subject ?? ""} data to average by ${dimLabelG.toLowerCase()} in scope (${scope}).`, widgets: [] };
-      const asc = /\b(lowest|worst|worse|least|bottom|poorest|weakest)\b/.test(p);
+      const asc = /\b(lowest|worst|worse|least|bottom|poorest|weakest|weak|bad|poor|struggl|concern)\b/.test(p);
       rowsA.sort((a, b) => asc ? a.avg - b.avg : b.avg - a.avg);
       const showA = rowsA.slice(0, 12);
       const topA = rowsA[0];
