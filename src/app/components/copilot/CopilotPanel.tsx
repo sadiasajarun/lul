@@ -8,7 +8,7 @@ import type { Lang } from "../../lib/fmt";
 import { ChatView } from "../../views/ChatView";
 import { SharePopup } from "./SharePopup";
 import {
-  conversationToMarkdown, conversationToCsv, latestExchangeToHtml, conversationSummary, download, printHtml,
+  conversationToMarkdown, conversationToCsv, conversationToHtml, conversationSummary, download, printHtml,
 } from "../../utils/chatExport";
 
 /**
@@ -220,7 +220,7 @@ export function CopilotPanel({
                     <Row icon={ScrollText} label="Generate summary" onClick={() => { setSummary(conversationSummary(activeConvo)); setMenu(false); }} />
                     <div className="my-1 border-t border-[#eceef9]" />
                     <div className="px-3 py-1 text-[10px] font-bold text-[var(--oo-muted)] uppercase tracking-wider">Export conversation</div>
-                    <Row icon={Printer} label="As PDF (latest answer)" onClick={() => { printHtml(latestExchangeToHtml(activeConvo), activeConvo.title); setMenu(false); }} />
+                    <Row icon={Printer} label="As PDF (full chat)" onClick={() => { printHtml(conversationToHtml(activeConvo), activeConvo.title); setMenu(false); }} />
                     <Row icon={Table2} label="As Excel (CSV)" onClick={() => { download("conversation.csv", conversationToCsv(activeConvo), "text/csv"); setMenu(false); }} />
                     <Row icon={FileText} label="As Markdown" onClick={() => { download("conversation.md", conversationToMarkdown(activeConvo), "text/markdown"); setMenu(false); }} />
                     <div className="my-1 border-t border-[#eceef9]" />
