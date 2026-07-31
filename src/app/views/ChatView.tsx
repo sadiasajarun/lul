@@ -298,8 +298,12 @@ function DashboardResult({ msg, index, question, lang, onAsk, onRegenerate }: {
           <Info size={22} />
         </div>
         <div className="max-w-md">
-          <div className="text-[15px] font-bold text-[var(--oo-heading)] mb-1">{t.refuseTitle}</div>
-          <p className="text-[12.5px] text-[var(--oo-text)] leading-relaxed">{t.refuseBody}</p>
+          {/* Show the actual message (rate-limit notice, or the specific reason the data can't
+              answer) rather than a generic string. Falls back to the canned title if empty. */}
+          <div className="text-[15px] font-bold text-[var(--oo-heading)] mb-1">{msg.text || t.refuseTitle}</div>
+          {msg.followups && msg.followups.length > 0 && (
+            <p className="text-[12.5px] text-[var(--oo-text)] leading-relaxed">{t.refuseBody}</p>
+          )}
         </div>
         {msg.followups && msg.followups.length > 0 && (
           <div className="flex flex-wrap gap-2 justify-center mt-1">

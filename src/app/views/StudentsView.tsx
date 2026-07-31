@@ -1,25 +1,37 @@
+import { useState, useEffect } from "react";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { fmtInt } from "../lib/fmt";
 import { narrate } from "../utils/insights";
-import { programs, totals, PROGRAM_KEYS, PROGRAM_LABELS } from "../lib/aggregates";
 import { Card, ChartTooltip, Insight, DataNote } from "./dashShared";
-import risk from "../../../Database/demo/aggregates/risk.json";
+import { getDataSource } from "../lib/db";
+import { loadStudents, type StudentsData } from "../lib/db/students-query";
 
 /**
- * STUDENTS tab — ported from the prototype, wired to real aggregates. Status (mainstreamed vs still
- * enrolled), gender by programme, and why children leave (dropout reasons). The prototype's per-student
- * "children who may leave" risk score isn't computable from this data — we show the real driver instead.
+ * STUDENTS section — wired to the REAL data via the engine (loadStudents). Mainstreamed status,
+ * gender by programme, dropout reasons, and a real early-warning list (signals from actual dropout
+ * reason + recorded attendance + marks; the old per-student risk_score/cash_missed were synthetic).
  */
 
 const compact = (v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v));
+const girlPct = (r: { Boys: number; Girls: number }) => {
+  const t = r.Boys + r.Girls;
+  return t ? Math.round((r.Girls / t) * 1000) / 10 : 0;
+};
 
 export function StudentsView() {
-  const mainstreamed = totals.mainstreamed;
-  const total = totals.students;
-  const remaining = total - mainstreamed;
-  const rate = Math.round((mainstreamed / total) * 1000) / 10;
+  const [d, setD] = useState<StudentsData | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const ds = getDataSource();
+    loadStudents((sql) => ds.query(sql)).then((r) => { if (!cancelled) setD(r); }).catch((e) => console.error("students load failed", e));
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!d) return <div style={{ padding: 24, color: "var(--oo-muted)", fontSize: 13 }}>Loading students…</div>;
+
+  const { total, mainstreamed, remaining, rate, risk } = d;
   const statusData = [
     { name: "Mainstreamed", value: mainstreamed, color: "var(--series-1)" },
     { name: "Not yet mainstreamed", value: remaining, color: "var(--series-3)" },
@@ -30,26 +42,25 @@ export function StudentsView() {
     { mainstreamed, total, remaining, rate }
   );
 
-  const genderData = PROGRAM_KEYS.map((k) => ({ name: PROGRAM_LABELS[k], Boys: programs[k].boys, Girls: programs[k].girls }));
-  const girlPct = (k: (typeof PROGRAM_KEYS)[number]) => Math.round((programs[k].girls / (programs[k].boys + programs[k].girls)) * 1000) / 10;
-  const genderPayload = { catchup: girlPct("catchup"), abal: girlPct("abal"), innovation: girlPct("innovation") };
+  const genderData = d.genderByProgramme;
+  const genderPcts = genderData.map((g) => girlPct(g));
   const genderInsight = narrate(
-    `Girls are at or above parity in every programme — Catchup ${genderPayload.catchup}%, ABAL ${genderPayload.abal}% and ` +
-      `Innovation ${genderPayload.innovation}%. Equity of access is a genuine strength.`,
-    genderPayload
+    `Gender balance by programme — ${genderData.map((g) => `${g.name} ${girlPct(g)}% girls`).join(", ")}. ` +
+      `Girls are at or near parity across the programme.`,
+    { rows: genderData, pcts: genderPcts }
   );
 
-  const reasons: Record<string, number> = {};
-  PROGRAM_KEYS.forEach((k) => Object.entries(programs[k].dropout_reasons).forEach(([r, n]) => (reasons[r] = (reasons[r] ?? 0) + n)));
-  const dropoutData = Object.entries(reasons).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count);
-  const totalDropouts = dropoutData.reduce((s, d) => s + d.count, 0);
-  const poverty = reasons["Poverty"] ?? 0;
-  const povertyShare = Math.round((poverty / totalDropouts) * 1000) / 10;
+  const dropoutData = d.dropoutReasons;
+  const totalDropouts = d.totalDropouts;
+  const poverty = d.poverty;
+  const povertyShare = totalDropouts ? Math.round((poverty / totalDropouts) * 1000) / 10 : 0;
   const dropoutInsight = narrate(
     `Poverty is the leading reason children leave — ${fmtInt(poverty)} learners, ${povertyShare}% of the ` +
       `${fmtInt(totalDropouts)} recorded dropouts. It outweighs every other reason combined.`,
     { poverty, totalDropouts, povertyShare, rows: dropoutData }
   );
+
+  const flagged = risk.bands.Critical + risk.bands.High + risk.bands.Elevated;
 
   return (
     <>
@@ -89,33 +100,32 @@ export function StudentsView() {
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <Card title="Children who may leave school" sub={`${risk.bands.Critical + risk.bands.High + risk.bands.Elevated} flagged of ${risk.active.toLocaleString()} active learners`}>
+        <Card title="Early warning — learners showing dropout signals" sub={`${fmtInt(flagged)} flagged of ${fmtInt(risk.nonMainstreamed)} not-yet-mainstreamed learners`}>
           <div className="cbands">
-            <div className="cband"><span className="dot" style={{ background: "var(--oo-danger)" }} /><span className="n tnum">{risk.bands.Critical}</span><span className="lb">Critical</span></div>
-            <div className="cband"><span className="dot" style={{ background: "var(--oo-warning)" }} /><span className="n tnum">{risk.bands.High}</span><span className="lb">High</span></div>
-            <div className="cband"><span className="dot" style={{ background: "#E6B800" }} /><span className="n tnum">{risk.bands.Elevated}</span><span className="lb">Elevated</span></div>
+            <div className="cband"><span className="dot" style={{ background: "var(--oo-danger)" }} /><span className="n tnum">{fmtInt(risk.bands.Critical)}</span><span className="lb">Critical (3 signals)</span></div>
+            <div className="cband"><span className="dot" style={{ background: "var(--oo-warning)" }} /><span className="n tnum">{fmtInt(risk.bands.High)}</span><span className="lb">High (2)</span></div>
+            <div className="cband"><span className="dot" style={{ background: "#E6B800" }} /><span className="n tnum">{fmtInt(risk.bands.Elevated)}</span><span className="lb">Elevated (1)</span></div>
           </div>
           <div style={{ marginTop: 10 }}>
-            {risk.top.slice(0, 8).map((s) => {
-              const c = s.risk_band === "Critical" ? "var(--oo-danger)" : s.risk_band === "High" ? "var(--oo-warning)" : "#E6B800";
+            {risk.top.map((s) => {
+              const c = s.signals >= 3 ? "var(--oo-danger)" : s.signals === 2 ? "var(--oo-warning)" : "#E6B800";
               return (
                 <div className="crow" key={s.student_id}>
-                  <div className="cscore" style={{ background: c }}>{s.risk_score}<small>{s.risk_band.slice(0, 4).toUpperCase()}</small></div>
+                  <div className="cscore" style={{ background: c }}>{s.signals}<small>SIG</small></div>
                   <div>
-                    <div className="cname">{s.name}</div>
-                    <div className="cmeta">{s.program} · {s.division} · <b>{s.reason}</b></div>
+                    <div className="cname">{s.student_name || s.student_id}</div>
+                    <div className="cmeta">{s.programme} · {s.division ?? "—"}{s.reason ? <> · <b>{s.reason}</b></> : ""}</div>
                   </div>
                   <div className="cfactors">
-                    <span className="cfac">Attendance {s.attendance_pct}%</span>
-                    <span className="cfac">Score {s.latest_avg_score}</span>
-                    {s.cash_missed > 0 && <span className="cfac bad">{s.cash_missed} cash missed</span>}
+                    {s.attendance != null && <span className="cfac">Attendance {s.attendance}%</span>}
+                    {s.avg_mark != null && <span className="cfac">Score {s.avg_mark}</span>}
                   </div>
                 </div>
               );
             })}
           </div>
-          <Insight text={`${risk.bands.High + risk.bands.Critical} learners are High or Critical risk of dropping out — falling attendance, low scores and missed cash payments are the strongest signals. Contact the top of this list first.`} />
-          <DataNote>Risk is scored per learner from attendance, latest scores and missed cash payments — now that the demo data joins on student_id, this early-warning list is real.</DataNote>
+          <Insight text={`${fmtInt(risk.bands.High + risk.bands.Critical)} learners show 2+ dropout signals (recorded dropout reason, attendance below 50%, or marks below 20). Contact the top of this list first.`} />
+          <DataNote>Real early-warning: signals counted from the actual dropout reason, recorded attendance and marks — no synthetic score. Attendance and marks are coverage-limited, so a missing signal can mean "not recorded" rather than "fine".</DataNote>
         </Card>
       </div>
 
@@ -128,8 +138,8 @@ export function StudentsView() {
               <YAxis tick={{ fill: "var(--oo-text)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={compact} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--oo-canvas)" }} />
               <Bar dataKey="count" name="Learners" radius={[3, 3, 0, 0]}>
-                {dropoutData.map((d, i) => (
-                  <Cell key={i} fill={d.reason === "Poverty" ? "var(--oo-danger)" : "var(--series-3)"} />
+                {dropoutData.map((d2, i) => (
+                  <Cell key={i} fill={d2.reason === "Poverty" ? "var(--oo-danger)" : "var(--series-3)"} />
                 ))}
               </Bar>
             </BarChart>

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import type { ChatMsg, Conversation } from "../../lib/types";
 import type { Lang } from "../../lib/fmt";
+import type { DataMode } from "../../lib/db";
 import { ChatView } from "../../views/ChatView";
 import { SharePopup } from "./SharePopup";
 import {
@@ -34,6 +35,9 @@ export function CopilotPanel({
   onArchive,
   onDelete,
   onClose,
+  dataMode,
+  switchingMode,
+  onSwitchMode,
 }: {
   conversations: Conversation[];
   activeConvo: Conversation;
@@ -41,6 +45,9 @@ export function CopilotPanel({
   lang: Lang;
   isThinking: boolean;
   composer: ReactNode;
+  dataMode: DataMode;
+  switchingMode: boolean;
+  onSwitchMode: (m: DataMode) => void;
   onAsk: (q: string) => void;
   onRegenerate: (index: number) => void;
   onNewChat: () => void;
@@ -92,10 +99,38 @@ export function CopilotPanel({
           </span>
         </div>
         <div className="flex-1" />
+        {/* Data-source switch — same control as the dashboard: flips the copilot between real data and
+            the gap-filled preview. The chat re-queries the newly-loaded tables on the next question. */}
+        {switchingMode && <span className="text-[11px] text-[var(--oo-muted)]">loading…</span>}
+        <div className="flex items-center border border-[#e3e6f8] rounded-md overflow-hidden mr-1" role="group" aria-label="Data source">
+          {(["real", "tuned"] as DataMode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => onSwitchMode(m)}
+              disabled={switchingMode}
+              title={m === "real" ? "Real programme data (honest, with gaps)" : "Preview — gaps filled with estimated values"}
+              className={`text-[11px] font-bold px-2.5 py-1.5 transition-colors cursor-pointer disabled:opacity-60 ${
+                dataMode === m
+                  ? m === "tuned" ? "bg-[var(--oo-warning)] text-white" : "bg-[var(--oo-primary)] text-white"
+                  : "bg-white text-[var(--oo-muted)] hover:text-[var(--oo-heading)]"
+              }`}
+            >
+              {m === "real" ? "Real" : "Preview"}
+            </button>
+          ))}
+        </div>
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold" style={{ background: "linear-gradient(135deg, #f0a, #6b62e6)" }}>
           A
         </div>
       </div>
+
+      {/* Preview-mode ribbon — mirrors the dashboard so users know answers are estimated in this mode. */}
+      {dataMode === "tuned" && (
+        <div className="shrink-0 px-4 py-2 text-[12px] flex items-center gap-2 border-b" style={{ background: "color-mix(in srgb, var(--oo-warning) 14%, white)", borderColor: "color-mix(in srgb, var(--oo-warning) 40%, transparent)", color: "var(--oo-heading)" }}>
+          <span>⚠️</span>
+          <span><b>Preview mode</b> — attendance, marks and status are <b>estimated</b> where the real data was blank. For demonstration only, not for decisions.</span>
+        </div>
+      )}
 
       {/* ── Body ────────────────────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 w-full max-w-[1800px] mx-auto px-4 py-4 flex gap-4">

@@ -1,17 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Search, Sparkles, Users, GitCompare,
-  BarChart2, School, BookOpen,
+  BarChart2,
   MapPin, Layers, FileText, ChevronLeft, ChevronRight,
 } from "lucide-react";
-import { queryDashboardData, getLastQueryMeta } from "./utils/openAIHelper";
-import type { QueryMeta, DynamicDashboardResponse } from "./utils/openAIHelper";
-import type { ChatMsg, ApiProvider, Conversation } from "./lib/types";
+import { askViaPipeline, type AskResult, type HistoryTurn } from "./lib/ai/ask-browser";
+import { getDataMode, setDataSourceMode, type DataMode } from "./lib/db";
+import type { DynamicDashboardResponse } from "./utils/openAIHelper";
+import type { ChatMsg, Conversation } from "./lib/types";
 import { totals } from "./lib/aggregates";
 import { fmtInt, type Lang } from "./lib/fmt";
-import { getCachedAnswer } from "./utils/learningStore";
-import { validateNarrative, templateSummary } from "./utils/insights";
-import { inferLens, inferSeverity, deriveFollowups, coverageCaption, isRefusal } from "./utils/chatMeta";
+import { inferLens, inferSeverity, deriveFollowups } from "./utils/chatMeta";
 import { DashboardView } from "./views/DashboardView";
 import { CopilotPanel } from "./components/copilot/CopilotPanel";
 
@@ -38,24 +37,23 @@ const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
   },
 ];
 
-// ── .env AI config (deployment / provider-swap control) ──────────────────────────────────────────
-const ENV_PROVIDER = import.meta.env.VITE_AI_PROVIDER as ApiProvider | undefined;
-const ENV_GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-const ENV_OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY || "";
-// ".env fully configures a provider" when it names one AND supplies that provider's key. Then it
-// WINS over Settings, so swapping Gemini ↔ OpenAI is a pure .env change (VITE_AI_PROVIDER + the key).
-const ENV_LOCKED: ApiProvider | null =
-  ENV_PROVIDER === "openai" && ENV_OPENAI_KEY ? "openai" :
-  ENV_PROVIDER === "gemini" && ENV_GEMINI_KEY ? "gemini" : null;
-
 export default function App() {
   const [prompt, setPrompt] = useState("");
-  // AI provider config is fully env-driven (.env → VITE_AI_PROVIDER + key + model). No in-app switch.
-  const apiProvider: ApiProvider = ENV_LOCKED || ENV_PROVIDER || "gemini";
-  const geminiApiKey = ENV_GEMINI_KEY;
-  const openaiApiKey = ENV_OPENAI_KEY;
+  // AI keys + provider failover (Gemini → OpenAI on rate-limit) are handled inside askViaPipeline,
+  // driven by .env (VITE_GEMINI_API_KEY / VITE_OPENAI_API_KEY). No key plumbing needed here.
 
   const [isThinking, setIsThinking] = useState(false);
+
+  // Data mode: switch the whole app (dashboards + chat) between REAL and gap-filled PREVIEW data.
+  const [dataMode, setDataMode] = useState<DataMode>(() => getDataMode());
+  const [switchingMode, setSwitchingMode] = useState(false);
+  const switchDataMode = async (m: DataMode) => {
+    if (m === dataMode || switchingMode) return;
+    setSwitchingMode(true);
+    try { await setDataSourceMode(m); setDataMode(m); }
+    catch (e) { console.error("data mode switch failed", e); }
+    finally { setSwitchingMode(false); }
+  };
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("lang") as Lang) || "en");
   const [collapsed, setCollapsed] = useState(false);
   const [placeholder, setPlaceholder] = useState<string | null>(null);
@@ -170,34 +168,27 @@ export default function App() {
   // ── Query → grounded message ─────────────────────────────────────────────────
   const stamp = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  const buildAiMessage = (text: string, result: DynamicDashboardResponse, meta: QueryMeta, wasCached: boolean): ChatMsg => {
-    const widgets = result.widgets ?? [];
-    const refused = isRefusal(result.summary, widgets);
-    // Validate against widgets AND the retrieved facts, so a text-only answer (no widgets) whose
-    // numbers come from the fact pack still passes. The local engine is deterministic → trusted.
-    const groundPayload = { widgets, facts: meta.facts };
-    const grounded = !refused && (meta.engine === "local" || (!!result.summary && validateNarrative(result.summary, groundPayload)));
-    const displayText = refused ? result.summary : grounded ? result.summary : templateSummary(widgets, lang);
-    const withheld = !refused && !grounded && widgets.length > 0;
-    const lens = refused ? "context" : withheld ? "quality" : inferLens(displayText, widgets);
-    const severity = refused ? "info" : withheld ? "warn" : inferSeverity(displayText, lens);
+  // Map a pipeline result → chat message. The pipeline is grounded by construction (every number
+  // comes straight from the SQL result over the semantic views), so there is no narrative guardrail
+  // to run here; a refusal simply carries no widgets. The executed SQL is attached as the source.
+  const buildPipelineMessage = (text: string, res: AskResult): ChatMsg => {
+    const response = res.response as DynamicDashboardResponse;
+    const widgets = response.widgets ?? [];
+    const summary = response.summary;
+    const lens = res.refused ? "context" : inferLens(summary, widgets);
+    const severity = res.rateLimited ? "warn" : res.refused ? "info" : inferSeverity(summary, lens);
     return {
       role: "ai",
-      text: displayText,
+      text: summary,
       timestamp: stamp(),
-      response: refused ? null : result,
+      response: res.refused ? null : response,
       lens,
       severity,
-      grounded,
-      withheld,
-      cached: wasCached && !meta.fellBack,
-      refused,
+      grounded: !res.refused,
+      refused: res.refused,
       followups: deriveFollowups(text, widgets),
-      coverage: refused ? undefined : coverageCaption(displayText, widgets),
-      engine: meta.engine,
-      fellBack: meta.fellBack,
-      sources: meta.sources,
-      facts: meta.facts,
+      engine: res.provider === "openai" ? "openai" : "gemini",
+      sources: res.sql ? [res.sql] : undefined,
     };
   };
 
@@ -222,16 +213,14 @@ export default function App() {
     setIsThinking(true);
     setPrompt("");
 
-    const wasCached = !!getCachedAnswer(text);
     try {
-      const activeKey = apiProvider === "gemini" ? geminiApiKey : openaiApiKey;
-      // Last few Q&A turns as context so follow-ups (e.g. "which student got the worst one?") resolve.
-      const history = messages
+      // Recent turns (with the SQL each ran) so follow-ups like "this student", "and for girls?" resolve.
+      const history: HistoryTurn[] = messages
         .filter((m) => m.role === "user" || m.response !== undefined || m.refused)
         .slice(-6)
-        .map((m) => ({ role: m.role === "user" ? ("user" as const) : ("ai" as const), text: m.text }));
-      const result = await queryDashboardData(text, apiProvider, activeKey, false, history);
-      appendAi(buildAiMessage(text, result, getLastQueryMeta(), wasCached));
+        .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null }));
+      const res = await askViaPipeline(text, history);
+      appendAi(buildPipelineMessage(text, res));
     } catch (e) {
       console.error("AI query error:", e);
       appendAi({
@@ -250,25 +239,21 @@ export default function App() {
     const targetId = activeConvo.id;
     const msgs = activeConvo.messages;
     let userText = "";
-    let userIdx = -1;
     for (let i = index - 1; i >= 0; i--) {
       if (msgs[i].role === "user") {
         userText = msgs[i].text;
-        userIdx = i;
         break;
       }
     }
     if (!userText) return;
     setIsThinking(true);
     try {
-      const activeKey = apiProvider === "gemini" ? geminiApiKey : openaiApiKey;
-      const history = msgs
-        .slice(0, userIdx)
+      const history: HistoryTurn[] = msgs.slice(0, index)
         .filter((m) => m.role === "user" || m.response !== undefined || m.refused)
         .slice(-6)
-        .map((m) => ({ role: m.role === "user" ? ("user" as const) : ("ai" as const), text: m.text }));
-      const result = await queryDashboardData(userText, apiProvider, activeKey, true, history);
-      const ai = buildAiMessage(userText, result, getLastQueryMeta(), false);
+        .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null }));
+      const res = await askViaPipeline(userText, history);
+      const ai = buildPipelineMessage(userText, res);
       setConversations((prev) => prev.map((c) => (c.id === targetId ? { ...c, messages: c.messages.map((m, i) => (i === index ? ai : m)) } : c)));
     } catch (e) {
       console.error("Regenerate error:", e);
@@ -402,16 +387,25 @@ export default function App() {
           <div className="flex-1" />
 
           <div className="flex items-center gap-2">
-            {[
-              { label: `${totals.programs} Programmes`, icon: School },
-              { label: `${fmtInt(totals.students)} Students`, icon: Users },
-              { label: `${fmtInt(totals.teachers)} Teachers`, icon: BookOpen },
-            ].map(({ label, icon: Icon }) => (
-              <div key={label} className="hidden xl:flex items-center gap-1.5 bg-white border border-[var(--oo-border)] rounded-md px-3 py-1.5">
-                <Icon size={11} className="text-[var(--oo-muted)]" />
-                <span className="text-[11px] text-[var(--oo-text)]">{label}</span>
-              </div>
-            ))}
+            {/* Data-source switch: flips the WHOLE app between real data and the gap-filled preview. */}
+            {switchingMode && <span className="text-[11px] text-[var(--oo-muted)]">loading…</span>}
+            <div className="flex items-center border border-[var(--oo-border)] rounded-md overflow-hidden" role="group" aria-label="Data source">
+              {(["real", "tuned"] as DataMode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => switchDataMode(m)}
+                  disabled={switchingMode}
+                  title={m === "real" ? "Real programme data (honest, with gaps)" : "Preview — gaps filled with estimated values"}
+                  className={`text-[11px] font-bold px-2.5 py-1.5 transition-colors cursor-pointer disabled:opacity-60 ${
+                    dataMode === m
+                      ? m === "tuned" ? "bg-[var(--oo-warning)] text-white" : "bg-[var(--oo-primary)] text-white"
+                      : "bg-white text-[var(--oo-muted)] hover:text-[var(--oo-heading)]"
+                  }`}
+                >
+                  {m === "real" ? "Real" : "Preview"}
+                </button>
+              ))}
+            </div>
 
             <div className="flex items-center border border-[var(--oo-border)] rounded-md overflow-hidden">
               {(["en", "bn"] as Lang[]).map((l) => (
@@ -433,8 +427,17 @@ export default function App() {
           </div>
         </header>
 
-        {/* Dashboard canvas (Copilot is a full-screen overlay, not a dock) */}
-        <main className="flex-1 overflow-y-auto px-6 pt-6 min-w-0">
+        {/* Preview-mode ribbon — impossible to miss; the values are estimated, not measured. */}
+        {dataMode === "tuned" && (
+          <div className="shrink-0 px-6 py-2 text-[12px] flex items-center gap-2 border-b" style={{ background: "color-mix(in srgb, var(--oo-warning) 14%, white)", borderColor: "color-mix(in srgb, var(--oo-warning) 40%, transparent)", color: "var(--oo-heading)" }}>
+            <span>⚠️</span>
+            <span><b>Preview mode</b> — attendance, marks and status are <b>estimated</b> where the real data was blank. For demonstration only, not for decisions.</span>
+          </div>
+        )}
+
+        {/* Dashboard canvas (Copilot is a full-screen overlay, not a dock).
+            Keyed by dataMode so switching real ⇄ preview remounts the views → they re-fetch. */}
+        <main key={dataMode} className="flex-1 overflow-y-auto px-6 pt-6 min-w-0">
           {placeholder ? (
             <div className="max-w-lg mx-auto mt-[12vh] text-center">
               <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center bg-[var(--oo-primary)]/10 text-[var(--oo-primary)]">
@@ -481,6 +484,9 @@ export default function App() {
           onArchive={archiveChat}
           onDelete={deleteChat}
           onClose={() => setCopilotOpen(false)}
+          dataMode={dataMode}
+          switchingMode={switchingMode}
+          onSwitchMode={switchDataMode}
         />
       )}
 

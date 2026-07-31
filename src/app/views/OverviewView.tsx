@@ -1,17 +1,12 @@
-import { useState, type ReactNode, type CSSProperties } from "react";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useState, useEffect, type ReactNode, type CSSProperties } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Sparkles, Lightbulb, FileText, X } from "lucide-react";
-import trends from "../../../Database/demo/aggregates/trends.json";
 import { fmtInt, fmtRate } from "../lib/fmt";
 import { narrate } from "../utils/insights";
 import { printHtml } from "../utils/chatExport";
-import {
-  programs, totals, divisions, attendance,
-  PROGRAM_KEYS, PROGRAM_LABELS, COVERAGE_THRESHOLD, type ProgramKey,
-} from "../lib/aggregates";
-import { METRICS } from "../lib/knowledgeBase";
-import demographics from "../../../Database/demo/aggregates/demographics.json";
-import SUMMARY from "../../../Database/demo/summary_dataset.json";
+import { PROGRAM_LABELS, COVERAGE_THRESHOLD, type ProgramKey } from "../lib/aggregates";
+import { getDataSource } from "../lib/db";
+import { loadOverview, type OverviewData } from "../lib/db/filter-query";
 import type { DashFilter } from "./FilterPanel";
 
 /**
@@ -21,10 +16,8 @@ import type { DashFilter } from "./FilterPanel";
  * the current scope.
  */
 
-const DEMO = (demographics as unknown as { by_program: Record<string, { division: Record<string, number> }> }).by_program;
 const LABEL_TO_KEY: Record<string, ProgramKey> = { ABAL: "abal", Catchup: "catchup", Innovation: "innovation" };
 const SERIES = { enrolled: "var(--series-3)", mainstreamed: "var(--series-1)" };
-const SEV_COLOR: Record<string, string> = { critical: "var(--oo-danger)", warn: "var(--oo-warning)", watch: "var(--oo-info)", info: "var(--oo-muted)" };
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -76,37 +69,45 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
   const [explain, setExplain] = useState<Explain | null>(null);
 
   const key = filter.program ? LABEL_TO_KEY[filter.program] : null;
-  const genderField: "boys" | "girls" | null = filter.sex === "Boys" ? "boys" : filter.sex === "Girls" ? "girls" : null;
   const scopeParts = [filter.program, filter.division, filter.sex].filter(Boolean) as string[];
   const filtered = scopeParts.length > 0;
 
-  // ── scoped numbers ──────────────────────────────────────────────────────────
-  const networkRate = (totals.mainstream_rate ?? 0) * 100;
-  const att = attendance.overall;
-  const meScoreRaw = Number(METRICS.kpis.find((k) => k.id === "centers.grade.mean")?.value ?? 0);
-  const meScore = meScoreRaw || 3.35;
+  // ── real-data snapshot, filter-aware: Division + Programme + Gender COMPOSE ───
+  // (the old code ignored division entirely and mixed demo aggregates). Every number below now
+  // comes from the engine over the real data; teachers/M&E/dropouts are network-level.
+  const [ov, setOv] = useState<OverviewData | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const ds = getDataSource();
+    loadOverview({ program: filter.program, division: filter.division, sex: filter.sex }, (sql) => ds.query(sql))
+      .then((d) => { if (!cancelled) setOv(d); })
+      .catch((e) => console.error("overview load failed", e));
+    return () => { cancelled = true; };
+  }, [filter.program, filter.division, filter.sex]);
 
-  let scopedStudents = key ? programs[key].students : totals.students;
-  if (genderField) scopedStudents = key ? programs[key][genderField] : PROGRAM_KEYS.reduce((s, k) => s + programs[k][genderField], 0);
-  const scopedMainstreamed = key ? programs[key].mainstreamed : totals.mainstreamed;
-  const scopedRate = key ? (programs[key].mainstream_rate ?? 0) * 100 : networkRate;
-  const scopedAtt = key ? programs[key].attendance.recorded_mean ?? 0 : att.recorded_mean_student_weighted;
-  const scopedCov = key ? programs[key].attendance.coverage : att.coverage;
+  const scopedStudents = ov?.students ?? 0;
+  const scopedMainstreamed = ov?.mainstreamed ?? 0;
+  const scopedRate = ov?.mainstreamRate ?? 0;
+  const scopedAtt = ov?.attMean ?? 0;
+  const scopedCov = ov?.attCoverageFrac ?? 0;
   const lowCoverage = scopedCov < COVERAGE_THRESHOLD;
+  const networkRate = ov?.networkRate ?? 0;
+  const networkAtt = ov?.networkAttMean ?? 0;
+  const meScore = ov?.meScore ?? 0;
+  const teachers = ov?.teachers ?? 0;
 
   // Programme Health composite (network) for the driver card
-  const health = Math.round(0.45 * networkRate + 0.3 * (meScore / 4) * 100 + 0.25 * att.recorded_mean_student_weighted);
+  const health = Math.round(0.45 * networkRate + 0.3 * (meScore / 4) * 100 + 0.25 * networkAtt);
   const healthBand = health >= 75 ? "var(--oo-success)" : health >= 60 ? "var(--oo-warning)" : "var(--oo-danger)";
   const healthTxt = health >= 75 ? "Strong" : health >= 60 ? "Fair" : "Needs attention";
 
-  // Driver-card figures — computed live from the demo dataset (never hardcoded).
-  const dropTotal = (k: ProgramKey) => Object.values(SUMMARY.programs[k].dropout_reasons).reduce((s, n) => s + (n as number), 0);
-  const povertyDropouts = PROGRAM_KEYS.reduce((s, k) => s + ((SUMMARY.programs[k].dropout_reasons as Record<string, number>).Poverty ?? 0), 0);
-  const totalDropouts = PROGRAM_KEYS.reduce((s, k) => s + dropTotal(k), 0);
-  const povertyPct = Math.round((povertyDropouts / totalDropouts) * 100);
-  const poorCentres = SUMMARY.me_evaluations.filter((e) => e.score < 2).length;
-  const fairCentres = SUMMARY.me_evaluations.filter((e) => e.score >= 2 && e.score < 3).length;
-  const goodCentres = SUMMARY.me_evaluations.filter((e) => e.score >= 3).length;
+  // Driver-card figures — live from the real data via the engine.
+  const povertyDropouts = ov?.povertyDropouts ?? 0;
+  const totalDropouts = ov?.totalDropouts ?? 0;
+  const povertyPct = totalDropouts ? Math.round((povertyDropouts / totalDropouts) * 100) : 0;
+  const poorCentres = ov?.poorCentres ?? 0;
+  const fairCentres = ov?.fairCentres ?? 0;
+  const goodCentres = ov?.goodCentres ?? 0;
 
   const drivers: Driver[] = [
     {
@@ -114,36 +115,37 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
       num: String(health), unit: "/100", bandTxt: healthTxt,
       fact: (<>A weighted blend of <b>mainstreaming {fmtRate(networkRate)}</b>, centre <b>M&amp;E {meScore}/4</b> and recorded attendance.</>),
       ask: "What is dragging programme health down?", cta: "Ask what's dragging it", help: "Higher is better. A composite of mainstreaming, learning and attendance.",
-      explain: { title: "Programme Health", big: `${health} / 100`, how: "Weighted average: mainstreaming 45%, centre M&E 30%, recorded attendance 25%.", why: `Held up by an ${fmtRate(networkRate)} mainstreaming rate and a ${meScore}/4 mean M&E score.`, note: "Computed live from Database/demo; attendance is fully recorded (100% coverage)." },
+      explain: { title: "Programme Health", big: `${health} / 100`, how: "Weighted average: mainstreaming 45%, centre M&E 30%, recorded attendance 25%.", why: `Held up by an ${fmtRate(networkRate)} mainstreaming rate and a ${meScore}/4 mean M&E score.`, note: "Computed live from the real data; attendance is coverage-limited (~17% of learners have a recorded value)." },
     },
     {
       key: "dropout", band: "var(--oo-warning)", eyebrow: "Poverty dropouts", what: "The largest, most addressable driver",
       num: fmtInt(povertyDropouts), unit: "learners", bandTxt: "Watch",
       fact: (<>Poverty is the #1 dropout reason — <b>{povertyPct}%</b> of all {fmtInt(totalDropouts)} recorded dropouts. The lever is household cash support.</>),
       ask: "Why are students dropping out?", cta: "See dropout drivers", help: "Learners whose recorded dropout reason is Poverty, across all three programmes.",
-      explain: { title: "Poverty dropouts", big: `${fmtInt(povertyDropouts)} learners`, how: `Poverty dropouts summed across ABAL, Catchup and Innovation (${fmtInt(povertyDropouts)} of ${fmtInt(totalDropouts)} total dropouts).`, why: "Poverty is the single largest recorded dropout reason network-wide.", note: "Computed live from Database/demo dropout reasons." },
+      explain: { title: "Poverty dropouts", big: `${fmtInt(povertyDropouts)} learners`, how: `Poverty dropouts summed across ABAL, Catchup and Innovation (${fmtInt(povertyDropouts)} of ${fmtInt(totalDropouts)} total dropouts).`, why: "Poverty is the single largest recorded dropout reason network-wide.", note: "Computed live from the real data (dropout reasons)." },
     },
     {
       key: "centres", band: "var(--oo-danger)", eyebrow: "Centres needing support", what: "Where field support should go first",
       num: String(poorCentres), unit: "centres", bandTxt: "Act",
       fact: (<><b>{poorCentres} centres</b> score Poor (below 2/4). Start field support here — {fairCentres} more are Fair.</>),
       ask: "Which centres need a visit?", cta: "See which centres", help: "Centres with a mean M&E evaluation score below 2.0 of 4.",
-      explain: { title: "Centres needing support", big: `${poorCentres} centres`, how: "Centres whose mean M&E score is below 2.0 of 4.", why: `The weakest-quality centres; ${fairCentres} more are Fair and ${goodCentres} Good.`, note: "Computed live from Database/demo me_evaluations." },
+      explain: { title: "Centres needing support", big: `${poorCentres} centres`, how: "Centres whose mean M&E score is below 2.0 of 4.", why: `The weakest-quality centres; ${fairCentres} more are Fair and ${goodCentres} Good.`, note: "Computed live from the real data (M&E evaluations)." },
     },
   ];
 
-  // ── scoped charts ───────────────────────────────────────────────────────────
-  const programData = (key ? [key] : PROGRAM_KEYS).map((k) => ({ name: PROGRAM_LABELS[k], Enrolled: programs[k].students, Mainstreamed: programs[k].mainstreamed }));
-  const divSource: Record<string, number> = key ? DEMO[key].division ?? {} : divisions;
-  const divisionData = Object.entries(divSource).map(([division, students]) => ({ division, students: students as number })).sort((a, b) => b.students - a.students);
-  const topDivision = divisionData[0];
+  // ── scoped charts (from the engine; already filter-scoped) ───────────────────
+  const programData = ov?.programData ?? [];
+  const divisionData = ov?.divisionData ?? [];
+  const topDivision = divisionData[0] ?? { division: "—", students: 0 };
   const divisionTotal = divisionData.reduce((s, d) => s + d.students, 0);
 
+  const pn = ov?.programmeNetwork ?? {};
+  const r1 = (x?: number) => Math.round((x ?? 0) * 10) / 10;
   const enrolPayload = {
-    catchupStudents: programs.catchup.students,
-    catchupRate: Math.round((programs.catchup.mainstream_rate ?? 0) * 1000) / 10,
-    abalRate: Math.round((programs.abal.mainstream_rate ?? 0) * 1000) / 10,
-    innovationRate: Math.round((programs.innovation.mainstream_rate ?? 0) * 1000) / 10,
+    catchupStudents: pn.Catchup?.students ?? 0,
+    catchupRate: r1(pn.Catchup?.rate),
+    abalRate: r1(pn.ABAL?.rate),
+    innovationRate: r1(pn.Innovation?.rate),
   };
   const enrolInsight = narrate(
     `Catchup carries ${fmtInt(enrolPayload.catchupStudents)} of the network's learners and has mainstreamed ${enrolPayload.catchupRate}% of them. ` +
@@ -157,7 +159,6 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
     divPayload
   );
 
-  const dq = METRICS.dataQuality ?? [];
   const scopeText = scopeParts.length ? scopeParts.join(" · ") : "All Bangladesh · All programmes · 2026";
 
   const reportView = () => {
@@ -166,7 +167,7 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
       ["Mainstream rate", fmtRate(scopedRate)],
       ["Mainstreamed", fmtInt(scopedMainstreamed)],
       ["Attendance (recorded)", fmtRate(scopedAtt)],
-      ["Total teachers (network)", fmtInt(totals.teachers)],
+      ["Total teachers (network)", fmtInt(teachers)],
       ["Mean M&E score (network)", String(meScore)],
     ];
     const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
@@ -186,6 +187,7 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
         <div className="date">{todayStr()}</div>
         <div className="scope">
           <span>Showing</span>:&nbsp;<b>{scopeText}</b>
+          {!ov && <span style={{ marginLeft: 8, color: "var(--oo-muted)", fontSize: 12 }}>· loading real data…</span>}
         </div>
       </div>
 
@@ -222,9 +224,9 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
       {/* The numbers */}
       <div className="section-head"><span className="section-head__line" /><h2>The numbers</h2><span className="section-head__line" /></div>
       <div className="numtiles">
-        <NTile v={fmtInt(scopedStudents)} typ="Total" l={filter.sex ? `${filter.sex} enrolled` : "Total enrolment"} pct={key ? PROGRAM_LABELS[key] : `Across ${totals.programs} programmes`} info="Enrolled learners for the current scope." />
+        <NTile v={fmtInt(scopedStudents)} typ="Total" l={filter.sex ? `${filter.sex} enrolled` : "Total enrolment"} pct={key ? PROGRAM_LABELS[key] : `Across ${Object.keys(LABEL_TO_KEY).length} programmes`} info="Enrolled learners for the current scope." />
         <NTile v={fmtRate(scopedRate)} typ="Rate" l="Mainstream rate" pct={`${fmtInt(scopedMainstreamed)} moved to formal school`} info="Share mainstreamed into formal school." />
-        <NTile v={fmtInt(totals.teachers)} typ="Total" l="Total teachers" pct={filtered ? "network — not sliced by filter" : "Active educators"} info="Teacher records; not broken down by programme/division in the aggregates." />
+        <NTile v={fmtInt(teachers)} typ="Total" l="Total teachers" pct={filtered ? "network — not sliced by filter" : "Active educators"} info="Teacher records; not broken down by programme/division in the aggregates." />
         <NTile v={String(meScore)} typ="Score" l="Mean M&E score" pct={filtered ? "network — not sliced by filter" : "of 4 · across evaluated centres"} info="Mean centre M&E evaluation score (network-level)." />
         <NTile v={fmtRate(scopedAtt)} typ="Rate" l="Attendance (recorded)" pct="Mean among learners with a record"
           ctx={{ text: `Coverage ${fmtRate(scopedCov * 100)} — read as a floor; 0-rows treated as missing.`, warn: lowCoverage }}
@@ -234,7 +236,7 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
       {/* What's happening */}
       <div className="section-head"><span className="section-head__line" /><h2>What's happening</h2><span className="section-head__line" /></div>
       <div className="card">
-        <div className="ch"><div><h2>Enrolment by programme</h2><div className="sub">{key ? PROGRAM_LABELS[key] : `${totals.programs} programmes`} · {fmtInt(scopedStudents)} learners</div></div></div>
+        <div className="ch"><div><h2>Enrolment by programme</h2><div className="sub">{key ? PROGRAM_LABELS[key] : `${Object.keys(LABEL_TO_KEY).length} programmes`} · {fmtInt(scopedStudents)} learners</div></div></div>
         <div className="cb">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={programData} barSize={34} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -267,40 +269,41 @@ export function OverviewView({ onAsk, filter, onClearFilter }: {
       </div>
 
       <div className="card">
-        <div className="ch"><div><h2>Attendance, month by month</h2><div className="sub">Recorded attendance across the year · 100% coverage</div></div></div>
+        <div className="ch"><div><h2>Enrolment by year</h2><div className="sub">New learners by Education Start Date{filtered ? ` · ${scopeText}` : ""}</div></div></div>
         <div className="cb">
           <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={trends.months} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+            <BarChart data={ov?.enrollmentByYear ?? []} barSize={46} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--oo-border)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: "var(--oo-text)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fill: "var(--oo-text)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-              <Tooltip content={<ChartTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
-              <Line type="monotone" dataKey="ABAL" stroke="#6697C6" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="Catchup" stroke="#00C19C" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="Innovation" stroke="#CC6AC2" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="overall" name="Overall" stroke="var(--oo-primary)" strokeWidth={2.6} dot={false} />
-            </LineChart>
+              <XAxis dataKey="year" tick={{ fill: "var(--oo-text)", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--oo-text)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => (v >= 1000 ? `${v / 1000}k` : String(v))} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--oo-canvas)" }} />
+              <Bar dataKey="enrolled" name="Enrolled" fill="var(--series-3)" radius={[3, 3, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
-          <Insight text="Recorded attendance climbs steadily through the year and stays consistent across all three programmes — every learner has a monthly record in this dataset." />
+          <Insight text="Enrolment by year from each learner's Education Start Date — a real intake trend. (The raw export has no month-by-month attendance, so that prototype chart was replaced with this.)" />
         </div>
       </div>
 
-      {/* Trust & data quality */}
+      {/* Trust & data quality — the real coverage limits of this dataset */}
       <div className="section-head"><span className="section-head__line" /><h2>Trust &amp; data quality</h2><span className="section-head__line" /></div>
       <div className="card">
         <div className="cb">
           <div className="dq">
-            {dq.map((q, i) => {
-              const c = SEV_COLOR[q.severity] ?? SEV_COLOR.info;
-              return (
-                <div className="dq-item" key={i}>
-                  <div className="band" style={{ background: c }} />
-                  <p>{q.statement}</p>
-                  <span className="st" style={{ background: `color-mix(in srgb, ${c} 14%, transparent)`, color: c }}>{q.severity}</span>
-                </div>
-              );
-            })}
+            <div className="dq-item">
+              <div className="band" style={{ background: "var(--oo-warning)" }} />
+              <p>Attendance is recorded for only ~17% of learners (the rest are 0 = not taken), so attendance figures describe the recorded minority — read them as a floor.</p>
+              <span className="st" style={{ background: "color-mix(in srgb, var(--oo-warning) 14%, transparent)", color: "var(--oo-warning)" }}>coverage</span>
+            </div>
+            <div className="dq-item">
+              <div className="band" style={{ background: "var(--oo-warning)" }} />
+              <p>Only ~30% of learners have any exam mark, and Life Skills is ~84% unassessed, so subject averages cover the assessed group only.</p>
+              <span className="st" style={{ background: "color-mix(in srgb, var(--oo-warning) 14%, transparent)", color: "var(--oo-warning)" }}>coverage</span>
+            </div>
+            <div className="dq-item">
+              <div className="band" style={{ background: "var(--oo-info)" }} />
+              <p>Teacher records don't align cleanly with student divisions, so student-to-teacher ratios by division should be interpreted with care.</p>
+              <span className="st" style={{ background: "color-mix(in srgb, var(--oo-info) 14%, transparent)", color: "var(--oo-info)" }}>caveat</span>
+            </div>
           </div>
         </div>
       </div>

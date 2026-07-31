@@ -16,7 +16,7 @@
 
 import { KB_VERSION } from "../lib/knowledgeBase";
 
-const CACHE_KEY = "kb_answer_cache_v6"; // v6: invalidates answers cached before the all-subjects concern branch
+const CACHE_KEY = "kb_answer_cache_v7"; // v7: invalidates answers cached before the cycle-progression branch
 const WEIGHTS_KEY = "kb_fact_weights_v1";
 const MAX_CACHE = 200;
 

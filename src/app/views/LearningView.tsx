@@ -1,57 +1,51 @@
+import { useState, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import summary from "../../../Database/demo/summary_dataset.json";
 import { narrate } from "../utils/insights";
-import { PROGRAM_KEYS, PROGRAM_LABELS, type ProgramKey } from "../lib/aggregates";
 import { Card, ChartTooltip, Insight, DataNote } from "./dashShared";
+import { getDataSource } from "../lib/db";
+import { loadLearning, type LearningData } from "../lib/db/learning-query";
 
 /**
- * LEARNING tab — average exam marks by subject × programme, from summary_dataset.subject_averages
- * (real). The prototype's score-BAND distributions (Red/Yellow/Green…), results-by-gender and
- * pass-by-income need per-student assessment rows joined to profiles — not in the aggregates — so
- * those are called out honestly rather than faked.
+ * LEARNING section — average exam marks by subject × programme and weakest subject per programme,
+ * computed from the REAL marks (v_marks) via the engine. Marks are coverage-limited (~30% of
+ * learners have any mark) and Life Skills is largely unassessed — both flagged honestly.
  */
 
-const SA = (summary as { subject_averages: Record<ProgramKey, Record<string, number>> }).subject_averages;
-const SUBJECTS = Object.keys(SA.abal);
 const compact = (v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v));
 
-function weakest(prog: ProgramKey): { subject: string; value: number } {
-  let subject = SUBJECTS[0];
-  let value = Infinity;
-  for (const s of SUBJECTS) {
-    const v = SA[prog][s];
-    if (v != null && v < value) { value = v; subject = s; }
-  }
-  return { subject, value };
-}
-
 export function LearningView() {
-  const subjectData = SUBJECTS.map((s) => ({
-    subject: s,
-    ABAL: SA.abal[s] ?? 0,
-    Catchup: SA.catchup[s] ?? 0,
-    Innovation: SA.innovation[s] ?? 0,
-  }));
+  const [d, setD] = useState<LearningData | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const ds = getDataSource();
+    loadLearning((sql) => ds.query(sql)).then((r) => { if (!cancelled) setD(r); }).catch((e) => console.error("learning load failed", e));
+    return () => { cancelled = true; };
+  }, []);
 
-  // network-weakest subject (by 3-programme average) — name only, so no derived number to validate
-  let weakSubject = SUBJECTS[0];
+  if (!d) return <div style={{ padding: 24, color: "var(--oo-muted)", fontSize: 13 }}>Loading learning…</div>;
+
+  const { subjectData, weakestByProgramme, coveragePct } = d;
+
+  // Network-weakest subject (by 3-programme average).
+  let weakSubject = subjectData[0]?.subject ?? "—";
   let weakAvg = Infinity;
-  for (const s of SUBJECTS) {
-    const avg = (SA.abal[s] + SA.catchup[s] + SA.innovation[s]) / 3;
-    if (avg < weakAvg) { weakAvg = avg; weakSubject = s; }
+  for (const sd of subjectData) {
+    const avg = (sd.ABAL + sd.Catchup + sd.Innovation) / 3;
+    if (avg > 0 && avg < weakAvg) { weakAvg = avg; weakSubject = sd.subject; }
   }
-
+  const bangla = subjectData.find((s) => s.subject === "Bangla");
+  const math = subjectData.find((s) => s.subject === "Mathematics");
   const insight = narrate(
-    `Catchup leads on Bangla (${SA.catchup.Bangla}) and Mathematics (${SA.catchup.Mathematics}), with Innovation trailing ` +
-      `on both. The weakest subject network-wide is ${weakSubject} — the clearest place to concentrate teaching support.`,
+    `On the real marks, Catchup leads on Bangla (${bangla?.Catchup ?? 0}) and Mathematics (${math?.Catchup ?? 0}). ` +
+      `The lowest-scoring subject network-wide is ${weakSubject} — though its score is depressed by low assessment coverage.`,
     { rows: subjectData }
   );
 
   return (
     <>
-      <Card title="Average marks by subject" sub={`${SUBJECTS.length} subjects · 3 programmes`}>
+      <Card title="Average marks by subject" sub={`${subjectData.length} subjects · 3 programmes · marks coverage ${coveragePct}%`}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={subjectData} margin={{ top: 8, right: 8, left: -6, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--oo-border)" vertical={false} />
@@ -66,44 +60,41 @@ export function LearningView() {
         </ResponsiveContainer>
         <Insight text={insight} />
         <DataNote>
-          The prototype's Red/Yellow/Green/Pink/Blue score <b>bands</b> need each learner's subject scores counted into
-          bands — that per-student join isn't in the aggregates, so this shows programme averages instead.
+          Averages are over recorded marks only (~{coveragePct}% of learners have any mark). <b>Life Skills</b> is ~84%
+          unassessed, so its low bar is a coverage artefact, not necessarily weak performance.
         </DataNote>
       </Card>
 
       <div className="row-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "stretch" }}>
         <Card title="Weakest subject to target" sub="Lowest-scoring subject per programme">
           <div style={{ paddingTop: 2 }}>
-            {PROGRAM_KEYS.map((k) => {
-              const w = weakest(k);
-              return (
-                <div className="divrow" key={k}>
-                  <span className="nm">{PROGRAM_LABELS[k]}</span>
-                  <span style={{ flex: 1, fontSize: 13, color: "var(--oo-muted)" }}>
-                    Weakest: <b style={{ color: "var(--oo-heading)" }}>{w.subject}</b>
-                  </span>
-                  <span className="val tnum">{w.value}</span>
-                </div>
-              );
-            })}
+            {weakestByProgramme.map((w) => (
+              <div className="divrow" key={w.programme}>
+                <span className="nm">{w.programme}</span>
+                <span style={{ flex: 1, fontSize: 13, color: "var(--oo-muted)" }}>
+                  Weakest: <b style={{ color: "var(--oo-heading)" }}>{w.subject}</b>
+                </span>
+                <span className="val tnum">{w.value}</span>
+              </div>
+            ))}
           </div>
-          <Insight text={`${PROGRAM_LABELS[PROGRAM_KEYS[0]]}, Catchup and Innovation each score lowest in ${weakSubject} — a consistent, network-wide teaching gap to prioritise.`} />
+          <Insight text={`Each programme scores lowest in ${weakSubject} network-wide — but read the weakest subject alongside its coverage before concentrating teaching support.`} />
         </Card>
 
-        <Card title="Where the data stops" sub="Prototype views that need per-student assessment rows">
+        <Card title="What to read with care" sub="Coverage limits on the marks data">
           <div className="dq">
             <div className="dq-item">
               <div className="band" style={{ background: "var(--oo-info)" }} />
-              <p><b>Results by gender</b> and <b>pass ratio by family income</b> need each learner's subject scores joined to their profile (gender, income). That per-student join isn't in the current aggregates.</p>
-              <span className="st" style={{ background: "color-mix(in srgb, var(--oo-info) 14%, transparent)", color: "var(--oo-info)" }}>needs data</span>
+              <p>Only <b>~{coveragePct}%</b> of learners have any recorded mark, so subject averages describe the assessed minority, not the whole cohort.</p>
+              <span className="st" style={{ background: "color-mix(in srgb, var(--oo-info) 14%, transparent)", color: "var(--oo-info)" }}>coverage</span>
             </div>
             <div className="dq-item">
               <div className="band" style={{ background: "var(--oo-info)" }} />
-              <p>Assessment cycle marks are barely recorded (Cycle-1 coverage ~5.5%), so subject averages reflect the baseline, not progress over time.</p>
+              <p>Cycle marks (C1–C5) are barely recorded, so averages mostly reflect the baseline rather than progress over time.</p>
               <span className="st" style={{ background: "color-mix(in srgb, var(--oo-info) 14%, transparent)", color: "var(--oo-info)" }}>coverage</span>
             </div>
           </div>
-          <DataNote>Ask the Smart Copilot for any subject/programme cut — it can compute these from the retrieved rows.</DataNote>
+          <DataNote>Ask the AI Copilot for any subject/programme/gender cut — it computes these live from the real marks (e.g. "average Bangla for girls in ABAL").</DataNote>
         </Card>
       </div>
     </>

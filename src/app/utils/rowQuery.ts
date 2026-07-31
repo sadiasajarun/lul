@@ -56,6 +56,15 @@ async function loadEvaluations() { if (!_evaluations) _evaluations = parseCsv(aw
 
 const DIVISIONS = ["Dhaka", "Chattogram", "Rajshahi", "Khulna", "Barishal", "Sylhet", "Rangpur", "Mymensingh"];
 const PROGRAMS: Record<string, string> = { abal: "ABAL", catchup: "Catchup", innovation: "Innovation" };
+// keyword → the subject value EXACTLY as it appears in assessments.csv (note: "Mathematics", not "Math").
+const SUBJECT_KEYS: Record<string, string> = {
+  bangla: "Bangla", mathematics: "Mathematics", math: "Mathematics", english: "English",
+  science: "Science", religion: "Religion", "life skills": "Life Skills", "life skill": "Life Skills", bgs: "BGS",
+};
+const CYCLE_COLS: [string, string][] = [
+  ["baseline", "Baseline"], ["cycle1", "Cycle 1"], ["cycle2", "Cycle 2"], ["cycle3", "Cycle 3"],
+  ["cycle4", "Cycle 4"], ["cycle5", "Cycle 5"], ["latest", "Latest"],
+];
 const CENTER_NAME: Record<string, string> = {};
 for (const e of (db as { me_evaluations: { center_id: string; center_name: string }[] }).me_evaluations) CENTER_NAME[e.center_id] = e.center_name;
 const fmt = (n: number) => n.toLocaleString("en-US");
@@ -71,9 +80,73 @@ function isMEQuery(p: string): boolean {
   return false;
 }
 
-/** Is this a per-student row / ranking / result-sheet / grouping / M&E question? */
+/** Cycle-wise progression question (baseline → cycle1..5 → latest across the assessment cycles). */
+function isCycleQuery(p: string): boolean {
+  return /\bcycle/.test(p) || (/(progress|progression|improv|trajectory|over time|learning curve|growth over)/.test(p) && /\b(mark|score|assessment|result|subject|bangla|math|english|science|religion|life ?skill|bgs)\b/.test(p));
+}
+
+/** Average of `col` over a subset of assessment rows. */
+function avgCol(rows: Row[], col: string): number {
+  let s = 0, n = 0;
+  for (const r of rows) { const v = Number(r[col]); if (Number.isFinite(v)) { s += v; n += 1; } }
+  return n ? Math.round((s / n) * 10) / 10 : 0;
+}
+
+/** Answer a cycle-wise progression question from assessments.csv (baseline → cycle1..5 → latest). */
+async function cycleQuery(p: string): Promise<DynamicDashboardResponse | null> {
+  const { rows } = await loadAssessments();
+  if (!rows.length) return null;
+
+  let ev = rows;
+  const scopeParts: string[] = [];
+  let subject: string | null = null;
+  for (const k of Object.keys(SUBJECT_KEYS)) if (p.includes(k)) { subject = SUBJECT_KEYS[k]; break; }
+  if (subject) { ev = ev.filter((r) => (r.subject || "") === subject); scopeParts.push(subject); }
+  let programFilter: string | null = null;
+  for (const k of Object.keys(PROGRAMS)) if (new RegExp(`\\b${k}\\b`).test(p)) { programFilter = PROGRAMS[k]; break; }
+  if (programFilter) { ev = ev.filter((r) => (r.program || "") === programFilter); scopeParts.push(programFilter); }
+  const scope = scopeParts.join(" · ") || "all subjects & programmes";
+  if (!ev.length) return { summary: `* No cycle data for ${scope}.`, widgets: [] };
+
+  // Compare programmes as separate lines when asked and not already filtered to one; else one line.
+  const compare = !programFilter && /\b(by|per|each|compare|across)\b.*\bprogram/.test(p);
+  const progs = ["ABAL", "Catchup", "Innovation"];
+  const chartData = CYCLE_COLS.map(([col, label]) => {
+    if (compare) {
+      const row: Record<string, unknown> = { cycle: label };
+      for (const pr of progs) row[pr] = avgCol(ev.filter((r) => r.program === pr), col);
+      return row;
+    }
+    return { cycle: label, Score: avgCol(ev, col) };
+  });
+  const seriesKeys = compare ? progs : ["Score"];
+
+  const baseAvg = avgCol(ev, "baseline");
+  const latestAvg = avgCol(ev, "latest");
+  const gain = Math.round((latestAvg - baseAvg) * 10) / 10;
+
+  return {
+    summary: `* Scores rose from a **baseline of ${baseAvg}** to a **latest of ${latestAvg}** across the 5 cycles — a gain of **${gain > 0 ? "+" : ""}${gain}** (${scope}).\n* The cycle-by-cycle progression is plotted below.`,
+    widgets: [
+      { type: "metrics", title: "Progression", width: "full", metricsList: [
+        { label: "Baseline avg", value: `${baseAvg}`, sub: scope },
+        { label: "Latest avg", value: `${latestAvg}`, sub: `after 5 cycles`, trend: `${gain > 0 ? "+" : ""}${gain}`, trendDirection: gain >= 0 ? "up" : "down" },
+        { label: "Total gain", value: `${gain > 0 ? "+" : ""}${gain}`, sub: "baseline → latest", trendDirection: gain >= 0 ? "up" : "down" },
+      ]},
+      { type: "chart", title: `Cycle-wise progression — ${scope}`, width: "full", chartType: "line", xAxisKey: "cycle", seriesKeys, data: chartData },
+      { type: "table", title: "Average score by cycle", width: "full", tableHeaders: ["Cycle", ...seriesKeys], data: chartData.map((d) => {
+        const row: Record<string, unknown> = { Cycle: d.cycle };
+        for (const s of seriesKeys) row[s] = (d as Record<string, unknown>)[s];
+        return row;
+      }) },
+    ],
+  };
+}
+
+/** Is this a per-student row / ranking / result-sheet / grouping / M&E / cycle question? */
 export function isRowQuery(prompt: string): boolean {
   const p = prompt.toLowerCase();
+  if (isCycleQuery(p)) return true;
   if (isMEQuery(p)) return true;
   // A centre/division named with a metric or ranking word → a group question (e.g. "worse center in
   // bangla marks", "lowest attendance centre") — route to the row engine, not the LLM/subject branch.
@@ -208,6 +281,7 @@ async function meQuery(p: string): Promise<DynamicDashboardResponse | null> {
 /** Answer a row/ranking/result-sheet/group/M&E question from the CSVs, or null if it can't be built. */
 export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse | null> {
   const p = prompt.toLowerCase();
+  if (isCycleQuery(p)) { const c = await cycleQuery(p); if (c) return c; }
   if (isMEQuery(p)) { const me = await meQuery(p); if (me) return me; }
   const q = parseQuery(p);
   const { rows } = await loadStudents();
@@ -228,9 +302,8 @@ export async function rowQuery(prompt: string): Promise<DynamicDashboardResponse
     const nameOfG = (g: string) => dimKey === "center_id" ? (CENTER_NAME[g] || `Centre ${g}`) : g;
 
     // ── AVERAGE a metric per group: "which centre has the lowest attendance / worst Bangla marks" ──
-    const SUBJECTS: Record<string, string> = { bangla: "Bangla", mathematics: "Math", math: "Math", english: "English", science: "Science", religion: "Religion", "life skills": "Life Skills", "life skill": "Life Skills", bgs: "BGS" };
     let subject: string | null = null;
-    for (const k of Object.keys(SUBJECTS)) if (p.includes(k)) { subject = SUBJECTS[k]; break; }
+    for (const k of Object.keys(SUBJECT_KEYS)) if (p.includes(k)) { subject = SUBJECT_KEYS[k]; break; }
     const avgAttendance = /attendance|present|absent/.test(p);
     const avgScore = !avgAttendance && (subject !== null || /\b(score|marks?|result|grade|performance|perform)\b/.test(p)) && !/\brisk\b/.test(p);
 

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Wand2, Sparkles, TrendingDown, GitCompare, MapPin, CalendarCheck, Scale } from "lucide-react";
-import { divisions as DIVMAP } from "../lib/aggregates";
 
-/** Dashboard filter — only the dimensions the real aggregates support are functional. */
+/** Dashboard filter — only the dimensions the real data supports are functional. */
 export interface DashFilter { program?: string; division?: string; sex?: string }
 
-const DIVISIONS = Object.keys(DIVMAP);
+// The real divisions present in the data (used only by the smart-filter keyword parser).
+const DIVISIONS = ["Dhaka", "Mymensingh", "Chattogram", "Sylhet", "Rangpur"];
 
 /** Quick-analysis prompts — click to ask the Copilot (replaced the old dropdown grid). */
 const QUICK_PROMPTS = [
