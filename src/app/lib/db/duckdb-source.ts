@@ -82,20 +82,22 @@ export class DuckDbSource implements DataSource {
         // sample_size=-1 scans the whole file so numeric columns (marks, income, year) type correctly.
         await conn.query(`CREATE OR REPLACE TABLE ${t} AS SELECT * FROM read_csv_auto('${t}.csv', header=true, sample_size=-1)`);
       }
-      // Optional PREVIEW-only monthly attendance. Present in data-tuned/, absent in data/ (real has no
-      // monthly data) — so create it from the file when available, else an empty table with the same
-      // schema so v_attendance_monthly still resolves (and honestly returns no rows in Real mode).
-      const mURL = `${base}${folder}/attendance_monthly.csv`;
-      const mRes = await fetch(mURL).catch(() => null);
-      const mText = mRes && mRes.ok ? await mRes.text() : '';
-      // The Vite dev server returns index.html (status 200) for a missing file, so a truthy `ok` is not
-      // enough — a real CSV starts with our header, never with an HTML doctype/tag. Guard on that.
-      const isCsv = mText.startsWith('month_num');
-      if (isCsv) {
-        await this.db.registerFileBuffer('attendance_monthly.csv', new TextEncoder().encode(mText));
-        await conn.query(`CREATE OR REPLACE TABLE attendance_monthly AS SELECT * FROM read_csv_auto('attendance_monthly.csv', header=true, sample_size=-1)`);
-      } else {
-        await conn.query(`CREATE OR REPLACE TABLE attendance_monthly (month_num INTEGER, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INTEGER, sum_attendance DOUBLE)`);
+      // Monthly attendance is PREVIEW-only (present in data-tuned/, absent in data/). ALWAYS start from
+      // a correctly-typed EMPTY table so v_attendance_monthly type-checks — a header-only or missing CSV
+      // would otherwise make read_csv_auto infer every column as VARCHAR, breaking the numeric division
+      // `sum_attendance / n_students` and cascading a failure to every dashboard section.
+      await conn.query(`CREATE OR REPLACE TABLE attendance_monthly (month_num INTEGER, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INTEGER, sum_attendance DOUBLE)`);
+      // In tuned/preview mode, replace it with the real monthly data — but only when the file actually
+      // has rows (so an empty/served-as-HTML file can never re-introduce the all-VARCHAR bug). Real mode
+      // does not fetch at all → no 404 noise and guaranteed correct types.
+      if (this.mode === 'tuned') {
+        const mRes = await fetch(`${base}${folder}/attendance_monthly.csv`).catch(() => null);
+        const mText = mRes && mRes.ok ? await mRes.text() : '';
+        const hasRows = mText.startsWith('month_num') && mText.trim().split('\n').length > 1;
+        if (hasRows) {
+          await this.db.registerFileBuffer('attendance_monthly.csv', new TextEncoder().encode(mText));
+          await conn.query(`CREATE OR REPLACE TABLE attendance_monthly AS SELECT * FROM read_csv_auto('attendance_monthly.csv', header=true, sample_size=-1)`);
+        }
       }
       // Rebuild the semantic layer (views are CREATE OR REPLACE) on top of the tables.
       for (const stmt of splitStatements(semanticSql)) await conn.query(stmt);
