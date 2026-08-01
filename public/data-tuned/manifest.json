@@ -1,0 +1,12 @@
+{
+  "note": "PREVIEW dataset — every real value kept UNCHANGED; only blanks/zeros imputed from real distributions. Real metrics (poverty dropouts, mainstream rate, teacher counts) match Real mode exactly. Estimated, not measured.",
+  "imputed": {
+    "filledIncome": 42840,
+    "filledNutrition": 38098,
+    "filledGrade": 45984,
+    "filledAttendance": 208770,
+    "filledMarks": 1381313,
+    "addedCentres": 635,
+    "monthlyAttendanceRows": 132
+  }
+}
