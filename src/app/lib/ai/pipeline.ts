@@ -61,10 +61,10 @@ function refusal(question: string, title: string, intent: Intent = 'unsupported'
 
 export async function askQuestion(
   question: string,
-  deps: { dataSource: DataSource; generate: Generate },
+  deps: { dataSource: DataSource; generate: Generate; dataMode?: string },
   history: HistoryTurn[] = [],
 ): Promise<AskResult> {
-  const system = buildSystemPrompt();
+  const system = buildSystemPrompt(deps.dataMode);
   let user = buildUserPrompt(question, history);
   let lastError = '';
   let plan: QueryPlan | null = null;

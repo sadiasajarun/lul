@@ -15,7 +15,7 @@ import { recordRefusal, listRefusals, exportRefusals, clearRefusals } from './re
 //   aiDebug(false)      → turn the [AI] stage logs off (aiDebug(true) to re-enable)
 if (typeof window !== 'undefined') {
   const w = window as unknown as Record<string, unknown>;
-  w.showSystemPrompt = () => { console.log(buildSystemPrompt()); return `system prompt printed (${buildSystemPrompt().length} chars)`; };
+  w.showSystemPrompt = () => { const p = buildSystemPrompt(getDataMode()); console.log(p); return `system prompt printed (${p.length} chars, mode=${getDataMode()})`; };
   w.aiDebug = (on = true) => { try { localStorage.setItem('aiDebug', on ? '1' : '0'); } catch { /* ignore */ } return `AI debug logging ${on ? 'ON' : 'OFF'}`; };
   // Layer 3 — inspect the questions the pipeline has declined (real usage → test backlog):
   w.showRefusals = () => {
@@ -105,7 +105,7 @@ export async function askViaPipeline(question: string, history: HistoryTurn[] = 
   }
   resetUsage();
   const t0 = performance.now();
-  const res = await askQuestion(question, { dataSource: getDataSource(), generate: r.generate }, history);
+  const res = await askQuestion(question, { dataSource: getDataSource(), generate: r.generate, dataMode: getDataMode() }, history);
   const ms = performance.now() - t0;
   const u = usageSummary();
   // Live monitor (always on) — which API, which model, how many tokens, and failover status.

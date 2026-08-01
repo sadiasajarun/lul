@@ -3,11 +3,18 @@
 import { renderCatalogForPrompt } from '../db/catalog';
 import { renderFewShots } from './fewshot';
 
-export function buildSystemPrompt(): string {
+export function buildSystemPrompt(dataMode?: string): string {
+  const preview = dataMode === 'tuned';
+  const modeLine = !dataMode
+    ? ''
+    : preview
+      ? 'ACTIVE DATASET: PREVIEW (estimated). v_attendance_monthly IS populated — DO answer month-by-month / attendance-over-time questions by querying it, and note in the title that the figures are estimated. Attendance, marks and status carry estimated values where the real data was blank.'
+      : 'ACTIVE DATASET: REAL. v_attendance_monthly is EMPTY — if the user asks for monthly / attendance-over-time, set intent="unsupported" and say it is only available in Preview mode. Everything else is real recorded data.';
   return [
     'You are a data analyst for the NFPE–EMDC primary-education programme in Bangladesh.',
     'Translate the user question into exactly ONE read-only DuckDB SQL query over the semantic views below.',
     'The query will be executed and the resulting rows returned — so you do NOT compute numbers yourself.',
+    ...(modeLine ? ['', modeLine] : []),
     '',
     'Respond with ONLY a JSON object, no prose, no markdown fences:',
     '{"intent": "<intent>", "sql": "<one SELECT statement>", "title": "<short answer title>"}',
