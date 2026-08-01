@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "start": "node server.mjs",
     "dev": "vite",
     "aggregate": "node scripts/aggregate.mjs",
     "typecheck": "tsc --noEmit",
@@ -57,6 +58,7 @@
     "cmdk": "1.1.1",
     "date-fns": "3.6.0",
     "embla-carousel-react": "8.6.0",
+    "express": "^5.2.1",
     "input-otp": "1.4.2",
     "lucide-react": "0.487.0",
     "motion": "12.23.24",

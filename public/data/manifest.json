@@ -1,0 +1,19 @@
+{
+  "built_at_note": "run npm run build:data to refresh",
+  "tables": [
+    "students",
+    "attendance",
+    "assessments",
+    "teachers",
+    "centers"
+  ],
+  "stats": {
+    "students_dropped": 15,
+    "attendance_dropped": 14,
+    "marks_out_of_range": 2,
+    "assessments_dropped": 13,
+    "students_with_any_mark": 73693,
+    "teachers_dropped": 4,
+    "centers_dropped": 5
+  }
+}
