@@ -23,7 +23,7 @@ export const FEW_SHOTS: FewShot[] = [
 FROM v_attendance_monthly
 GROUP BY month, month_num
 ORDER BY month_num`,
-    note: 'monthly attendance lives in v_attendance_monthly (Preview-only; empty in Real). Always weight by n_students via sum(sum_attendance)/sum(n_students), and ORDER BY month_num. To break down by division, add it to SELECT and GROUP BY.' },
+    note: 'monthly attendance lives in v_attendance_monthly. When the ACTIVE DATASET note says PREVIEW, it IS populated — ANSWER with this query (figures are estimated); only in REAL mode is it empty/unsupported. Always weight by n_students via sum(sum_attendance)/sum(n_students), and ORDER BY month_num. To break down by division, add it to SELECT and GROUP BY.' },
 
   { q: 'What percent of students are girls?',
     sql: `SELECT round(100.0 * count(*) FILTER (WHERE gender_label = 'Female') / count(*), 1) AS pct_female FROM v_students` },

@@ -80,7 +80,7 @@ export const VIEWS: ViewDoc[] = [
   {
     name: 'v_attendance_monthly',
     grain: 'one row per division × programme × month',
-    desc: 'Monthly attendance trend for "attendance month by month / over time". PREVIEW-ONLY (estimated): populated in Preview mode, EMPTY in Real mode (real data has no monthly granularity). Weighted average = sum(sum_attendance)/sum(n_students); group by month (with month_num for ordering) and optionally division/programme.',
+    desc: 'Monthly attendance trend — grain: division × programme × month. Answers "attendance month by month / over time". Its availability follows the ACTIVE DATASET note at the very top of this prompt: when that says PREVIEW, this view IS populated — query it directly and ANSWER (note the figures are estimated). Weighted average = sum(sum_attendance)/sum(n_students); group by month (ORDER BY month_num) and optionally division/programme.',
     columns: [
       { name: 'month_num', desc: 'month number 1–12 (use for ORDER BY)' },
       { name: 'month', desc: 'month label (Jan..Dec)' },
