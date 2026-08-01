@@ -46,6 +46,12 @@ app.use((req, res, next) => {
 // Authenticated users get the built SPA; unknown routes fall back to index.html.
 // (Plain middleware fallback — Express 5 rejects the old app.get('*') wildcard path.)
 app.use(express.static(DIST));
-app.use((_req, res) => res.sendFile(path.join(DIST, 'index.html')));
+app.use((req, res) => {
+  // A missing file WITH an extension (e.g. a data CSV, JS, wasm) must 404 — never serve index.html
+  // in its place, or the client would try to parse HTML as CSV ("<!DOCTYPE html>" binder errors).
+  if (path.extname(req.path)) return res.status(404).type('text/plain').send('Not found');
+  // Extensionless paths are SPA navigation routes → serve the app shell.
+  res.sendFile(path.join(DIST, 'index.html'));
+});
 
 app.listen(PORT, () => console.log(`LMS-learn (auth-gated) listening on :${PORT}`));
