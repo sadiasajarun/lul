@@ -43,6 +43,7 @@ export async function openaiGenerate(system: string, user: string, opts: OpenAiO
   const u = json?.usage ?? {};
   recordUsage({
     provider: 'openai',
+    model,
     promptTokens: u.prompt_tokens ?? 0,
     outputTokens: u.completion_tokens ?? 0,
     totalTokens: u.total_tokens ?? 0,

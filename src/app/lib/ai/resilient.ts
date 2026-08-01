@@ -38,18 +38,15 @@ export interface ResilientGenerate {
 export function makeResilientGenerate(providers: Provider[]): ResilientGenerate {
   const slots: Slot[] = providers.map((p) => ({ ...p, coolUntil: 0 }));
   let last = slots[0]?.name ?? '';
-  let rr = 0; // round-robin cursor — alternate the starting provider each call to spread load
 
   async function generate(system: string, user: string): Promise<string> {
     const now = Date.now();
-    const n = Math.max(1, slots.length);
-    // Rotate the provider list by the round-robin cursor so consecutive calls alternate keys
-    // (e.g. two Gemini keys share the 20/min limit ≈ double throughput), then skip any cooling-down
-    // provider and fall back to the soonest-to-recover one.
-    const rotated = Array.from({ length: slots.length }, (_, i) => slots[(rr + i) % n]);
-    rr = (rr + 1) % n;
-    const available = rotated.filter((s) => s.coolUntil <= now);
-    const cooling = rotated.filter((s) => s.coolUntil > now).sort((a, b) => a.coolUntil - b.coolUntil);
+    // STRICT PRIORITY (no round-robin): always try providers in their configured order
+    // (Gemini 1 → Gemini 2 → OpenAI), using the first one that is not cooling down. Only if ALL
+    // are cooling do we fall back to the soonest-to-recover. So Gemini 1 stays primary until it
+    // hits its limit, then Gemini 2, then OpenAI — and each returns to primary as its cooldown clears.
+    const available = slots.filter((s) => s.coolUntil <= now);
+    const cooling = slots.filter((s) => s.coolUntil > now).sort((a, b) => a.coolUntil - b.coolUntil);
     const order = [...available, ...cooling];
 
     let lastErr: unknown;

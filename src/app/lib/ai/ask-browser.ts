@@ -7,7 +7,6 @@ import { makeOpenAiGenerate } from './openai';
 import { makeResilientGenerate, type Provider, type ResilientGenerate } from './resilient';
 import { askQuestion, type AskResult } from './pipeline';
 import { buildSystemPrompt, type HistoryTurn } from './prompt';
-import { aiLog } from './debug';
 import { resetUsage, usageSummary } from './usage';
 import { recordRefusal, listRefusals, exportRefusals, clearRefusals } from './refusal-log';
 
@@ -26,6 +25,43 @@ if (typeof window !== 'undefined') {
   };
   w.exportRefusals = () => exportRefusals();
   w.clearRefusals = () => { clearRefusals(); return 'refusal log cleared'; };
+  // Live AI monitor — on by default; prints provider + model + tokens after every question.
+  w.aiMonitor = (on = true) => { try { localStorage.setItem('aiMonitor', on ? '1' : '0'); } catch { /* ignore */ } return `AI monitor ${on ? 'ON' : 'OFF'}`; };
+}
+
+/** Friendly label for a provider slot name. */
+const PROVIDER_LABEL: Record<string, string> = {
+  gemini: 'Gemini · key 1',
+  'gemini-2': 'Gemini · key 2',
+  openai: 'OpenAI',
+};
+
+/**
+ * LIVE MONITOR — prints, after every question, which API served it, which model, and how many
+ * tokens it cost, plus the live failover status of each provider. On by default; silence with
+ * `aiMonitor(false)` in the console.
+ */
+function printAiMonitor(r: ResilientGenerate, u: ReturnType<typeof usageSummary>, ms: number, refused: boolean): void {
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('aiMonitor') === '0') return;
+    const who = PROVIDER_LABEL[r.lastProvider] ?? r.lastProvider ?? '—';
+    const num = (n: number) => n.toLocaleString();
+    const status = r.status()
+      .map((s) => `${PROVIDER_LABEL[s.name] ?? s.name}${s.coolingDown ? ` ⏳${s.secondsLeft}s` : ' ✓'}`)
+      .join('   ');
+    const body = [
+      `%c🛰 AI MONITOR%c  ${refused ? '⚠ refused' : '✓ answered'}`,
+      `   API used : ${who}`,
+      `   model    : ${u.lastModel || '—'}`,
+      u.calls
+        ? `   tokens   : ${num(u.totalTokens)}  (in ${num(u.promptTokens)} · out ${num(u.outputTokens)})`
+        : `   tokens   : — (no model call succeeded)`,
+      `   calls    : ${u.calls} · ${ms.toFixed(0)} ms`,
+      `   failover : ${status}`,
+    ].join('\n');
+    // eslint-disable-next-line no-console
+    console.log(body, 'font-weight:bold;color:#4C5FE4', 'font-weight:normal;color:inherit');
+  } catch { /* never let the monitor break a response */ }
 }
 
 const ENV = {
@@ -72,11 +108,8 @@ export async function askViaPipeline(question: string, history: HistoryTurn[] = 
   const res = await askQuestion(question, { dataSource: getDataSource(), generate: r.generate }, history);
   const ms = performance.now() - t0;
   const u = usageSummary();
-  aiLog(`🤖 Answered by: ${r.lastProvider}${res.refused ? ' (refused)' : ''}`);
-  aiLog(
-    `📊 COST — ${u.totalTokens} tokens (in ${u.promptTokens} / out ${u.outputTokens}) · ` +
-    `${u.calls} model call(s) · ${ms.toFixed(0)} ms total`,
-  );
+  // Live monitor (always on) — which API, which model, how many tokens, and failover status.
+  printAiMonitor(r, u, ms, res.refused);
   // Layer 3: capture genuine refusals (a key WAS configured) as a backlog of real-world gaps.
   if (res.refused) {
     recordRefusal({

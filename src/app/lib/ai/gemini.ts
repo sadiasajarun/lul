@@ -31,6 +31,7 @@ export async function geminiGenerate(system: string, user: string, opts: GeminiO
   const um = json?.usageMetadata ?? {};
   recordUsage({
     provider: 'gemini',
+    model,
     promptTokens: um.promptTokenCount ?? 0,
     outputTokens: (um.candidatesTokenCount ?? 0) + (um.thoughtsTokenCount ?? 0),
     totalTokens: um.totalTokenCount ?? 0,
