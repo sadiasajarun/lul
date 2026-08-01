@@ -8,6 +8,7 @@
 //   ADMIN_EMAIL     e.g. admin@admin.com
 //   ADMIN_PASSWORD  e.g. admin@123#
 import express from 'express';
+import compression from 'compression';
 import { timingSafeEqual } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +43,14 @@ app.use((req, res, next) => {
   res.set('WWW-Authenticate', 'Basic realm="LMS-learn (team only)"');
   return res.status(401).send('Authentication required.');
 });
+
+// Gzip responses AFTER auth. Data CSVs are highly compressible (~5-8x), so large files like the
+// 79MB preview assessments.csv transfer as ~10MB — this prevents the download stream from being
+// interrupted on slow/free-tier connections (the "Failed to read from a ReadableStream" crash).
+// Also compresses the DuckDB .wasm modules and JS bundles.
+app.use(compression({
+  filter: (req, res) => /application\/wasm/.test(String(res.getHeader('Content-Type') || '')) || compression.filter(req, res),
+}));
 
 // Authenticated users get the built SPA; unknown routes fall back to index.html.
 // (Plain middleware fallback — Express 5 rejects the old app.get('*') wildcard path.)
