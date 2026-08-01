@@ -17,9 +17,9 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig(({ command }) => ({
-  // GitHub Pages serves this project site under /lul/, so production assets must be prefixed with it.
-  // Dev server stays at '/'. Change this if the repo (and thus the Pages path) is ever renamed.
-  base: command === 'build' ? '/lul/' : '/',
+  // Served at the domain root on Render (both the auth-gated web service and dev). Assets resolve
+  // from '/'. NOTE: if you ever deploy to GitHub Pages under /lul/ instead, set base back to '/lul/'.
+  base: '/',
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
