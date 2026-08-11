@@ -36,4 +36,8 @@ export default defineConfig(({ command }) => ({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  // Pin the dev server to 5180 so this project doesn't collide with other local apps
+  // (5173 = Square ATS, 5175 = Lead 360). Falls forward only if 5180 is itself taken.
+  server: { port: 5180 },
 }))
