@@ -3,22 +3,29 @@ import {
   Bot, Sparkles, Target, Award, AlertTriangle, Compass, ShieldCheck, Info,
   Check, Copy, ChevronRight, Zap,
   Share2, RotateCcw, MoreHorizontal, Printer, Table2, Volume2, X, Database, FileText,
-  GraduationCap, Users, Coffee, Activity, GitCompare, ShieldAlert,
+  GraduationCap, Users, Activity, GitCompare, ShieldAlert,
 } from "lucide-react";
 
 /** Quick prompts shown on the empty "What dashboard can I generate?" screen — click to generate. */
-const QUICK_PROMPTS = [
-  { icon: ShieldAlert, color: "var(--oo-danger)", q: "Show dropout reasons for ABAL program" },
-  { icon: Award, color: "var(--oo-warning)", q: "Show average marks by subject in Catchup" },
-  { icon: GraduationCap, color: "var(--oo-info)", q: "Analyze teacher education levels" },
-  { icon: Users, color: "var(--oo-primary)", q: "Compare student enrollment by grade" },
+/** Quick prompts; `mode: "preview"` cards only show in Preview mode (they rely on simulated data). */
+const QUICK_PROMPTS: { icon: typeof Target; color: string; q: string; mode?: "preview" }[] = [
+  { icon: Target, color: "var(--oo-danger)", q: "Show dropout risk — the highest-risk students" },
+  { icon: AlertTriangle, color: "var(--oo-danger)", q: "Students carrying the most stacked risks" },
   { icon: AlertTriangle, color: "var(--oo-danger)", q: "Which centers have the lowest score?" },
-  { icon: Coffee, color: "var(--band-green)", q: "Check student nutrition evaluation" },
-  { icon: Activity, color: "var(--oo-warning)", q: "Teacher experience distribution" },
+  { icon: Database, color: "var(--oo-info)", q: "Which centers' data is too incomplete to trust?" },
+  { icon: Award, color: "var(--oo-warning)", q: "Which subjects have the weakest average marks?" },
+  { icon: Users, color: "var(--band-green)", q: "Show the lowest-income students" },
+  { icon: Activity, color: "var(--oo-warning)", q: "Show attendance trend month by month", mode: "preview" },
+  { icon: Compass, color: "var(--oo-muted)", q: "Show ghost / inactive students", mode: "preview" },
+  { icon: GraduationCap, color: "var(--oo-info)", q: "Which teachers handle the weakest subjects?", mode: "preview" },
+  { icon: ShieldAlert, color: "var(--oo-danger)", q: "Show dropout reasons for ABAL program" },
+  { icon: GraduationCap, color: "var(--oo-info)", q: "Analyze teacher education levels" },
   { icon: GitCompare, color: "var(--oo-primary)", q: "Compare program enrollment & mainstreaming" },
-] as const;
+];
 import type { ChatMsg, Lens } from "../lib/types";
 import { LENS_STYLE } from "../utils/chatMeta";
+import { bumpUsage, getUsage } from "../utils/learningStore";
+import { getDataMode } from "../lib/db";
 import { MessageWidgets } from "../components/dash/MessageWidgets";
 import { toBnNumerals, type Lang } from "../lib/fmt";
 import { messageToMarkdown, messageToCsv, messageToHtml, download, printHtml, speak, stripMd } from "../utils/chatExport";
@@ -246,6 +253,13 @@ function MessageActions({ msg, index, lang, onRegenerate }: { msg: ChatMsg; inde
 
 function EmptyState({ lang, onAsk }: { lang: Lang; onAsk: (q: string) => void }) {
   const t = STR[lang];
+  // Mode-aware: Preview-only cards (simulated data) are hidden in Real mode.
+  // Behavioural learning: surface the analyses this user runs most, most-used first.
+  const mode = getDataMode();
+  const usage = getUsage();
+  const cards = [...QUICK_PROMPTS]
+    .filter((c) => !c.mode || mode === "tuned")
+    .sort((a, b) => (usage[b.q] ?? 0) - (usage[a.q] ?? 0));
   return (
     <div className="min-h-full flex flex-col items-center justify-center py-10">
       <div
@@ -263,10 +277,10 @@ function EmptyState({ lang, onAsk }: { lang: Lang; onAsk: (q: string) => void })
           {lang === "bn" ? "দ্রুত প্রম্পট" : "Quick prompts"}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {QUICK_PROMPTS.map(({ icon: Icon, color, q }) => (
+          {cards.map(({ icon: Icon, color, q }) => (
             <button
               key={q}
-              onClick={() => onAsk(q)}
+              onClick={() => { bumpUsage(q); onAsk(q); }}
               className="flex items-center gap-3 text-left bg-white border border-[var(--oo-border)] rounded-xl px-3.5 py-3 hover:border-[var(--oo-primary)] hover:shadow-sm transition-all cursor-pointer group"
             >
               <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${color} 12%, transparent)`, color }}>
@@ -357,6 +371,14 @@ function DashboardResult({ msg, index, question, lang, onAsk, onRegenerate }: {
         </div>
         <Bullets text={msg.text} lang={lang} />
       </div>
+
+      {/* coverage / confidence caption — honesty about how complete the data behind this answer is */}
+      {msg.coverage && (
+        <div className="flex items-start gap-1.5 text-[11px] text-[var(--oo-muted)] -mt-2 mb-4 max-w-4xl">
+          <ShieldCheck size={12} className="shrink-0 mt-0.5 text-[var(--oo-info)]" />
+          <span>{msg.coverage}</span>
+        </div>
+      )}
 
       {/* widgets — a real (scrollable) dashboard grid with full-height charts */}
       <MessageWidgets widgets={msg.response?.widgets} />

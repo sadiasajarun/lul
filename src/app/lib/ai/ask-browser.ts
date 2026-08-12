@@ -9,6 +9,7 @@ import { askQuestion, type AskResult } from './pipeline';
 import { buildSystemPrompt, type HistoryTurn } from './prompt';
 import { resetUsage, usageSummary } from './usage';
 import { recordRefusal, listRefusals, exportRefusals, clearRefusals } from './refusal-log';
+import { isDiagnostic, analyzeResult, proposeInvestigation, rowsOf } from './analyze';
 
 // Console helpers for inspecting the pipeline live:
 //   showSystemPrompt()  → prints the exact system prompt sent to the model
@@ -105,7 +106,27 @@ export async function askViaPipeline(question: string, history: HistoryTurn[] = 
   }
   resetUsage();
   const t0 = performance.now();
-  const res = await askQuestion(question, { dataSource: getDataSource(), generate: r.generate, dataMode: getDataMode() }, history);
+  const deps = { dataSource: getDataSource(), generate: r.generate, dataMode: getDataMode() };
+  const res = await askQuestion(question, deps, history);
+  // AGENTIC ANALYSIS for a "why / reason" question: investigate ONE deeper breakdown, then REASON over
+  // the initial result + the breakdown + data caveats. Every step is grounded (validated SQL / real
+  // rows); it never blocks the answer — any failure falls back to the base result.
+  if (!res.refused && res.response && isDiagnostic(question)) {
+    const groups = [{ label: 'initial result', rows: rowsOf(res.response) }];
+    const followupQ = await proposeInvestigation(question, res.response, r.generate);
+    if (followupQ) {
+      try {
+        const hist: HistoryTurn[] = [...history, { role: 'user', text: question }, { role: 'ai', text: res.response.summary, sql: res.sql }];
+        const res2 = await askQuestion(followupQ, deps, hist);
+        if (!res2.refused && res2.response) {
+          groups.push({ label: `breakdown — ${followupQ}`, rows: rowsOf(res2.response) });
+          if (res2.response.widgets?.length) res.response.widgets = [...res.response.widgets, ...res2.response.widgets];
+        }
+      } catch { /* investigation is best-effort */ }
+    }
+    const insight = await analyzeResult(question, groups, r.generate);
+    if (insight) res.response.summary = insight;
+  }
   const ms = performance.now() - t0;
   const u = usageSummary();
   // Live monitor (always on) — which API, which model, how many tokens, and failover status.

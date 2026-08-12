@@ -10,7 +10,8 @@ import type { DynamicDashboardResponse } from "./utils/openAIHelper";
 import type { ChatMsg, Conversation } from "./lib/types";
 import { totals } from "./lib/aggregates";
 import { fmtInt, type Lang } from "./lib/fmt";
-import { inferLens, inferSeverity, deriveFollowups } from "./utils/chatMeta";
+import { inferLens, inferSeverity, deriveFollowups, genericRecommendation } from "./utils/chatMeta";
+import { matchPlaybook, playbookCoverage } from "./lib/ai/playbooks";
 import { DashboardView } from "./views/DashboardView";
 import { CopilotPanel } from "./components/copilot/CopilotPanel";
 
@@ -177,9 +178,14 @@ export default function App() {
     const summary = response.summary;
     const lens = res.refused ? "context" : inferLens(summary, widgets);
     const severity = res.rateLimited ? "warn" : res.refused ? "info" : inferSeverity(summary, lens);
+    // Predictive analyses add a specific advisory recommendation + an honest coverage note. Any other
+    // (non-refused) analysis gets a generic, severity-aware recommendation so every answer is actionable.
+    const pb = res.refused ? undefined : matchPlaybook(text);
+    const reco = pb ? pb.recommendation : (!res.refused && widgets.length > 0 ? genericRecommendation(lens) : undefined);
+    const summaryText = reco ? `${summary}\n* **Recommended:** ${reco}` : summary;
     return {
       role: "ai",
-      text: summary,
+      text: summaryText,
       timestamp: stamp(),
       response: res.refused ? null : response,
       lens,
@@ -187,6 +193,7 @@ export default function App() {
       grounded: !res.refused,
       refused: res.refused,
       followups: deriveFollowups(text, widgets),
+      coverage: res.refused ? undefined : playbookCoverage(text, dataMode),
       engine: res.provider === "openai" ? "openai" : "gemini",
       sources: res.sql ? [res.sql] : undefined,
     };

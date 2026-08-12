@@ -3,10 +3,11 @@
 // and a hard row cap. Even though the engine is a local read-only DuckDB, this stops a bad query
 // from hanging the tab and keeps behaviour identical when we later swap in a real backend.
 
-const ALLOWED_RELATIONS = new Set([
-  'v_students', 'v_teachers', 'v_student_attendance', 'v_attendance_monthly', 'v_marks',
-  'v_student_subject', 'v_teacher_ratio_by_division', 'v_enrollment_by_year', 'v_center_enrollment',
-]);
+import { VIEWS } from '../db/catalog';
+
+// Allowed relations = every view documented in the catalog (single source of truth), so any new
+// view added there is automatically queryable — no separate list to keep in sync.
+const ALLOWED_RELATIONS = new Set(VIEWS.map((v) => v.name.toLowerCase()));
 
 // Statement types / extension commands that must never appear.
 const FORBIDDEN = /\b(insert|update|delete|drop|alter|create|attach|detach|copy|pragma|install|load|export|import|truncate|grant|revoke|vacuum|reindex)\b/i;

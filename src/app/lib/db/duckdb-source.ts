@@ -13,10 +13,11 @@ import { TABLES, type DataSource, type QueryResult } from './types';
 /** Split a multi-statement SQL script into individual statements (no ';' appears in our literals). */
 function splitStatements(sql: string): string[] {
   return sql
+    // Strip -- line comments FIRST, so a ';' inside a comment can never split a statement in two.
+    .replace(/--[^\n]*/g, '')
     .split(';')
-    // A statement is meaningful only if something remains after stripping -- comment lines.
-    .filter((s) => s.replace(/--[^\n]*/g, '').trim().length > 0)
-    .map((s) => s.trim());
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {

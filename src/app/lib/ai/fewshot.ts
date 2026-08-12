@@ -18,6 +18,18 @@ export const FEW_SHOTS: FewShot[] = [
     sql: `SELECT count(*) AS female_students FROM v_students WHERE gender_label = 'Female'`,
     note: "map girls/female/women → gender_label = 'Female'." },
 
+  { q: 'Why are students dropping out?',
+    sql: `SELECT dropout_reason, count(*) AS students
+FROM v_students WHERE dropout_reason IS NOT NULL AND dropout_reason <> ''
+GROUP BY dropout_reason ORDER BY students DESC`,
+    note: "dropout reasons ARE tracked in v_students.dropout_reason — NEVER refuse 'why are students dropping out'; GROUP BY dropout_reason." },
+
+  { q: 'Which centres need a visit?',
+    sql: `SELECT center_id, center_name, division, me_score
+FROM v_center_enrollment WHERE me_score IS NOT NULL
+ORDER BY me_score ASC LIMIT 15`,
+    note: "'need a visit' / 'need support' = the lowest-scoring centres — ORDER BY me_score ASC. Do NOT add restrictive filters that can return zero rows." },
+
   { q: 'Show attendance month by month',
     sql: `SELECT month, round(sum(sum_attendance) / sum(n_students), 1) AS avg_attendance_pct
 FROM v_attendance_monthly

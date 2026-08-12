@@ -128,3 +128,22 @@ export function resetLearning(): void {
   write(CACHE_KEY, {});
   write(WEIGHTS_KEY, { version: KB_VERSION, weights: {} });
 }
+
+// ── 4 · Analysis usage (behavioral learning) ────────────────────────────────────
+// Track which analyses/prompts the user actually runs, so the launcher can surface the most-used
+// first. This is BEHAVIOURAL learning — it improves what we SHOW/rank; it NEVER changes a prediction's
+// numbers (accuracy comes only from new outcome data + re-tuning, not from clicks).
+const USAGE_KEY = "analysis_usage_v1";
+type Usage = Record<string, number>;
+
+/** Record that a prompt/analysis was run (bumps its counter). */
+export function bumpUsage(key: string): void {
+  const u = read<Usage>(USAGE_KEY, {});
+  u[key] = (u[key] ?? 0) + 1;
+  write(USAGE_KEY, u);
+}
+
+/** How many times each prompt/analysis has been run (for ranking the launcher). */
+export function getUsage(): Usage {
+  return read<Usage>(USAGE_KEY, {});
+}

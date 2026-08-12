@@ -9,6 +9,7 @@
 
 import type { DashboardWidget } from "./openAIHelper";
 import type { Lens, Severity } from "../lib/types";
+import { matchPlaybook } from "../lib/ai/playbooks";
 
 export interface LensStyle {
   /** Icon key resolved to a lucide component in ChatView (utils must not import components). */
@@ -65,6 +66,20 @@ export function inferSeverity(summary: string, lens: Lens): Severity {
 }
 
 /**
+ * A generic, severity-aware recommendation for ANY analysis that has no specific playbook — so every
+ * answer ends in a suggested action ("every query actionable"), grounded in the inferred lens.
+ */
+export function genericRecommendation(lens: Lens): string {
+  switch (lens) {
+    case "issue": return "Prioritise the worst cases here and route them to the field team for follow-up.";
+    case "quality": return "Treat these figures with caution and close the underlying data gaps before acting on them.";
+    case "win": return "A positive signal — note what is working here and replicate it in the weaker areas.";
+    case "action": return "Act on the highest-impact item first, then re-check after the intervention.";
+    default: return "Use this as a baseline, then drill into the biggest contributor to see what is driving it.";
+  }
+}
+
+/**
  * A coverage/data-quality caption, shown as honesty (not an error). The demo dataset records
  * attendance for every learner (100% coverage), so there is no coverage caveat to surface — this
  * returns undefined. (Kept as a hook: if a coverage-limited metric is ever reintroduced, flag it here.)
@@ -78,6 +93,10 @@ export function coverageCaption(_summary: string, _widgets?: DashboardWidget[]):
  * a deeper grain than the current one, skipping any dimension the prompt already pinned.
  */
 export function deriveFollowups(prompt: string, _widgets?: DashboardWidget[]): string[] {
+  // Predictive analyses carry their own drill-down chain (the relational flow) — use it when matched.
+  const pb = matchPlaybook(prompt);
+  if (pb) return pb.followups.slice(0, 3);
+
   const p = prompt.toLowerCase();
   const pool: string[] = [];
 

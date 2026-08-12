@@ -13,6 +13,7 @@
     "build:data": "node scripts/build-analytics-data.mjs",
     "build:data:tuned": "node scripts/build-tuned-data.mjs",
     "check:catalog": "tsx scripts/check-catalog.mjs",
+    "check:risk": "node scripts/check-risk.mjs",
     "probe:refusals": "tsx scripts/probe-refusals.mjs",
     "verify:sql": "node scripts/verify-duckdb.mjs",
     "verify:pipeline": "tsx scripts/verify-pipeline.mjs",
