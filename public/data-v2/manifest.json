@@ -1,0 +1,27 @@
+{
+  "source": "14-08-26 export",
+  "note": "Canonical shape identical to public/data/. NO student names in this export (removed at source).",
+  "caveats": [
+    "income_band here is banded HOUSEHOLD income (Family Income); father/mother income are not reported separately.",
+    "Mainstream status and Reason for dropout overlap heavily — the active/dropout split needs a client definition before it is reported."
+  ],
+  "tables": [
+    "students",
+    "attendance",
+    "assessments",
+    "teachers",
+    "centers"
+  ],
+  "stats": {
+    "students_dropped": 0,
+    "students_duplicate_rows": 181534,
+    "attendance_dropped": 0,
+    "attendance_missing": 24371,
+    "marks_out_of_range": 2,
+    "assessments_dropped": 2,
+    "students_with_any_mark": 125717,
+    "duplicate_marks": 1172600,
+    "teachers_dropped": 3,
+    "centers_dropped": 0
+  }
+}

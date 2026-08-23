@@ -48,12 +48,31 @@ export default function App() {
   // Data mode: switch the whole app (dashboards + chat) between REAL and gap-filled PREVIEW data.
   const [dataMode, setDataMode] = useState<DataMode>(() => getDataMode());
   const [switchingMode, setSwitchingMode] = useState(false);
+  // A dataset that failed to load, with a message for the person looking at the screen. Without
+  // this the toggle just did nothing: the error went to console.error, which nobody outside the
+  // dev tools ever sees, so the button looked broken rather than unavailable.
+  const [dataModeError, setDataModeError] = useState<string | null>(null);
   const switchDataMode = async (m: DataMode) => {
     if (m === dataMode || switchingMode) return;
     setSwitchingMode(true);
-    try { await setDataSourceMode(m); setDataMode(m); }
-    catch (e) { console.error("data mode switch failed", e); }
-    finally { setSwitchingMode(false); }
+    setDataModeError(null);
+    try {
+      await setDataSourceMode(m);
+      setDataMode(m);
+    } catch (e) {
+      console.error("data mode switch failed", e);
+      const missing = /404|Failed to fetch/i.test((e as Error)?.message ?? "");
+      const label = m === "v2" ? "Real ·26" : m === "tuned" ? "Preview" : "Real";
+      setDataModeError(
+        missing
+          ? `The ${label} dataset isn’t available in this deployment, so nothing was changed. You are still on ${dataMode === "v2" ? "Real ·26" : dataMode === "tuned" ? "Preview" : "Real"}.`
+          : `Couldn’t switch to ${label}, so nothing was changed. Please try again.`,
+      );
+      // Make sure the UI still reflects the dataset actually loaded, not the one that was clicked.
+      setDataMode(getDataMode());
+    } finally {
+      setSwitchingMode(false);
+    }
   };
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("lang") as Lang) || "en");
   const [collapsed, setCollapsed] = useState(false);
@@ -428,6 +447,24 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            {/* A failed dataset switch is said out loud. Previously it only reached console.error,
+                so the button appeared to do nothing at all. */}
+            {dataModeError && (
+              <div
+                role="status"
+                className="flex items-start gap-1.5 max-w-[340px] text-[11px] leading-snug text-[#8a4a1d] bg-[var(--oo-warning)]/10 border border-[var(--oo-warning)]/30 rounded-md px-2.5 py-1.5"
+              >
+                <span className="flex-1">{dataModeError}</span>
+                <button
+                  onClick={() => setDataModeError(null)}
+                  aria-label="Dismiss"
+                  className="shrink-0 font-bold opacity-60 hover:opacity-100 cursor-pointer"
+                >
+                  ×
+                </button>
+              </div>
+            )}
 
             <div className="flex items-center border border-[var(--oo-border)] rounded-md overflow-hidden">
               {(["en", "bn"] as Lang[]).map((l) => (

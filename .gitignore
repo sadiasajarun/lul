@@ -27,5 +27,9 @@ public/data-tuned/
 # Local Claude settings
 .claude/settings.local.json
 
-# v2 dataset (real PII, same rule as public/data and public/data-tuned)
-public/data-v2/
+# NOTE on public/data, public/data-tuned and public/data-v2:
+# These ARE committed, deliberately. The app is a static site with no backend — the browser fetches
+# these CSVs directly, so a dataset that is not in the repo is not in the build, and its toggle 404s
+# in production. They contain real personal data, which is why THIS REPOSITORY MUST STAY PRIVATE.
+# (public/data-tuned/ is listed above for historical reasons but its files are already tracked; the
+# rule has no effect on them.)
