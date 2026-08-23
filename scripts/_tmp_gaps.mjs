@@ -12,7 +12,7 @@ const N = (v) => (typeof v === 'bigint' ? Number(v) : v);
 const one = async (s) => Object.fromEntries(Object.entries((await run(s))[0]).map(([k, v]) => [k, N(v)]));
 for (const t of ['students', 'attendance', 'assessments', 'teachers', 'centers'])
   await run(`CREATE TABLE ${t} AS SELECT * FROM read_csv_auto('${p(t + '.csv')}', header=true, sample_size=-1)`);
-for (const s of fs.readFileSync(SEM, 'utf8').split(';').filter((x) => x.replace(/--[^\n]*/g, '').trim().length)) await run(s);
+for (const s of fs.readFileSync(SEM, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((x) => x.trim().length)) await run(s);
 const pct = (n, d) => (d ? (100 * n / d).toFixed(1) + '%' : '—');
 
 console.log('=== ROW COUNTS ===');

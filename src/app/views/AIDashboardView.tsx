@@ -1,5 +1,5 @@
 import { Sparkles, AlertTriangle } from "lucide-react";
-import type { DynamicDashboardResponse } from "../utils/openAIHelper";
+import type { DynamicDashboardResponse } from "../lib/dashboard-types";
 import { StatTile } from "../components/dash/StatTile";
 import { WidgetChart, inferStatType, inferGoodDirection } from "../components/dash/WidgetChart";
 import { narrate } from "../utils/insights";
@@ -120,6 +120,9 @@ function AIDashboardView({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-3">
                   <div>
                     <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{widget.title}</div>
+                    {widget.caption && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{widget.caption}</div>
+                    )}
                     {widget.xAxisKey && widget.seriesKeys && (
                       <div className="text-[9px] text-muted-foreground font-mono mt-0.5">X-Axis: {widget.xAxisKey} | Y-Axis: {widget.seriesKeys.join(", ")}</div>
                     )}
@@ -164,6 +167,9 @@ function AIDashboardView({
               <div key={wIdx} className={`bg-card border border-border rounded-xl p-5 shadow-sm space-y-4 flex flex-col ${getColSpan(widget.width)}`}>
                 <div className="border-b border-border/40 pb-2">
                   <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{widget.title}</div>
+                  {widget.caption && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-snug normal-case">{widget.caption}</div>
+                  )}
                 </div>
                 <div className="overflow-x-auto max-h-[265px] scrollbar-thin mt-2">
                   <table className="w-full text-left border-collapse text-[11px]">

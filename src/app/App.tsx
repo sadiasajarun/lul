@@ -6,11 +6,11 @@ import {
 } from "lucide-react";
 import { askViaPipeline, type AskResult, type HistoryTurn } from "./lib/ai/ask-browser";
 import { getDataMode, setDataSourceMode, type DataMode } from "./lib/db";
-import type { DynamicDashboardResponse } from "./utils/openAIHelper";
+import type { DynamicDashboardResponse } from "./lib/dashboard-types";
 import type { ChatMsg, Conversation } from "./lib/types";
 import { totals } from "./lib/aggregates";
 import { fmtInt, type Lang } from "./lib/fmt";
-import { inferLens, inferSeverity, deriveFollowups, genericRecommendation } from "./utils/chatMeta";
+import { inferLens, inferSeverity, deriveFollowups } from "./utils/chatMeta";
 import { matchPlaybook, playbookCoverage } from "./lib/ai/playbooks";
 import { DashboardView } from "./views/DashboardView";
 import { CopilotPanel } from "./components/copilot/CopilotPanel";
@@ -176,12 +176,19 @@ export default function App() {
     const response = res.response as DynamicDashboardResponse;
     const widgets = response.widgets ?? [];
     const summary = response.summary;
-    const lens = res.refused ? "context" : inferLens(summary, widgets);
+    const lens = res.refused || res.explained || res.clarifying ? "context" : inferLens(summary, widgets);
     const severity = res.rateLimited ? "warn" : res.refused ? "info" : inferSeverity(summary, lens);
     // Predictive analyses add a specific advisory recommendation + an honest coverage note. Any other
     // (non-refused) analysis gets a generic, severity-aware recommendation so every answer is actionable.
-    const pb = res.refused ? undefined : matchPlaybook(text);
-    const reco = pb ? pb.recommendation : (!res.refused && widgets.length > 0 ? genericRecommendation(lens) : undefined);
+    // An explanation is not an analysis: no playbook recommendation, no coverage caption, no
+    // drill-down chips. Bolting them on would dress a definition up as a finding.
+    const plain = res.explained || res.clarifying;
+    const pb = res.refused || plain ? undefined : matchPlaybook(text);
+    // A recommendation must be EARNED. The reasoning layer emits one only for analytical/predictive
+    // questions that produced something specific; a retrieval answer gets none. The old generic
+    // "prioritise the worst cases and route to the field team" default is gone — it appeared on
+    // every answer and told a decision-maker nothing.
+    const reco = pb ? pb.recommendation : undefined;
     const summaryText = reco ? `${summary}\n* **Recommended:** ${reco}` : summary;
     return {
       role: "ai",
@@ -192,10 +199,16 @@ export default function App() {
       severity,
       grounded: !res.refused,
       refused: res.refused,
-      followups: deriveFollowups(text, widgets),
-      coverage: res.refused ? undefined : playbookCoverage(text, dataMode),
-      engine: res.provider === "openai" ? "openai" : "gemini",
+      explained: res.explained,
+      clarifying: res.clarifying,
+      cached: res.cached,
+      followups: plain ? undefined : deriveFollowups(text, widgets),
+      coverage: res.refused || plain ? undefined : playbookCoverage(text, dataMode),
+      engine: res.cached || res.provider === "cache" ? "cache" : res.provider === "openai" ? "openai" : "gemini",
       sources: res.sql ? [res.sql] : undefined,
+      // Carry the primary result rows so a follow-up ("why are these…") reasons over the exact cohort.
+      evidence: res.refused ? undefined : res.evidence,
+    reasoning: res.refused ? undefined : res.reasoning,
     };
   };
 
@@ -224,8 +237,8 @@ export default function App() {
       // Recent turns (with the SQL each ran) so follow-ups like "this student", "and for girls?" resolve.
       const history: HistoryTurn[] = messages
         .filter((m) => m.role === "user" || m.response !== undefined || m.refused)
-        .slice(-6)
-        .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null }));
+        .slice(-10)
+        .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null, columns: m.evidence?.columns, rows: m.evidence?.rows, rowCount: m.evidence?.rowCount }));
       const res = await askViaPipeline(text, history);
       appendAi(buildPipelineMessage(text, res));
     } catch (e) {
@@ -257,8 +270,8 @@ export default function App() {
     try {
       const history: HistoryTurn[] = msgs.slice(0, index)
         .filter((m) => m.role === "user" || m.response !== undefined || m.refused)
-        .slice(-6)
-        .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null }));
+        .slice(-10)
+        .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null, columns: m.evidence?.columns, rows: m.evidence?.rows, rowCount: m.evidence?.rowCount }));
       const res = await askViaPipeline(userText, history);
       const ai = buildPipelineMessage(userText, res);
       setConversations((prev) => prev.map((c) => (c.id === targetId ? { ...c, messages: c.messages.map((m, i) => (i === index ? ai : m)) } : c)));
@@ -397,19 +410,21 @@ export default function App() {
             {/* Data-source switch: flips the WHOLE app between real data and the gap-filled preview. */}
             {switchingMode && <span className="text-[11px] text-[var(--oo-muted)]">loading…</span>}
             <div className="flex items-center border border-[var(--oo-border)] rounded-md overflow-hidden" role="group" aria-label="Data source">
-              {(["real", "tuned"] as DataMode[]).map((m) => (
+              {(["real", "v2", "tuned"] as DataMode[]).map((m) => (
                 <button
                   key={m}
                   onClick={() => switchDataMode(m)}
                   disabled={switchingMode}
-                  title={m === "real" ? "Real programme data (honest, with gaps)" : "Preview — gaps filled with estimated values"}
+                  title={m === "real" ? "Real programme data (Jul-2025 export, honest, with gaps)"
+                    : m === "v2" ? "Real programme data — 14-Aug-2026 export. Much better coverage; no student names."
+                    : "Preview — gaps filled with estimated values"}
                   className={`text-[11px] font-bold px-2.5 py-1.5 transition-colors cursor-pointer disabled:opacity-60 ${
                     dataMode === m
-                      ? m === "tuned" ? "bg-[var(--oo-warning)] text-white" : "bg-[var(--oo-primary)] text-white"
+                      ? m === "tuned" ? "bg-[var(--oo-warning)] text-white" : m === "v2" ? "bg-[var(--oo-success)] text-white" : "bg-[var(--oo-primary)] text-white"
                       : "bg-white text-[var(--oo-muted)] hover:text-[var(--oo-heading)]"
                   }`}
                 >
-                  {m === "real" ? "Real" : "Preview"}
+                  {m === "real" ? "Real" : m === "v2" ? "Real ·26" : "Preview"}
                 </button>
               ))}
             </div>

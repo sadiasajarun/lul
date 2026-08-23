@@ -25,9 +25,11 @@ const run = (sql) => new Promise((res, rej) => db.all(sql, (e, r) => (e ? rej(e)
 const q = (p) => p.replace(/\\/g, '/');
 for (const t of ['students', 'attendance', 'assessments', 'teachers', 'centers'])
   await run(`CREATE TABLE ${t} AS SELECT * FROM read_csv_auto('${q(path.join(DATA, t + '.csv'))}', header=true) LIMIT 0`);
-// attendance_monthly is a preview-only table (empty in Real mode); stub it so v_attendance_monthly builds.
+// These are preview-only tables (empty in Real mode); stub them so the views that read them build.
 await run('CREATE TABLE IF NOT EXISTS attendance_monthly (month_num INT, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INT, sum_attendance DOUBLE)');
-for (const s of fs.readFileSync(SEMANTIC, 'utf8').split(';').filter((x) => x.replace(/--[^\n]*/g, '').trim().length)) await run(s);
+await run('CREATE TABLE IF NOT EXISTS attendance_center_monthly (center_id VARCHAR, month_num INT, month VARCHAR, n_students INT, sum_attendance DOUBLE)');
+await run('CREATE TABLE IF NOT EXISTS attendance_gaps (student_id VARCHAR, last_attended_month VARCHAR, days_since_last_attendance INT, recent_attendance_pct DOUBLE)');
+for (const s of fs.readFileSync(SEMANTIC, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((x) => x.trim().length)) await run(s);
 
 const actualCols = async (view) => (await run(`DESCRIBE ${view}`)).map((r) => r.column_name);
 const engineViews = new Set((await run("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'v\\_%' ESCAPE '\\'")).map((r) => r.table_name));

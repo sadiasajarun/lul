@@ -3,7 +3,7 @@ import {
   Users, GraduationCap, CalendarCheck, MapPin, TrendingDown, Percent, Award, BarChart3,
   ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
-import type { DashboardWidget } from "../../utils/openAIHelper";
+import type { DashboardWidget } from "../../lib/dashboard-types";
 import { WidgetChart, inferGoodDirection } from "./WidgetChart";
 
 /**
@@ -73,6 +73,8 @@ function StatCards({ widget }: { widget: DashboardWidget }) {
 const CHART_TYPES = ["bar", "line", "area", "pie"] as const;
 
 function ChartBlock({ widget, fill }: { widget: DashboardWidget; fill?: boolean }) {
+  // Every chart type stays available — the widget only picks the sensible DEFAULT. Switching is the
+  // reader's call, so the toggles are never withheld.
   const [type, setType] = useState<(typeof CHART_TYPES)[number]>(
     (CHART_TYPES.includes(widget.chartType as (typeof CHART_TYPES)[number]) ? widget.chartType : "bar") as (typeof CHART_TYPES)[number]
   );
@@ -81,8 +83,13 @@ function ChartBlock({ widget, fill }: { widget: DashboardWidget; fill?: boolean 
       className={`bg-white border border-[var(--oo-border)] p-4 min-w-0 overflow-hidden h-full ${fill ? "flex flex-col" : ""}`}
       style={{ borderRadius: "14px", boxShadow: "var(--oo-card-shadow)" }}
     >
-      <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
-        <div className="text-[11.5px] font-bold text-[var(--oo-heading)] break-words">{widget.title}</div>
+      <div className="flex items-start justify-between gap-2 mb-3 shrink-0">
+        <div className="min-w-0">
+          <div className="text-[11.5px] font-bold text-[var(--oo-heading)] break-words">{widget.title}</div>
+          {widget.caption && (
+            <div className="text-[10px] text-[var(--oo-muted)] leading-snug mt-0.5 break-words">{widget.caption}</div>
+          )}
+        </div>
         <div className="flex bg-[var(--oo-canvas)] border border-[var(--oo-border)] rounded-md p-0.5 gap-0.5 shrink-0">
           {CHART_TYPES.map((t) => (
             <button
@@ -120,7 +127,12 @@ function TableBlock({ widget }: { widget: DashboardWidget }) {
       className="bg-white border border-[var(--oo-border)] p-4 min-w-0 h-full"
       style={{ borderRadius: "14px", boxShadow: "var(--oo-card-shadow)" }}
     >
-      <div className="text-[11.5px] font-bold text-[var(--oo-heading)] mb-3 break-words">{widget.title}</div>
+      <div className="mb-3">
+        <div className="text-[11.5px] font-bold text-[var(--oo-heading)] break-words">{widget.title}</div>
+        {widget.caption && (
+          <div className="text-[10px] text-[var(--oo-muted)] leading-snug mt-0.5 break-words">{widget.caption}</div>
+        )}
+      </div>
       <div className="overflow-x-auto max-h-[260px] no-scrollbar">
         <table className="text-left border-collapse text-[11px] w-max min-w-full">
           <thead>

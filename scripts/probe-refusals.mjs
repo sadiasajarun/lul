@@ -44,7 +44,7 @@ for (const t of ['students', 'attendance', 'assessments', 'teachers', 'centers']
 const mPath = path.join(DATA, 'attendance_monthly.csv');
 if (fs.existsSync(mPath)) await run(`CREATE TABLE attendance_monthly AS SELECT * FROM read_csv_auto('${mPath.replace(/\\/g, '/')}', header=true, sample_size=-1)`);
 else await run('CREATE TABLE attendance_monthly (month_num INTEGER, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INTEGER, sum_attendance DOUBLE)');
-for (const s of fs.readFileSync(SEMANTIC, 'utf8').split(';').filter((x) => x.replace(/--[^\n]*/g, '').trim().length)) await run(s);
+for (const s of fs.readFileSync(SEMANTIC, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((x) => x.trim().length)) await run(s);
 const dataSource = {
   kind: 'duckdb-wasm', init: async () => {},
   query: async (sql) => { const rows = clean(await run(sql)); return { columns: rows.length ? Object.keys(rows[0]) : [], rows, rowCount: rows.length }; },

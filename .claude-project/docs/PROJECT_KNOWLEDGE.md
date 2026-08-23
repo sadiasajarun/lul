@@ -83,6 +83,61 @@ produces scripted chat replies with rich data.
 Note: `App.tsx` also contains a hardcoded `SCHOOLS` array (10 fictional US-style
 schools) used by the demo views; the real NFPE data lives in `Database/`.
 
+## Conversational understanding (question routing)
+
+Not every question is a query. `src/app/lib/ai/router.ts` classifies each turn **deterministically**
+(regex + glossary lookup, no model call) into one of three kinds, and the kind decides the path:
+
+| Kind | Example | Path | Cost |
+|---|---|---|---|
+| `data` | "Which centres are below 85%?" | the agentic SQL loop | ~15,700-token prompt |
+| `definition` | "What does vulnerability score mean?" | `explain.ts` ← `glossary.ts` | ~600-token prompt |
+| `dataset` | "How complete is the attendance data?" | `explain.ts` ← live `profile.ts` | ~900-token prompt |
+
+Routing is deterministic on purpose: it decides how much a question costs, so it must be predictable
+and free. When in doubt it returns `data` — the existing path, never worse than before. The suite
+asserts 14 real questions still route to `data`; hijacking a genuine query would be a far worse
+defect than failing to explain a term.
+
+### Definitions are checked against the SQL that computes them
+
+`glossary.ts` holds every score, flag and term the app displays, with its **actual weights** copied
+from `semantic.sql` (dropout risk = schoolwork 35 + attendance 30 + income 15 + hardship 20, capped
+at 100). Each computed entry carries an `anchor` — a literal fragment of that SQL.
+
+`npm run e2e:full` asserts every anchor still exists and every declared weight is still in the view,
+so **changing a calculation without changing its explanation fails the build**. An explanation that
+drifts from the code is worse than none: the reader then trusts a number they now misunderstand.
+
+### Composed answers cannot invent numbers
+
+An explanation is assembled from a deterministic facts block, composed by the model, then **checked**:
+every number in the output must appear in the facts or in the user's own question. Integers 0–10 are
+exempt (they are ordinals like "the four parts", not statistics). A composed answer that invents a
+figure is discarded and the written definition is sent instead — `unsupportedNumbers()` in
+`explain.ts`. This makes "never fabricate a number" a property of the system, not a request in a prompt.
+
+### Follow-ups edit the previous answer
+
+`followup.ts` detects nine kinds of edit (`filter`, `unfilter`, `add_factor`, `drop_factor`, `sort`,
+`resize`, `regroup`, `drill`, `compare`) and hands the agent an instruction naming the **previous SQL**
+and the exact delta. It never rewrites SQL itself — the modified question goes back through the normal
+query path, so coverage, scale and correlation rules still apply. A follow-up is not a shortcut around
+the honesty rules.
+
+Two deliberate refusals to guess:
+- An unresolvable reference ("why is that one so high?" with nothing on screen) returns a short
+  clarifying question, at zero cost.
+- A factor named by the user (`"add family income as a factor"`) is **either measured or explained** —
+  it bypasses the materiality filter, and if the field is empty in the active dataset it comes back as
+  `requestedUnavailable` with a plain reason. It is never silently dropped.
+
+### Limits are specific, never "insufficient data"
+
+`KNOWN_LIMITS` in `explain.ts` names, for each thing the system cannot do, the **exact missing field**,
+what would need collecting, and what to ask instead. A vague limitation is indistinguishable from a
+bug and leaves the client nothing to act on.
+
 ## Conventions (differ from the .claude fullstack defaults!)
 
 This is a **Figma Make export**, not a `/fullstack`-pipeline project. The

@@ -9,6 +9,7 @@
   ],
   "stats": {
     "students_dropped": 15,
+    "students_duplicate_rows": 112,
     "attendance_dropped": 14,
     "marks_out_of_range": 2,
     "assessments_dropped": 13,

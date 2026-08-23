@@ -8,7 +8,8 @@ import mvpWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url
 import ehWasm from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
 import ehWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
 import semanticSql from './semantic.sql?raw';
-import { TABLES, type DataSource, type QueryResult } from './types';
+import { TABLES, typesClause, type DataSource, type QueryResult } from './types';
+import { applyOverlay } from './overlay-store';
 
 /** Split a multi-statement SQL script into individual statements (no ';' appears in our literals). */
 function splitStatements(sql: string): string[] {
@@ -31,8 +32,10 @@ function normalize(v: unknown): unknown {
   return v;
 }
 
-export type DataMode = 'real' | 'tuned';
-const FOLDER: Record<DataMode, string> = { real: 'data', tuned: 'data-tuned' };
+// 'v2' is the 14-08-26 export, normalised to the SAME canonical CSV shape as 'real' — so it needs
+// no semantic-layer changes. It behaves like Real (no monthly series), never like Preview.
+export type DataMode = 'real' | 'tuned' | 'v2';
+const FOLDER: Record<DataMode, string> = { real: 'data', tuned: 'data-tuned', v2: 'data-v2' };
 
 export class DuckDbSource implements DataSource {
   readonly kind = 'duckdb-wasm' as const;
@@ -76,12 +79,12 @@ export class DuckDbSource implements DataSource {
       for (const t of TABLES) {
         const url = `${base}${folder}/${t}.csv`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}. Run: npm run build:data${this.mode === 'tuned' ? ':tuned' : ''}`);
+        if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}. Run: npm run build:data${this.mode === 'tuned' ? ':tuned' : this.mode === 'v2' ? ':v2' : ''}`);
         const buf = new Uint8Array(await res.arrayBuffer());
         await this.db.registerFileBuffer(`${t}.csv`, buf); // overwrites any prior registration on reload
         // CREATE OR REPLACE so a mode switch rebuilds the table from the other folder.
         // sample_size=-1 scans the whole file so numeric columns (marks, income, year) type correctly.
-        await conn.query(`CREATE OR REPLACE TABLE ${t} AS SELECT * FROM read_csv_auto('${t}.csv', header=true, sample_size=-1)`);
+        await conn.query(`CREATE OR REPLACE TABLE ${t} AS SELECT * FROM read_csv_auto('${t}.csv', header=true, sample_size=-1${typesClause(t)})`);
       }
       // Monthly attendance is PREVIEW-only (present in data-tuned/, absent in data/). ALWAYS start from
       // a correctly-typed EMPTY table so v_attendance_monthly type-checks — a header-only or missing CSV
@@ -91,20 +94,44 @@ export class DuckDbSource implements DataSource {
       // In tuned/preview mode, replace it with the real monthly data — but only when the file actually
       // has rows (so an empty/served-as-HTML file can never re-introduce the all-VARCHAR bug). Real mode
       // does not fetch at all → no 404 noise and guaranteed correct types.
+      // The same applies to the other PREVIEW-only tables: the per-centre monthly series that the
+      // centre forecast regresses over, and the attendance-recency gaps that the ghost rule needs.
+      await conn.query(`CREATE OR REPLACE TABLE attendance_center_monthly (center_id VARCHAR, month_num INTEGER, month VARCHAR, n_students INTEGER, sum_attendance DOUBLE)`);
+      await conn.query(`CREATE OR REPLACE TABLE attendance_gaps (student_id VARCHAR, last_attended_month VARCHAR, days_since_last_attendance INTEGER, recent_attendance_pct DOUBLE)`);
       if (this.mode === 'tuned') {
-        const mRes = await fetch(`${base}${folder}/attendance_monthly.csv`).catch(() => null);
-        const mText = mRes && mRes.ok ? await mRes.text() : '';
-        const hasRows = mText.startsWith('month_num') && mText.trim().split('\n').length > 1;
-        if (hasRows) {
-          await this.db.registerFileBuffer('attendance_monthly.csv', new TextEncoder().encode(mText));
-          await conn.query(`CREATE OR REPLACE TABLE attendance_monthly AS SELECT * FROM read_csv_auto('attendance_monthly.csv', header=true, sample_size=-1)`);
+        for (const [file, firstCol] of [
+          ['attendance_monthly', 'month_num'],
+          ['attendance_center_monthly', 'center_id'],
+          ['attendance_gaps', 'student_id'],
+        ] as const) {
+          const mRes = await fetch(`${base}${folder}/${file}.csv`).catch(() => null);
+          const mText = mRes && mRes.ok ? await mRes.text() : '';
+          const hasRows = mText.startsWith(firstCol) && mText.trim().split('\n').length > 1;
+          if (!hasRows) continue;
+          await this.db.registerFileBuffer(`${file}.csv`, new TextEncoder().encode(mText));
+          // student_id / center_id are ID strings — force VARCHAR so a numeric-looking id never
+          // types as BIGINT and breaks the join to students/centers (which are VARCHAR).
+          const types = file === 'attendance_gaps' ? `, types={'student_id':'VARCHAR'}`
+            : file === 'attendance_center_monthly' ? `, types={'center_id':'VARCHAR'}` : '';
+          await conn.query(`CREATE OR REPLACE TABLE ${file} AS SELECT * FROM read_csv_auto('${file}.csv', header=true, sample_size=-1${types})`);
         }
       }
+      // Re-apply persisted user edits (added fields / rows / cell edits) to the base tables BEFORE
+      // building the views, so added columns exist for the *_ext views. Preview-oriented; harmless in Real.
+      await applyOverlay((sql) => conn.query(sql).then(() => undefined));
       // Rebuild the semantic layer (views are CREATE OR REPLACE) on top of the tables.
       for (const stmt of splitStatements(semanticSql)) await conn.query(stmt);
     } finally {
       await conn.close();
     }
+  }
+
+  /** App-only write seam for the editable-data overlay (never used for LLM SQL). */
+  async exec(sql: string): Promise<void> {
+    await this.init();
+    if (!this.db) throw new Error('DuckDB not instantiated');
+    const conn = await this.db.connect();
+    try { await conn.query(sql); } finally { await conn.close(); }
   }
 
   async query(sql: string): Promise<QueryResult> {

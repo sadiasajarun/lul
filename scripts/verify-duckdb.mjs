@@ -18,7 +18,7 @@ for (const t of ['students', 'attendance', 'assessments', 'teachers', 'centers']
 if (fs.existsSync(p('attendance_monthly.csv'))) await run(`CREATE TABLE attendance_monthly AS SELECT * FROM read_csv_auto('${p('attendance_monthly.csv')}', header=true, sample_size=-1)`);
 else await run(`CREATE TABLE attendance_monthly (month_num INTEGER, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INTEGER, sum_attendance DOUBLE)`);
 // Semantic layer (same file the app loads)
-const stmts = fs.readFileSync(SEMANTIC, 'utf8').split(';').filter((s) => s.replace(/--[^\n]*/g, '').trim().length);
+const stmts = fs.readFileSync(SEMANTIC, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((s) => s.trim().length);
 for (const s of stmts) await run(s);
 
 const show = async (label, sql) => {

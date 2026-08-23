@@ -5,7 +5,7 @@
  */
 
 import type { ChatMsg, Conversation } from "../lib/types";
-import type { DashboardWidget } from "./openAIHelper";
+import type { DashboardWidget } from "../lib/dashboard-types";
 
 /** Strip the summary's markdown bullet/bold markers for plain-text contexts. */
 export function stripMd(s: string): string {

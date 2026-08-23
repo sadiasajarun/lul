@@ -4,7 +4,7 @@ import {
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, Cell, PieChart, Pie, Legend, LabelList
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
-import type { DashboardWidget } from "../../utils/openAIHelper";
+import type { DashboardWidget } from "../../lib/dashboard-types";
 import type { StatType } from "./StatTile";
 
 /**

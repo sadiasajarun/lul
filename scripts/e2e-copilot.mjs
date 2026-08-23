@@ -35,7 +35,7 @@ async function engineFor(folder) {
   const mp = p('attendance_monthly.csv');
   if (fs.existsSync(mp)) await run(`CREATE TABLE attendance_monthly AS SELECT * FROM read_csv_auto('${mp}', header=true, sample_size=-1)`);
   else await run(`CREATE TABLE attendance_monthly (month_num INTEGER, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INTEGER, sum_attendance DOUBLE)`);
-  for (const s of fs.readFileSync(SEMANTIC, 'utf8').split(';').filter((x) => x.replace(/--[^\n]*/g, '').trim().length)) await run(s);
+  for (const s of fs.readFileSync(SEMANTIC, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((x) => x.trim().length)) await run(s);
   const clean = (rows) => rows.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === 'bigint' ? Number(v) : v])));
   const query = async (sql) => { const rows = clean(await run(sql)); return { columns: rows.length ? Object.keys(rows[0]) : [], rows, rowCount: rows.length }; };
   return { db, run, query };

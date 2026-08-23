@@ -7,7 +7,7 @@
  * positive). Inference is keyword-based over the grounded summary + widgets, deliberately simple.
  */
 
-import type { DashboardWidget } from "./openAIHelper";
+import type { DashboardWidget } from "../lib/dashboard-types";
 import type { Lens, Severity } from "../lib/types";
 import { matchPlaybook } from "../lib/ai/playbooks";
 

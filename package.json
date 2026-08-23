@@ -11,14 +11,18 @@
     "typecheck": "tsc --noEmit",
     "kb": "npm run aggregate && node scripts/build-knowledge-base.mjs",
     "build:data": "node scripts/build-analytics-data.mjs",
-    "build:data:tuned": "node scripts/build-tuned-data.mjs",
+    "build:data:tuned": "node --max-old-space-size=8192 scripts/build-tuned-data.mjs",
     "check:catalog": "tsx scripts/check-catalog.mjs",
     "check:risk": "node scripts/check-risk.mjs",
     "probe:refusals": "tsx scripts/probe-refusals.mjs",
     "verify:sql": "node scripts/verify-duckdb.mjs",
     "verify:pipeline": "tsx scripts/verify-pipeline.mjs",
     "eval": "tsx scripts/eval.mjs",
-    "e2e": "tsx scripts/e2e-copilot.mjs"
+    "e2e": "tsx scripts/e2e-copilot.mjs",
+    "build:data:v2": "node --max-old-space-size=8192 scripts/build-analytics-data-v2.mjs",
+    "check:datasets": "node scripts/check-datasets.mjs",
+    "e2e:full": "tsx scripts/e2e-full.mjs",
+    "compare": "node scripts/compare-datasets.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.32.0",

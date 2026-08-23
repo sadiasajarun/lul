@@ -26,3 +26,6 @@ public/data-tuned/
 
 # Local Claude settings
 .claude/settings.local.json
+
+# v2 dataset (real PII, same rule as public/data and public/data-tuned)
+public/data-v2/

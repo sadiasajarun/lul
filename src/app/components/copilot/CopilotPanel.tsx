@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from "react";
 import {
   Bot, MessageSquare, ArrowLeft, Share2, MoreHorizontal, X, Plus, Search,
-  Pin, PinOff, Archive, Trash2, Printer, Table2, FileText, ScrollText, Pencil, Check,
+  Pin, PinOff, Archive, Trash2, Printer, Table2, FileText, ScrollText, Pencil, Check, Database,
 } from "lucide-react";
 import type { ChatMsg, Conversation } from "../../lib/types";
 import type { Lang } from "../../lib/fmt";
 import type { DataMode } from "../../lib/db";
 import { ChatView } from "../../views/ChatView";
 import { SharePopup } from "./SharePopup";
+import { DataEditor } from "./DataEditor";
 import {
   conversationToMarkdown, conversationToCsv, conversationToHtml, conversationSummary, download, printHtml,
 } from "../../utils/chatExport";
@@ -62,6 +63,7 @@ export function CopilotPanel({
   const [share, setShare] = useState(false);
   const [summary, setSummary] = useState<{ md: string; html: string } | null>(null);
   const [q, setQ] = useState("");
+  const [dataEdit, setDataEdit] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -103,26 +105,36 @@ export function CopilotPanel({
             the gap-filled preview. The chat re-queries the newly-loaded tables on the next question. */}
         {switchingMode && <span className="text-[11px] text-[var(--oo-muted)]">loading…</span>}
         <div className="flex items-center border border-[#e3e6f8] rounded-md overflow-hidden mr-1" role="group" aria-label="Data source">
-          {(["real", "tuned"] as DataMode[]).map((m) => (
+          {(["real", "v2", "tuned"] as DataMode[]).map((m) => (
             <button
               key={m}
               onClick={() => onSwitchMode(m)}
               disabled={switchingMode}
-              title={m === "real" ? "Real programme data (honest, with gaps)" : "Preview — gaps filled with estimated values"}
+              title={m === "real" ? "Real programme data (Jul-2025 export, honest, with gaps)"
+                : m === "v2" ? "Real programme data — 14-Aug-2026 export. Better attendance coverage; a 2022-heavy cohort slice; no student names."
+                : "Preview — gaps filled with estimated values"}
               className={`text-[11px] font-bold px-2.5 py-1.5 transition-colors cursor-pointer disabled:opacity-60 ${
                 dataMode === m
-                  ? m === "tuned" ? "bg-[var(--oo-warning)] text-white" : "bg-[var(--oo-primary)] text-white"
+                  ? m === "tuned" ? "bg-[var(--oo-warning)] text-white" : m === "v2" ? "bg-[var(--oo-success)] text-white" : "bg-[var(--oo-primary)] text-white"
                   : "bg-white text-[var(--oo-muted)] hover:text-[var(--oo-heading)]"
               }`}
             >
-              {m === "real" ? "Real" : "Preview"}
+              {m === "real" ? "Real" : m === "v2" ? "Real ·26" : "Preview"}
             </button>
           ))}
         </div>
+        <button
+          onClick={() => setDataEdit(true)}
+          title="Add or edit data — fields, records, cells"
+          className="flex items-center gap-1.5 mr-2 text-[11px] font-semibold text-[var(--oo-text)] bg-white border border-[#e3e6f8] hover:border-[var(--oo-primary)] hover:text-[var(--oo-primary)] rounded-md px-2.5 py-1.5 transition-colors cursor-pointer"
+        >
+          <Database size={13} /><span className="hidden sm:inline">Data</span>
+        </button>
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold" style={{ background: "linear-gradient(135deg, #f0a, #6b62e6)" }}>
           A
         </div>
       </div>
+      {dataEdit && <DataEditor onClose={() => setDataEdit(false)} />}
 
       {/* Preview-mode ribbon — mirrors the dashboard so users know answers are estimated in this mode. */}
       {dataMode === "tuned" && (
@@ -133,7 +145,7 @@ export function CopilotPanel({
       )}
 
       {/* ── Body ────────────────────────────────────────────────────────────── */}
-      <div className="flex-1 min-h-0 w-full max-w-[1800px] mx-auto px-4 py-4 flex gap-4">
+      <div className="flex-1 min-h-0 w-full px-4 py-4 flex gap-4">
         {/* Left assistant rail */}
         <aside className="w-[270px] shrink-0 hidden lg:flex flex-col gap-4 overflow-hidden pb-2">
           <div className="bg-white border border-[#e3e6f8] rounded-2xl p-5 text-center" style={{ boxShadow: "0 2px 14px rgba(93,98,224,.06)" }}>

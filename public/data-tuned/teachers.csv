@@ -52,7 +52,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609027151,Juma Rani Nath.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,1 Year,Hindu,Married
 609018325,Masuda Akther.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Aklima Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,Yeasmin Akter,Sylhet,,,Woman,Active,H.S.C,2 Years,Islam,Married
+3035127734,Yeasmin Akter,Sylhet,,,Woman,Active,H.S.C,2 Years,Islam,Married
 609018308,Shirina Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,2 Years,Islam,Unmarried
 609018444,Sabina Akter.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,1 Year,Islam,Unmarried
 ,Hajare katun,Sylhet,,,Woman,Active,H.S.C,1 Year,Islam,Unmarried
@@ -69,13 +69,13 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Dipa Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 609018326,Mst.Nilofa Akter.Teacher.ABAL.LuL. JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,1 Year,Islam,Married
 609027123,Husna Akter.Teacher.ABAL. LuL. JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,1 Year,Islam,Unmarried
-,Gitanjali Debi Hajong,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Hindu,Unmarried
+6090182331,Gitanjali Debi Hajong,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Hindu,Unmarried
 ,Chadni Begum,Sylhet,,,Woman,Active,S.S.C,1 Year,Islam,Unmarried
 ,Mst. Taslima Akter Jesmin,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 609027143,Tamanna Begam.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609018331,Mst Aklima Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Mst Sabina Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,Tanjina Akter,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,1 Year,Islam,Married
+6090181301,Tanjina Akter,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,1 Year,Islam,Married
 ,Mst Robina Aktar.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Tajnim Akter,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 609027121,Shahima Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
@@ -90,7 +90,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609018357,Suraiya Aktar.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 609018451,Parvin Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,Below 1 year,Islam,Married
 ,Tanjina Akter. Teacher. ABAL. LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Replaced,H.S.C,1 Year,Islam,Married
-,Parvin Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+3030463250,Parvin Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 609018338,Rima Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 ,Razia Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,1 Year,Islam,Married
 ,Joly Rani Das,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,2 Years,Hindu,Married
@@ -127,14 +127,14 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609027161,Masuma Sultana koli.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027216,Mst. Mashuda Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Jumi Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Taslima Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
+6090892223,Taslima Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 ,Aziza Khanom,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
 609018406,Kulsoma Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,1 Year,Islam,Married
 609027165,Suma Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027237,Swarna Rani Deb.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,1 Year,Hindu,Unmarried
 ,Tarjana Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 ,Nadia Akter,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Taslima Begum,Sylhet,,,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+3035162812,Taslima Begum,Sylhet,,,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 ,Ety Rani Bishwas.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,2 Years,Hindu,Married
 609027245,Khadiza Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,1 Year,Islam,Unmarried
 609018442,Parmpa Rani Talukder.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,2 Years,Hindu,Unmarried
@@ -181,7 +181,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Ayesa Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 609018461,Lucky Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 ,Manna Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,S.S.C,2 Years,Islam,Unmarried
-,Selina Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+3030431141,Selina Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 609018459,Mst. Kolpona Akter.Teacher. PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,2 Years,Islam,Married
 609018460,Ferdaus Ara akter.Teacher. PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 ,Sabina Begum,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,2 Years,Islam,Unmarried
@@ -195,7 +195,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609018435,Rujina.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Shahina Begum,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Sabina Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,Salma Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
+3035131331,Salma Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 ,Halema Akter,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 609018427,Shilphy Begum. Teacher.PPE.LuL. JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,2 Years,Islam,Married
 609018417,Sabina Akter.Teacher. PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Above 10 Years,Islam,Unmarried
@@ -208,7 +208,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Sayeda Khatun,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 ,Vipi Rani Nath,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Hindu,Unmarried
 609018310,Kolpona Akter.Teacher. ABAL.LuL. JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Married
-,Jahanara Akter,Sylhet,,,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
+3035115417,Jahanara Akter,Sylhet,,,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 609018309,Khadiza Khatun.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,2 Years,Islam,Married
 609027217,Mst. Mahbuba Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
 609018463,Sultana Begum.Teacher. PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,2 Years,Islam,Married
@@ -265,9 +265,9 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609027113,Marufa Akther.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Juma Begum.Teacher.ABAL..LUL.JCF,Sylhet,Sunamganj,Jagannathpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 ,Sajida Khanom,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
-,Rima Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
+609027133,Rima Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 609018305,Fahmida Akter Vuiya.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,2 Years,Islam,Married
-,Tania Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+6090271111,Tania Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Akiya Akter. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 264804199,Najmun Nahar. 199. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Graduation,2 Years,Islam,Unmarried
 262814311,Saima Akter Hira. 311. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,2 Years,Islam,Unmarried
@@ -286,7 +286,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Sumona,Dhaka,Dhaka,Savar,Woman,Resigned,H.S.C,1 Year,Islam,Married
 ,Maleka khatun. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Married
 262950366,Shahinur Akter. 366. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Graduation,2 Years,Islam,Married
-,Anjuman Akter. 201. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Married
+263004201,Anjuman Akter. 201. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Lizu begum.Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,Graduation,Above 10 Years,Islam,Married
 ,Toiyoba Akter Eva. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 267652352,Hasina Akter. 352. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,1 Year,Islam,Married
@@ -335,8 +335,8 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 264812217,Kh. Aklima Akter Akhi. 217. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Masters,2 Years,Islam,Married
 264812215,Nurun Nahar. 215. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Masters,2 Years,Islam,Married
 ,Most Ruksana Khatun,Dhaka,Dhaka,Savar,Woman,Active,Graduation,2 Years,Islam,Married
-,Nurun Nahar,Dhaka,Dhaka,Savar,Woman,Active,H.S.C,1 Year,Islam,Married
-,Sabikunnahar_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+035115403,Nurun Nahar,Dhaka,Dhaka,Savar,Woman,Active,H.S.C,1 Year,Islam,Married
+4010459328,Sabikunnahar_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,0303 Cholo Anonde Shikhi Shikhon Kendra,Dhaka,Dhaka,Dhaka South City Corporation,Woman,,H.S.C,1 Year,Islam,Married
 ,Most.Khelon Begum_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 263016192,Doly Akter Borsha. 192. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,1 Year,Islam,Unmarried
@@ -363,7 +363,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,BABY KHATUN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,Graduation,,Islam,Married
 ,SALMA KHATUN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
 4050702107,FATEMA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Unmarried
-,JESMIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Unmarried
+4050702105,JESMIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Unmarried
 4050702109,MONIKA MOLLIK_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Hindu,Unmarried
 ,MST KUKILA KHATUN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
 ,SURMA BEGUM,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
@@ -375,7 +375,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 4050703193,RIPA RANI DAS_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Hindu,
 4050703194,REBIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Unmarried
 ,MST NAJMIN AKTER,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,Graduation,,Islam,Married
-,RUNA AKTER,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
+6090182327,RUNA AKTER,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050708170,SHOPNA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
 4050708171,MST RIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,Graduation,,Islam,Married
 ,MST AKLIMA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
@@ -385,7 +385,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 4050708176,MST JANNAT AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 264813223,Shamsun Nahar. 223. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,2 Years,Islam,Married
 264813226,Sahina Akter. 226. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,1 Year,Islam,Married
-,TAMANNA AKTER,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
+6090181327,TAMANNA AKTER,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050712186,AIRIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 4050712177,NILUFA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 ,BRISTI RANI DAS,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Hindu,Unmarried
@@ -397,7 +397,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,TARIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050712185,TAJMOHAL BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,Graduation,,Islam,Married
 ,PAPIA SULTANA,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
-,SHARMIN AKTER,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+3030431118,SHARMIN AKTER,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010412306,SUMAIYA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010412309,MARJIA SULTANA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
 ,MONIRA AKTER,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
@@ -405,7 +405,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,SALEHA AKTER,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010412302,SHARIFA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
 ,SWEETY BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
-,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4050710164,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010454345,RABEYA KHATUN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
 4010454346,SADIA AKTER_Teacher_FIVDB_EMDC,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010454347,DOLI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
@@ -539,7 +539,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Radharani das.Teacher. EMDC.JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Hindu,Unmarried
 4010494311,SONIA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Unmarried
 ,MUKTA BEGUM TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
-,Rima Akter,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+1035115403,Rima Akter,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Farjana Akter Rimu.Teacher.EMDC.JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,FAIKA TASNIN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050710160,YASMIN JAHAN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
@@ -571,9 +571,9 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 264814207,Nargish Ahmed. 207. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Graduation,1 Year,Islam,Married
 ,Nusrat Jahan. 304. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 ,Sahara Begum. Teacacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
+4010494313,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
 4050709124,KOLI BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
-,SHARMIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
+4010483407,SHARMIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050709126,SHAHELA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
 4050709127,JUYENA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
 ,MST SHEFUL AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
@@ -583,18 +583,18 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,ANTORA RANI DAS_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,Graduation,,Hindu,Unmarried
 4050707151,RUMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,Graduation,,Islam,Unmarried
 4050707152,TUMMA CHUDHURY_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,Graduation,,Islam,Unmarried
-,RATNA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
+4050701225,RATNA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
 ,"Farjana Akter,Teacher,EMDC, JCF",Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 4010494317,RESHMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 ,Marufatullah. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,1 Year,Islam,Married
 ,SUMONA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010494315,TASLIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
-,SUMAIYA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
+4010436379,SUMAIYA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
 ,MST RUJI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
 ,LAMIYA AFROZ_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
 ,"Tahera Islam, Teacher, EMDC, JCF",Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 264814209,Rowson Ara. 209. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,1 Year,Islam,Married
-,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
+4010494313,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
 ,ASMA AKTER SAMIYA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
 4010436381,SKIKHA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010436382,JANNATUL HABIB ESHA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
@@ -614,14 +614,14 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,KULSUMA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010481393,ASMA AKTER SHILPI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
 ,Farzana Akter_TEACHER_EMDC-FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
-,SHAHIDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4050705197,SHAHIDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010481396,JESMIN AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010481397,RUPALI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Unmarried
 ,TAKWA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010481399,SHEKHA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
 4010481400,KOHINUR AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
 4010481319,TOUHIDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
-,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4050710164,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 ,TAHMINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 ,"Taslima Akter, Teacher, EMDC, JCF",Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,"Shampa Akter, Teacher, EMDC, JCF",Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -631,7 +631,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 4010423322,A N D SHANTA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Unmarried
 4010423323,AKHI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010423324,MOMOTA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
-,MAHMUDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4010454352,MAHMUDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 263612386,Shanta Islam. 386. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,RIVA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010459327,KORUNA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
@@ -668,11 +668,11 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,NURUN NAHAR KEYA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010430355,SABINA YASMIN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010430356,RUMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
-,KHADIZA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
+4010445367,KHADIZA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
 4010430358,MAHINUR AKTAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
-,LAKI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4010436378,LAKI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 ,Santa,Dhaka,Kishoreganj,Katiadi,Woman,Active,H.S.C,2 Years,Islam,Married
-,NILUFA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
+4050712177,NILUFA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
 4010430362,ARIFA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 ,MUKTI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010445364,MOMTAJ BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,
@@ -697,24 +697,24 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 4010483409,MAHBUBA RAHMAN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010483404,RINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010483402,KOBITA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
-,MANSURA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
-,MAHINUR AKTAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4050701137,MANSURA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4010430358,MAHINUR AKTAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 ,MERRY AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Masters,,Islam,Unmarried
-,TASLIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
-,JANNAT SULTANA RIKTI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4010477429,TASLIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
+4010488416,JANNAT SULTANA RIKTI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010488414,LAVLY AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
-,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
-,LIZA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
+4010494313,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4050706113,LIZA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
 4010488412,ONAMIKA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Unmarried
 ,FARIHA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
 ,UMME SALMA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010477422,SHAHINUR BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
-,RAHIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
+4050701223,RAHIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 ,MST SOPNA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Married
 4010477424,AKLIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
 ,HAMIDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
 ,TASLIMA KHATUN_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
-,MAKSUDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
+4010430357,MAKSUDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
 ,KAMRUNNAHAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010477426,SHAHERA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,
 4050706114,MST NASRIN BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
@@ -728,14 +728,14 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,REKHA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Widowed
 4050713141,FOYJUNNESSA BEGUM SHIFA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 4050713142,SHATHOBOTI SUTRADHAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Hindu,
-,AYESHA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,Graduation,,Islam,Married
+4050713143,AYESHA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,Graduation,,Islam,Married
 4050713144,RAJIYA SULTANA RIA_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
 ,KAZI JHUMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
 4050713146,MST JOYGUN BIBI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 ,FATEMA TALUKDAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Replaced,H.S.C,,Islam,Unmarried
 4050707148,AKLIMA AKTER AKHI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 ,RUBINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
-,SURMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Married
+4050711220,SURMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Married
 ,SHARMIN AKTER BRISTI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
 4050711209,MST SHORIFA CHOKDAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
 4050711210,FATEMAAKTER CHUDHURY_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
@@ -748,7 +748,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 4050705207,SUKLA CHOKROBORTI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Hindu,Married
 ,NIZHUM AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050705197,SHAHIDA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
-,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
+4050710164,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Unmarried
 ,MUMTAHINA CHUDHURY_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050705200,NOMITA CHOKROBORTI_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 4050705201,SOBITA RANI BISWAS_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
@@ -770,7 +770,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 618181502,Roksana Akhter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 263743121,Rubina Akter. 121. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Graduation,Below 1 year,Islam,Widowed
 ,TANJINA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
-,Jesmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
+612322341,Jesmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Sathi Akhter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Nurzahan Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Sobuja Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,2 Years,Islam,Married
@@ -807,11 +807,11 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 612327304,Chamely Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Masters,Below 1 year,Islam,Married
 ,Shamsun Nahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Samia Jahan.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Shima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
+618176599,Shima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 618163585,Sheik Nishad Tasmim Chowdhury.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 618167523,Afruja Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 612327306,Barnali Bhowmik Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Masters,Below 1 year,Hindu,Unmarried
-,Shefali Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Masters,Below 1 year,Islam,Unmarried
+618163574,Shefali Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Masters,Below 1 year,Islam,Unmarried
 612327308,Hosne Ara.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,1 Year,Islam,Married
 612381309,Champa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Moushumi Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -849,7 +849,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Rabeya Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 264804196,Momena Akter. 196. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Graduation,2 Years,Islam,Unmarried
 ,Mobassera Islam. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
-,Rima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
+618167517,Rima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 618118539,Mst. Farida Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 618176594,Niti Rani Buomik.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Above 10 Years,Hindu,Married
 ,MST Sharmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -864,17 +864,17 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 612381321,Sabikunnahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 618190544,Suma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Lilyma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Rozina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+618163568,Rozina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 612381322,Rokeya Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
-,Farhana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,2 Years,Islam,Married
+618176597,Farhana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,2 Years,Islam,Married
 618190546,Rikta Begum.teacher.Emdc.codec,Mymensingh,Mymensingh,Phulpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 618176598,Taslima Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Graduation,Below 1 year,Islam,Married
 ,Taniya Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
-,Lavli Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
+612385361,Lavli Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 ,Mst. Sufia Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 618190548,Rina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 ,Farjana yeasmin.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
-,Sumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
+612372349,Sumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 618190549,Mst. Nilufa Yesmin.teacher.Emdc.codec,Mymensingh,Mymensingh,Phulpur,Woman,Active,Masters,Below 1 year,Islam,Unmarried
 612331325,Tania Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 618176601,Soma khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
@@ -884,8 +884,8 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 618190551,Amina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Graduation,2 Years,Islam,Married
 618111603,Bilkis Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Married
 618190552,Mst. Shimuli Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
-,Rima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+618167517,Rima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 618111604,Fulon Rani Sen.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Graduation,Below 1 year,Hindu,Married
 612331328,Shukrana Habiba.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 618111605,Asma Khatun.Teacher. EMDC.CODCE,Mymensingh,Mymensingh,Phulpur,Woman,Active,Masters,2 Years,Islam,Married
@@ -896,7 +896,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 618190554,Sayada Jahan Sorna.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 618111608,Josna Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 618158555,Mst. Tanjina Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Unmarried
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 612331331,Shilpy Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Masters,Below 1 year,Islam,Married
 618158556,Hasna Hena.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Kamrunnaher.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,2 Years,Islam,Married
@@ -915,11 +915,11 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 618117614,Jannatun Nahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 618154563,Rozina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 612322335,Rani Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Lovely Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+618176595,Lovely Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 ,Ruposhi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 618117615,Debi Rani Sarkar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Above 10 Years,Hindu,Married
 ,Amina Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
-,Tamanna.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+612322336,Tamanna.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 618154567,Srabani Akter Shawn.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 612322337,Angura Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 618117616,Lovely Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
@@ -933,7 +933,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Selina Akhter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Masters,Below 1 year,Islam,Married
 618117620,Jayada Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Graduation,Below 1 year,Islam,Married
 ,Kohinur Akter Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Above 10 Years,Islam,Married
-,Liza Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+612385315,Liza Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 618117624,Morzina Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Married
 618117625,Rekha.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 618117626,Arifa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -952,14 +952,14 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Khurshid Jahan Ripa.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 618183640,Rakiba Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 612322341,Jesmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,2 Years,Islam,Married
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 612322343,Shilpy.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,2 Years,Islam,Married
 612322344,Sumaiya.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 ,Sayma Akter Bristy.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 612372346,Mabiya Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 ,Fatema Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 ,MST. Badena Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Nurunnahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613113123,Nurunnahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Najma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 ,Nilima Parvin happy.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Jesmin Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
@@ -972,13 +972,13 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 612385359,Sabiha Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 613163164,Rina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Married
 612385360,MST Maqsuda.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Nazma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,2 Years,Islam,Married
+612372350,Nazma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,2 Years,Islam,Married
 612385361,Lavli Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 612385362,Nadira Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 613163167,Mst. Nasrin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Married
 613163168,Mst. Sadia Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Jakia Kaosar Happy.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
-,KhairunNahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,2 Years,Islam,Married
+613194229,KhairunNahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,2 Years,Islam,Married
 ,Najmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 613163170,Tahmina Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 612358365,Papia.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -999,13 +999,13 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Jania  Akther.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,2 Years,Islam,Married
 612358413,Jahanara Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Rehena Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
-,Sonia Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+612358414,Sonia Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Samiya Ruksana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Taslima Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613190208,Ripa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 612318375,Nasrin Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 ,Sharna Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613113120,Jinia Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Shamima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 612381417,Selina Akter Lima.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
@@ -1022,8 +1022,8 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613113121,Mst. Nazma Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 613144101,Hafsa Akter Jyoti.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Nasrin Begum,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
-,Lovely Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Masters,2 Years,Islam,Married
-,Ruma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+618176595,Lovely Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Masters,2 Years,Islam,Married
+613154156,Ruma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 613190211,Jahanara Parvin.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Shamoli Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,2 Years,Islam,Married
 ,Anjuman Ara Khanom.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,2 Years,Islam,Married
@@ -1032,7 +1032,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613190212,Hasi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 612349422,Shahnaj Pervin.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Roni Akter Tonni.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Sabikunnahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613176189,Sabikunnahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Sadia Sultana Rupali.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Laily Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 612381390,MST. Rina Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,2 Years,Islam,Married
@@ -1040,7 +1040,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 612381391,Most. Parvin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 612349425,Parvin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Rupali Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
-,Sumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+612372349,Sumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 612381393,Ruma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 612349426,Hasina begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Samira.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Masters,Below 1 year,Islam,Married
@@ -1068,7 +1068,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Yesmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 613154153,Mst. Hosne Ara Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 ,Marium Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Sumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+612372349,Sumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 613154155,Bilkis Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,2 Years,Islam,Married
 613154156,Ruma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Islam,Married
 613154157,Mst. Rina Akther.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -1079,7 +1079,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613154162,Mst. Ruma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 612315397,Runa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,2 Years,Islam,Married
 ,Taslima Khanum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,1 Year,Islam,Married
-,Nasima.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+612315399,Nasima.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 612315400,Khaleda Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,2 Years,Islam,Married
 612315406,Arifa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 613194219,Habiba Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Islam,Married
@@ -1116,7 +1116,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613140132,Mitu Rani.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Hindu,Unmarried
 613140133,Lutfun Nahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Parul Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
-,Nazmun Nahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+613185197,Nazmun Nahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 613194228,Papia Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 613176192,Shukla Rani.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Hindu,Married
 ,Monika Rani Das.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Hindu,Unmarried
@@ -1125,14 +1125,14 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613194229,KhairunNahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Islam,Married
 ,Happy Akter Shorna.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 613167176,Fatema Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Above 10 Years,Islam,Married
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613176194,Arifa Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 613194230,Mst. Runa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 ,Israt Jahan Ema.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 ,Mst. Khadiza Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,2 Years,Islam,Married
 ,Nusrat Jahan Any.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613167178,Alfatun Nessa.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Unmarried
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613167179,Angura Begum,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,2 Years,Islam,Married
 613167180,Mst. Nurun Nahar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 613145139,Riya Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
@@ -1144,10 +1144,10 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613145141,Swopna akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,1 Year,Islam,Married
 613145142,Mst. Onufa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Masters,2 Years,Islam,Married
 613145143,MSt. Aklima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,1 Year,Islam,Married
-,Rekha Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613145144,Rekha Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613145145,Marufa Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 613145146,Asma Bilkis.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,1 Year,Islam,Married
-,Tania Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+612381310,Tania Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 613145148,Shammi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,1 Year,Islam,Married
 613145149,Laboni Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 613111115,Lima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Islam,Married
@@ -1166,7 +1166,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 613111111,Laxmi Rani Dey.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Hindu,Married
 613185203,Mst. Ambia Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,2 Years,Islam,Married
 613111112,Raihana Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
-,Jakia Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Above 10 Years,Islam,Married
+618163588,Jakia Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Above 10 Years,Islam,Married
 613111114,Aysa.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Islam,Unmarried
 613185204,Sumaya Afrin.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Marzana Akter Panna.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -1183,7 +1183,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Jannatul Ferdous Eshita. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,1 Year,Islam,
 260421239,Jesmin Nahar. 239. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,1 Year,Islam,Married
 30686444288,Ratna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Unmarried
-,Hosna Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Masters,2 Years,Islam,Unmarried
+6090181329,Hosna Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Masters,2 Years,Islam,Unmarried
 ,Sarmin Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,Above 10 Years,Islam,Unmarried
 30686095124,Rumi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,2 Years,Islam,Married
 30686444286,Mst.Khadiza Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -1245,7 +1245,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686454264,Masuda Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,Graduation,2 Years,Islam,Married
 30686454265,Sarifa Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,Above 10 Years,Islam,Married
 30686454266,Jannati Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,1 Year,Islam,Unmarried
-,Sumi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
+30686430204,Sumi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 30686083001,Survin Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 30686083002,Auklima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 30686083003,Shahanaz Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,2 Years,Islam,Married
@@ -1302,7 +1302,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686447320,Taslima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,1 Year,Islam,Unmarried
 30686447325,Salma Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
 30686447321,Hena Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,Below 1 year,Islam,Married
-,Farjana Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,1 Year,Islam,Married
+035127712,Farjana Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,1 Year,Islam,Married
 30686447322,Hasna Begum.Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
 30686047056,Zesmin Islam. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
 30686047057,Parvin Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -1366,12 +1366,12 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686423337,Farhana Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,Graduation,2 Years,Islam,Unmarried
 30686065084,"Marzia Akter Eity. Teacher, VERC. EMDC",Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,1 Year,Islam,Married
 ,Mafia Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,Taslima Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
+30686095131,Taslima Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 30686065086,Mst. Sajeda Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,2 Years,Islam,Married
 30686065087,Rashida Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 30686065088,Nasima Akter.Teacher. VERC.  EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,Above 10 Years,Islam,Married
 ,Monira. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,Karima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,1 Year,Islam,Married
+30686430206,Karima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,1 Year,Islam,Married
 30686464302,Sohera Akther. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,Graduation,2 Years,Islam,Married
 30686464303,Jiasmin Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
 30686464304,Kairshma. Teacher. VERC.  EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,Below 1 year,Islam,Married
@@ -1384,7 +1384,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686050094,Laxmi Rani Barman. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Hindu,Married
 ,Minara Begum,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Khadiza Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
-,Tania Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
+30686020014,Tania Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Mukta Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,,1 Year,Islam,Married
 ,Sonia Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,,Islam,Married
 ,Mitali Rani  Das,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
@@ -1401,9 +1401,9 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Moni Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
 30686029046,Suma Saha. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,Masters,Above 10 Years,Hindu,Married
 30686029048,Rina Das. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,Graduation,2 Years,Hindu,Unmarried
-,Farjana Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,Above 10 Years,Islam,Married
+035127712,Farjana Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,Above 10 Years,Islam,Married
 30686095130,Taslima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Above 10 Years,Islam,Married
-,Masuda Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,Above 10 Years,Islam,Married
+30686023033,Masuda Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,Above 10 Years,Islam,Married
 30686095131,Taslima Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,Above 10 Years,Islam,Married
 30686095128,Parina. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,2 Years,Islam,Married
 ,Mukta Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
@@ -1411,7 +1411,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686474209,Nelofa Yasmin. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Married
 ,Dipika Sutradhar. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Hindu,Married
 30686474210,Lucky Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Married
-,Rina Das. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Graduation,2 Years,Hindu,Unmarried
+30686029048,Rina Das. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Graduation,2 Years,Hindu,Unmarried
 30686474211,Parvin Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 30686474212,Shalina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
 30686474213,Shahinoor Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -1424,7 +1424,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686494238,Jannatara. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Married
 30686494239,Shammi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,Above 10 Years,Islam,Married
 30686494241,Selina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,Above 10 Years,Islam,Married
-,Aklima Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,Above 10 Years,Islam,Married
+035115412,Aklima Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,Above 10 Years,Islam,Married
 30686494244,Sanjida Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,Below 1 year,Islam,Married
 30686494245,Suma Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 ,Shahida Begum,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,1 Year,Islam,Married
@@ -1449,7 +1449,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686491222,Noorjahan Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Married
 30686491223,Akhi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,Below 1 year,Islam,Married
 30686491224,Taslima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
-,Salma Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
+3035131331,Salma Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 ,Most. Sumi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 30686457310,Dipa Rani Biswas. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,1 Year,Hindu,Married
 ,Roksana BegumTeacher. VERC. EMDC (Pirpur-01),Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -1458,7 +1458,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Samia Zaman Ormy,Dhaka,Narsingdi,Raipura,Other,Resigned,H.S.C,2 Years,Islam,Married
 ,Umme Salma Eva. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 ,Hasna Hena,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,1 Year,Islam,Married
-,Fahima Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
+1035162801,Fahima Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 30686053107,Sanjida Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,1 Year,Islam,Unmarried
 ,Mahfuja Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Graduation,1 Year,Islam,Unmarried
 ,Most. Ayema Akter,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
@@ -1474,8 +1474,8 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686478256,Surma Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Married
 30686471364,Parul Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,Above 10 Years,Islam,Married
 30686471365,Nahida Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,Above 10 Years,Islam,Married
-,Rima Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,2 Years,Islam,Unmarried
-,Rima Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
+1035115403,Rima Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,2 Years,Islam,Unmarried
+1035115403,Rima Akter,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 ,Eshita Roy,Dhaka,Narsingdi,Raipura,Woman,Resigned,Graduation,Above 10 Years,Hindu,Married
 30686053102,Akhi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
 30686025066,Nargish Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,Above 10 Years,Islam,Married
@@ -1565,7 +1565,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,MST SAKIBA AKTER_TEACHER-EMDC-FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Unmarried
 4050702102,BUATY RANI SARKAR_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Hindu,Married
 ,Hurunnesa akter Jony.Teacher.CODEC.EMDC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
-,Parvin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Masters,2 Years,Islam,Married
+612349425,Parvin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Masters,2 Years,Islam,Married
 613113122,Ambia Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Masters,1 Year,Islam,Married
 613111113,Jhuma Rani Sarkar.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,Graduation,Below 1 year,Hindu,Married
 ,Forida Parvin. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,Graduation,2 Years,Islam,Unmarried
@@ -1574,11 +1574,11 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Umme Habiba Nishi. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,Graduation,1 Year,Islam,Unmarried
 609027115,Mst. Tamanna Akther.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 4010445369,SHILPI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
-,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4050710164,TANJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010494312,NAZIRA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
 4010481398,LAILY AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Unmarried
 4010481394,AYESHA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Unmarried
-,SHULI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Unmarried
+4010445373,SHULI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Unmarried
 ,TAHMINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
 4010436388,MILA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Unmarried
 4010436383,RUJINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
@@ -1623,7 +1623,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Tasfia Jannat Akhi,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 035131321,Konna Wey Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
 3035163214,Rose Barua,Chattogram,Bandarban,Lama,Woman,Active,,,,
-,Mongchainu Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
+035147114,Mongchainu Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
 ,Uthowiswe Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
 3035179513,Md Rasel,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
 ,Unu Hai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
@@ -1633,42 +1633,42 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 3035115414,Nadia Sultana,Chattogram,Bandarban,Lama,Woman,Active,,,,
 3035168611,Mosammad Khatija Akter Shiuli,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Islam,Unmarried
 ,Monika Kyang,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Buddhist,Married
-,Champa Barua,Chattogram,Bandarban,Lama,Woman,Active,,,,
-,Sing Thowai Mong Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
+035168605,Champa Barua,Chattogram,Bandarban,Lama,Woman,Active,,,,
+035147113,Sing Thowai Mong Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
 3035179516,Janpate Tripura,Chattogram,Bandarban,Lama,Man,Active,,,Christian,
 ,Priyanka Tripura Puja,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,
 3035147116,Md. Absu Salam,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Moyna Rani Nath,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
-,Mohammad Amin,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Abu Bakkar Siddique,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Suchana tripura,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,
-,Umachai marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
-,Asma Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035163202,Moyna Rani Nath,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
+1035163201,Mohammad Amin,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
+1035147103,Abu Bakkar Siddique,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
+1035147102,Suchana tripura,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,
+1035147101,Umachai marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
+6090181311,Asma Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 ,Saimun Nesa,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Sarwar Kamal,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
+1035131301,Sarwar Kamal,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
 3035131315,Jasim Tripura,Chattogram,Bandarban,Lama,Man,Active,,,Christian,
-,Me Me Sai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
+1035131305,Me Me Sai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
 3035131318,Raihan Uddin,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
 3035131313,Hla Hla Chhai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
-,Parvin Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+3030463250,Parvin Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035127717,Nasrin jannat jobaida,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Hla Hla Sai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
-,Aung Thoai Hla Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
+1035147104,Hla Hla Sai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
+1035147105,Aung Thoai Hla Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
 3035131317,Jesomony Neoas,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035131319,Towhidul Islam Tarek,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Uthowai Mong Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
-,Tahera gonnat,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Fatema khatun,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,MD. Israfil,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Rima Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035131310,Uthowai Mong Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
+1035131303,Tahera gonnat,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035131311,Fatema khatun,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035115402,MD. Israfil,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
+1035115403,Rima Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035179518,Salma Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035179515,Muradul Islam Jisan,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Setu de,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
-,Nargis Zannat,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035127705,Setu de,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
+1035127702,Nargis Zannat,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035127718,Nazmun akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035127713,Mong kya thoai Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
-,Asma Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,1 Year,Islam,Married
+6090181311,Asma Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+613185205,Taslima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,1 Year,Islam,Married
 613154154,Tania Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Monjila Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 609027120,Shahina Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
@@ -1678,13 +1678,13 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Pinky Roy. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,Masters,1 Year,Hindu,Married
 263004204,Mst. Rashida Begum. 204. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,2 Years,Islam,Married
 035162811,Unie prue Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
-,Romana Hosen Riya,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Fahima Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Md. Ikbal Hossain Emon,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Md. Amir Hossen,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
-,Aeysha Akter Riya,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Trisna Das,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
-,A Khing May Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
+1035162802,Romana Hosen Riya,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035162801,Fahima Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035162805,Md. Ikbal Hossain Emon,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
+1035162804,Md. Amir Hossen,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
+1035162806,Aeysha Akter Riya,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+1035162803,Trisna Das,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
+1035162809,A Khing May Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
 ,Md. Didarul Hasan,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
 1035162808,Shomi Barua,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
 ,Soniya Khatun. 233. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Replaced,,,Islam,Married
@@ -1692,13 +1692,13 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609027262,Tanjina Begum.Teacher. PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,Lower Secondary Level,Below 1 year,Islam,Unmarried
 1035168601,Happy Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
 609018354,Jharna Akter.Teacher.ABAL.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,2 Years,Islam,Married
-,Shahida Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
+035168603,Shahida Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 3035168618,Ismat Ara,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 ,Jannatul Ferdus Anika.PPE.Teacher.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,1 Year,Islam,Married
 609027170,Sunia Khanam Ruby.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027134,Beauty Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,2 Years,Islam,Married
 609018413,Shayera Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Widowed
-,Molina Begum.Teacher.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
+609018333,Molina Begum.Teacher.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 609027201,Hasna Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027227,Mst Rubia Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
 609027130,Tania Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,1 Year,Islam,Unmarried
@@ -1755,7 +1755,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609018446,Sharmin Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,,Islam,Unmarried
 609018445,Sumi Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,,Islam,Unmarried
 ,Tuba Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,Graduation,2 Years,Islam,Married
-,Muslima Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+609027266,Muslima Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 609027243,Mafuza Akhter Nazu.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
 609027155,Tania Akter.Teacher. ABAL.LuL. JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027220,Tayiba Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
@@ -1775,7 +1775,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609018307,Yasmin Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Married
 609018407,Momotaj Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 609018420,Ayesha Akter Asha.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
-,Suma Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+609018414,Suma Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 609018321,Marufa Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Mst.Shahina Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Mahbuba.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
@@ -1783,7 +1783,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609018412,Rojina Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,,Islam,Unmarried
 609018320,Nargis Akter.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,1 Year,Islam,Unmarried
 609018359,Shamima Akter.Teacher. ABAL.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
-,Tania Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Replaced,,2 Years,Islam,Married
+6090891222,Tania Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Replaced,,2 Years,Islam,Married
 609018447,Hakima Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,,Islam,Married
 ,Jamima Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 ,Sefali  Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,1 Year,Islam,Married
@@ -1799,12 +1799,12 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 618181509,Farjana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Sanjida Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Jannatul Ferdousi Shathi.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
-,Tamanna Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+618118537,Tamanna Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 618118533,Sufola Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 618183629,Salma Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Graduation,Below 1 year,Islam,Unmarried
 ,Chameli Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 618163576,Marufa Shorif Dulali.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Farhana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
+618176597,Farhana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,S.S.C,Below 1 year,Islam,Married
 618163570,Nazma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Jonaki Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 ,Munna Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
@@ -1819,7 +1819,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686025070,Jesmin Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
 263455001,AKHEI AKTHER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Graduation,2 Years,Islam,Married
 ,Kakoly Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,1 Year,Islam,Married
-,Nazma Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,2 Years,Islam,Married
+30686023029,Nazma Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,2 Years,Islam,Married
 30686474218,Parvin Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
 612381384,Easmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 ,Khuku Moni.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -1828,7 +1828,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 612372351,Niger Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 ,Mst Surmina Akter Tamanna.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Tanni Bhowmik. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Man,Resigned,H.S.C,2 Years,Hindu,Married
-,Tania Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,2 Years,Islam,Married
+30686020014,Tania Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,S.S.C,2 Years,Islam,Married
 ,Suborna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Resigned,H.S.C,2 Years,Islam,Married
 609018411,Joynob bibi.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
 30686464301,Sahida Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,Masters,2 Years,Islam,Married
@@ -1836,16 +1836,16 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Bristi Rani Das. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Hindu,
 30686416250,Jakia Sultana. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Man,Active,S.S.C,Below 1 year,Islam,Married
 30686025069,Moha Rani Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
-,Sonia Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
+30686457309,Sonia Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 30686053111,Afrina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Sabrina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,2 Years,Islam,Married
 30686053106,Ruma  Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 30686047064,Tulshi Rani Das .Teacher.VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
-,Sonia Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,2 Years,Islam,Unmarried
+30686457309,Sonia Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,2 Years,Islam,Unmarried
 ,Sheuli Akter. Teacher. VERC. EMDC.,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Graduation,2 Years,Islam,Married
 ,Pina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
-,Amena Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Graduation,1 Year,Islam,Unmarried
-,Tamanna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
+30686077099,Amena Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Graduation,1 Year,Islam,Unmarried
+30686457313,Tamanna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 30686050095,Mukti Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Taniya Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Marjia Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,1 Year,Islam,Unmarried
@@ -1876,10 +1876,10 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686444287,Ferdowsy Begum. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,2 Years,Islam,Married
 30686408331,Sorna Moni . Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,S.S.C,1 Year,Islam,Unmarried
 30686480231,Kotha mony. Teacher. VERC. EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,Graduation,1 Year,Islam,Married
-,Sumi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,2 Years,Islam,Married
-,Tamanna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
+30686430204,Sumi Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,S.S.C,2 Years,Islam,Married
+30686457313,Tamanna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
 30686029049,Armana Khatun. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Afrina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
+30686053111,Afrina Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,2 Years,Islam,Married
 ,Karisma Rani Das. 336. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Hindu,Unmarried
 609027122,Ayesha Khatun.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027264,Soniya Akther.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
@@ -1902,17 +1902,17 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Thui Kya Nu Marma,Chattogram,Bandarban,Lama,Woman,Resigned,S.S.C,Below 1 year,Buddhist,Unmarried
 030431111,Anjana Tongchangya,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Buddhist,Unmarried
 030431112,Anonta Tripura,Chattogram,Bandarban,Alikadam,Man,Active,H.S.C,,Christian,Unmarried
-,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
+4010494313,SHAHINA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Unmarried
 030431101,Ayesha Siddika,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Unmarried
 030431102,Dipa Tongchangya,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Buddhist,Married
 030431103,Ismot Ara,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
-,SUMI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4010483410,SUMI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 035115414,Rehena Akter,Chattogram,Bandarban,Lama,Woman,Active,Graduation,Below 1 year,Islam,Unmarried
 3035147114,Chomong ching Marma,Chattogram,Bandarban,Lama,Man,Active,H.S.C,,Buddhist,Unmarried
-,Jesmin Akter,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Islam,Married
-,Thowaishanu Marma,Chattogram,Bandarban,Lama,Man,Active,S.S.C,,Buddhist,Unmarried
+035168606,Jesmin Akter,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Islam,Married
+035127702,Thowaishanu Marma,Chattogram,Bandarban,Lama,Man,Active,S.S.C,,Buddhist,Unmarried
 3035168614,Ang Chime Marmani,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Buddhist,Unmarried
-,Kra Khoy Pru,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Buddhist,Married
+035127711,Kra Khoy Pru,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Buddhist,Married
 ,Rakib Hossen Raju,Chattogram,Bandarban,Lama,Man,Active,H.S.C,,Islam,Unmarried
 3035127715,Md Kapile Uddin,Chattogram,Bandarban,Lama,Man,Active,H.S.C,,Islam,Unmarried
 609027208,Emrana Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
@@ -1922,20 +1922,20 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609027158,Formila Akther.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 030431105,Purnima Tanchangya,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Buddhist,Married
 030431106,Salina Akter,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,Unmarried
-,Mohammad Mubarak Hosen,Chattogram,Bandarban,Lama,Man,Active,H.S.C,,Islam,Married
-,Julkha Akter Bulu,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Islam,Married
+035127723,Mohammad Mubarak Hosen,Chattogram,Bandarban,Lama,Man,Active,H.S.C,,Islam,Married
+035127722,Julkha Akter Bulu,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Islam,Married
 3035127719,Jobaida Begum,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Islam,Married
 030431114,Nanaching Marma,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Buddhist,Unmarried
 609027108,Shanti Rudro Paul.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,2 Years,Hindu,Married
 3035147113,Mong Khring Wai Marma,Chattogram,Bandarban,Lama,Man,Active,H.S.C,,Buddhist,Unmarried
 030431121,Durpoti Tripura,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Christian,Married
-,Sarmin Akter Pinki,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Aklima Akter,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Mst.Nazma khatun,Chattogram,Bandarban,Lama,Woman,Active,Graduation,1 Year,Islam,Married
+035115415,Sarmin Akter Pinki,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
+035115412,Aklima Akter,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
+035115422,Mst.Nazma khatun,Chattogram,Bandarban,Lama,Woman,Active,Graduation,1 Year,Islam,Married
 30686050096,Taslima Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,2 Years,Islam,Unmarried
-,Zahedul Islam,Chattogram,Bandarban,Lama,Man,Active,S.S.C,,Islam,Unmarried
+035131311,Zahedul Islam,Chattogram,Bandarban,Lama,Man,Active,S.S.C,,Islam,Unmarried
 035162802,Parvin Akter,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Islam,Widowed
-,Asmaul Hosna,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,1 Year,Islam,Unmarried
+1030463205,Asmaul Hosna,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,1 Year,Islam,Unmarried
 3035162812,Uyeali Marma,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,Below 1 year,Buddhist,Unmarried
 035162801,Easmin Akter,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,1 Year,Islam,Married
 030431115,Tasmin Jannat Tisha,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,Unmarried
@@ -1943,7 +1943,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 030431107,Sharmin Akter,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 3035147111,Borendea Tripura,Chattogram,Bandarban,Lama,Man,Active,S.S.C,,Christian,Unmarried
 035147122,Nu Aching Marma,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Buddhist,Unmarried
-,Midu Marma,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Buddhist,Married
+035147123,Midu Marma,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Buddhist,Married
 ,Uahai Marma,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,,Buddhist,Married
 030480301,Bulbul Akhter,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 030483241,Jannatul Naima,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
@@ -1957,7 +1957,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 030480304,Kulsuma Begum,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 030463211,Amena Khatun,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 030463212,Amir Hossain,Chattogram,Bandarban,Alikadam,Man,Active,H.S.C,,Islam,
-,Happy Marma,Chattogram,Bandarban,Lama,Woman,Resigned,H.S.C,,Buddhist,Unmarried
+035168601,Happy Marma,Chattogram,Bandarban,Lama,Woman,Resigned,H.S.C,,Buddhist,Unmarried
 030463221,Azufa Akhter Emu,Chattogram,Bandarban,Alikadam,Woman,Active,Lower Secondary Level,,Islam,
 030463201,Hosney Ara Begum,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 030463202,Jannatul Adan,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,Married
@@ -1971,18 +1971,18 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 030463217,Pervin Akter,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,
 3035115419,Nurun Nahar,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,Below 1 year,Islam,Married
 030463206,Rubi Akter,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,Married
-,Jahanara Akter,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Islam,Unmarried
+3035115417,Jahanara Akter,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Islam,Unmarried
 030463207,Rume Akhter,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,Married
 3035115421,Yesmin Akter Shikha,Chattogram,Bandarban,Lama,Woman,Active,H.S.C,,Islam,Unmarried
 030463208,Tahamina Jannat Koli,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
-,Matija Akter,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,Below 1 year,Islam,Married
+1035115406,Matija Akter,Chattogram,Bandarban,Lama,Woman,Active,S.S.C,Below 1 year,Islam,Married
 030463218,Thuinung Marma,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Buddhist,Married
 030463209,Yeasin Miea,Chattogram,Bandarban,Alikadam,Man,Active,S.S.C,,Islam,
 030480315,Sabina Chakma,Chattogram,Bandarban,Alikadam,Woman,Active,Lower Secondary Level,,Buddhist,Married
-,Janapoth Tripura,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,Married
-,Md. Nur Alam,Chattogram,Bandarban,Lama,Man,Active,,,Islam,Unmarried
+035179503,Janapoth Tripura,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,Married
+035179512,Md. Nur Alam,Chattogram,Bandarban,Lama,Man,Active,,,Islam,Unmarried
 030480306,Sabina Yasmin,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
-,Md. Yasin,Chattogram,Bandarban,Lama,Man,Active,,,Islam,Unmarried
+035179504,Md. Yasin,Chattogram,Bandarban,Lama,Man,Active,,,Islam,Unmarried
 3035179511,Joynab Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,Unmarried
 030480307,Shafaytul Jannat,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,,Islam,
 3035179517,Tasfia Sultana Mokta_Teacher_JFT,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,Unmarried
@@ -1993,7 +1993,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 3035131320,Taslima Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,Unmarried
 3035163211,Mahfuja Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,Married
 3035147118,Danu Ching Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,Married
-,Melerung Tripura,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,Married
+035147118,Melerung Tripura,Chattogram,Bandarban,Lama,Woman,Active,,,Christian,Married
 3035147117,Mantang Mro,Chattogram,Bandarban,Lama,Man,Active,,,Buddhist,Married
 ,Rahul Tripura,Chattogram,Bandarban,Lama,Man,Active,,,Christian,Unmarried
 ,Asaduz Zaman,Chattogram,Bandarban,Lama,Man,Active,,,Islam,Married
@@ -2013,7 +2013,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 267652351,Monira Akter. 351. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Sohana Khan. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,Above 10 Years,Islam,Married
 262950381,Monisha Rani Das. 381. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,2 Years,Hindu,Unmarried
-,Hafsa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
+612322333,Hafsa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 ,Madia Shanta Hafsa.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Subarna Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 ,Moni Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
@@ -2027,7 +2027,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Mukta Akter Pinky_Teacher_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,
 4010445371,Shimu Akter_Teacher-EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Married
 4010477429,TASLIMA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Married
-,Sabina Akter_Teacher_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4050702229,Sabina Akter_Teacher_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 4010412305,Sumi Akter_Teacher_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,Graduation,,Islam,Married
 613113125,Farjana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,,Islam,Married
 263455012,RUMANA AKETR.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,2 Years,Islam,Married
@@ -2073,7 +2073,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 268840040,SHAMIMA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,2 Years,Islam,Married
 ,Nupur Akter. 146. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,SONIA ISLAM.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
-,TARMIN AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
+268845042,TARMIN AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 262948043,SHAHANAZ AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Graduation,2 Years,Islam,Unmarried
 262948044,SAZIA SULTANA.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Masters,Above 10 Years,Islam,Married
 262948045,SUMONA ISLAM.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Graduation,2 Years,Islam,Married
@@ -2097,7 +2097,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 262954061,SURMA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Masters,Above 10 Years,Islam,Married
 262954062,AFSANA MIMI.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 ,KAMRUL ISLAM.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Man,Resigned,H.S.C,2 Years,Islam,Unmarried
-,FATEMA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Married
+260929032,FATEMA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Married
 262954065,MD. SHAKIL.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Man,Active,H.S.C,2 Years,Islam,Unmarried
 262954066,JASMIN AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Masters,Above 10 Years,Islam,Married
 262954067,SHAHIDA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Masters,2 Years,Islam,Unmarried
@@ -2192,7 +2192,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Mst. Asha Akter_Teacher_FIVDB_EMDC,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 ,Airin Sultana.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 ,Anufa Akter Mitu.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
-,Rina Akter.Teacher.emdc.codec,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
+613163164,Rina Akter.Teacher.emdc.codec,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 612385363,Asma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 ,Sweety Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 267652357,Saima Akter. 357. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Masters,2 Years,Islam,Married
@@ -2212,12 +2212,12 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686480229,Afrin Jahan Ema.Teacher. EMDC .VERC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609018454,Sorma Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609018431,Khaleda Khatun.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
-,Swapna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Masters,2 Years,Islam,Married
+30686444285,Swapna Akter. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,Masters,2 Years,Islam,Married
 30686020015,Takmina Akter Shanta. Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,1 Year,Islam,Married
 30686020017,Hosneara Akter.Teacher.VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 30686471359,"Tahera Akter.Teacher.VERC, EMDC",Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,Below 1 year,Islam,Married
 613176196,Josna Akhter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,H.S.C,Below 1 year,Islam,Married
-,Rozina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,1 Year,Islam,Married
+618163568,Rozina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,1 Year,Islam,Married
 30686041054,Samima Teacher. VERC.EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 30686065081,Lamiya Akter.Teacher.VERC .EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Man,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Nusrat jahan.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
@@ -2226,7 +2226,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 609027127,Siuli Akter.Teacher.ABAL.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 609027101,Husna Begum.Teacher.ABAL.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,1 Year,Islam,Unmarried
 609027261,Toma Rani Deb.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,,Hindu,Unmarried
-,Tania Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+6090271111,Tania Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 609027240,Chunika Bishwas.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Hindu,Unmarried
 609027137,Ria Rani Deb.Teacher.ABAL.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Hindu,Unmarried
 609027260,Sriti Rani Das.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Hindu,Unmarried
@@ -2253,7 +2253,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 4010436377,SATHI AKTER_TEACHER-EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,H.S.C,,Islam,Unmarried
 ,Sharmin Akter (Baghata) Teacher. VERC. EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 609027275,Liza Begum.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
-,Tania Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+6090891222,Tania Akter.Teacher.PPE.LuL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 ,Rachona Rani Robidas. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Hindu,Unmarried
 ,Arifa Sultana. 375. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Islam,Unmarried
 ,Moni khanam. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,Masters,Below 1 year,Islam,Married
@@ -2295,7 +2295,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 263457022,RUMANA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Graduation,2 Years,Islam,Unmarried
 260924024,KANIKA NAHAR MUKTA.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Graduation,1 Year,Islam,Unmarried
 ,MAHANAJ.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,1 Year,Islam,Married
-,SONIA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
+262948047,SONIA AKTER.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 263455004,EVANA AKTER MINU.TEACHER.ABAL.SUROVI,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,Masters,2 Years,Islam,Married
 4050701136,Mosa. Ferdous Begum_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Married
 4050701132,Jaheda Akter_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Widowed
@@ -2429,11 +2429,11 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 3030463243,Samunyal Tripura,Chattogram,Bandarban,Alikadam,Man,Active,,,Christian,
 3030463244,Reng King Mro,Chattogram,Bandarban,Alikadam,Man,Active,,,Buddhist,
 618167522,Shapla Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Masters,2 Years,Islam,Married
-,Shahida Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+618183634,Shahida Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 618183630,Farhana Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 618176591,Rokeya Begum,Mymensingh,Mymensingh,Phulpur,Woman,Active,,2 Years,Islam,Married
 618111609,Rumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
-,Mahmuda Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+613154159,Mahmuda Khatun.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 618118532,Arifa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,2 Years,Islam,Married
 618181504,Nazma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 618181505,Lima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,H.S.C,Below 1 year,Islam,Married
@@ -2463,22 +2463,22 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 1030480305,Usayaong Marma,Chattogram,Bandarban,Alikadam,Man,Active,H.S.C,,Buddhist,Unmarried
 1030480306,Mayuri Dhar,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Hindu,Married
 1030480307,Sukumar Chakma,Chattogram,Bandarban,Alikadam,Man,Active,H.S.C,,Buddhist,Unmarried
-,Ayesha Siddika,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,
-,Ismot Ara,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
-,Tasmin Jannat Tisha,Chattogram,Bandarban,Alikadam,Woman,Active,Graduation,Below 1 year,Islam,Married
-,Sharmin Akter,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Islam,Married
+030431126,Ayesha Siddika,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,
+030431125,Ismot Ara,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
+030431117,Tasmin Jannat Tisha,Chattogram,Bandarban,Alikadam,Woman,Active,Graduation,Below 1 year,Islam,Married
+3030431118,Sharmin Akter,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Islam,Married
 035162823,Trisna Das,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
-,Monni Akter,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Purnima Tanchangya,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,Below 1 year,Buddhist,Married
+030431124,Monni Akter,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
+030431118,Purnima Tanchangya,Chattogram,Bandarban,Alikadam,Woman,Active,H.S.C,Below 1 year,Buddhist,Married
 035162814,Didarul Hasan,Chattogram,Bandarban,Lama,Man,Active,,,Islam,
 035162821,Easmin Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Bulbul Akhter,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Islam,Married
+030480318,Bulbul Akhter,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Islam,Married
 035115411,Rehena Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
-,Jannatul Naima,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
+030480302,Jannatul Naima,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 035179505,Md.Rashel,Chattogram,Bandarban,Lama,Man,Active,,,Islam,Unmarried
-,Khotija Begum,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Unmarried
+030480303,Khotija Begum,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Unmarried
 030480320,Kulsuma Begum,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Islam,Married
-,Reshmi Arafat,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
+030483242,Reshmi Arafat,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,,Islam,Married
 035168625,Maria Bibi,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 035163223,Liza Rani Shil,Chattogram,Bandarban,Lama,Woman,Active,,,Hindu,
 030480317,Sabina Yasmin,Chattogram,Bandarban,Alikadam,Woman,Active,S.S.C,Below 1 year,Islam,Married
@@ -2568,7 +2568,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 035147103,Mong Sing Niwai Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
 035147102,Md. Adbu Salam,Chattogram,Bandarban,Lama,Man,Active,,,,
 035147101,Unu Haing Marma Happy,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
-,Uma Khai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
+035147124,Uma Khai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
 035147124,Uma Khai Marma,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
 ,Bibi Marium. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,Masters,Above 10 Years,Islam,Married
 035147123,Midu Marma,Chattogram,Bandarban,Lama,Woman,Active,,,,
@@ -2626,9 +2626,9 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,POLI AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,Graduation,,Islam,Married
 30686095132,Sonia Akter. Teacher. VERC(Asm) EMDC,Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,1 Year,Islam,Married
 612315402,Helena Begum.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
-,Tanjina Akter,Chattogram,Bandarban,Lama,Woman,Active,,,,
+6090181301,Tanjina Akter,Chattogram,Bandarban,Lama,Woman,Active,,,,
 035168622,Ang Chime Marmani,Chattogram,Bandarban,Lama,Woman,Active,,,,Unmarried
-,Hla Ching Thoi Marma,Chattogram,Bandarban,Lama,Man,Replaced,,,,
+3035168613,Hla Ching Thoi Marma,Chattogram,Bandarban,Lama,Man,Replaced,,,,
 035168606,Jesmin Akter,Chattogram,Bandarban,Lama,Woman,Active,,,,
 035168604,Monika Khyang,Chattogram,Bandarban,Lama,Woman,Active,,,,
 1035168605,Chompa Barua,Chattogram,Bandarban,Lama,Woman,Active,,,Buddhist,
@@ -2704,7 +2704,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 264813213,Rashma Begum. 213. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Graduation,1 Year,Islam,Married
 268016183,Mst. Shathi. 183. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,Below 1 year,Islam,Married
 4010436380,Mohoua Jahan Bristy_Teacher_FIVDB_EMDC,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Unmarried
-,Suborna Akter_Teacher_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
+4010488417,Suborna Akter_Teacher_EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,H.S.C,,Islam,Unmarried
 ,Liza Akter_Teacher-EMDC_FIVDB,Chattogram,Brahmanbaria,Bancharampur,Woman,Resigned,S.S.C,,Islam,Married
 4010477430,Ruma Akter_Teacher-FIVDB_EMDC,Chattogram,Brahmanbaria,Bancharampur,Woman,Active,S.S.C,,Islam,Unmarried
 ,Shorifa Akther. 181. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
@@ -2714,7 +2714,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 3035163221,Airin Akter,Chattogram,Bandarban,Lama,Woman,Active,,,Islam,
 ,Mousumi Akter,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 ,"Ayesha Siddika .Teacher .VERC ,EMDC (Bawshia).",Dhaka,Narsingdi,Narsingdi Sadar,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
-,Ripa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
+613190208,Ripa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
 618176592,Selina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Masters,Below 1 year,Islam,Married
 618167528,Mousumi Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 618154564,Suraiya Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Phulpur,Woman,Active,Masters,Below 1 year,Islam,Married
@@ -2731,7 +2731,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 3035168615,Bosing Marma,Chattogram,Bandarban,Lama,Man,Active,,,Buddhist,
 1035162807,Didarul Hasan,Chattogram,Bandarban,Lama,Man,Active,,,,
 4050712179,BRISTI BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Unmarried
-,SHIRINA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Unmarried
+4050705202,SHIRINA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,S.S.C,,Islam,Unmarried
 4050705206,LAL JAHAN BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,S.S.C,,Islam,Married
 4050712182,RIA CHUWDHURY_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Unmarried
 ,MST KHIRUNNESSA BEGUM_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,
@@ -2807,7 +2807,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Ambia Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 612358366,Happy akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,Graduation,Below 1 year,Islam,Married
 612358414,Sonia Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
-,Jesmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
+612322341,Jesmin Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 612372350,Nazma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
 612372345,Tamanna Akter.Teacher.emdc.codec,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 612315401,Aklima Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,S.S.C,Below 1 year,Islam,Married
@@ -2816,7 +2816,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686430203,Shiule Begum.Teacher.VERC.EMDC,Dhaka,Narsingdi,Raipura,Woman,Active,H.S.C,2 Years,Islam,Married
 262950361,Jannatul Ferdusy Tufa. 361. Teachers. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,2 Years,Islam,Married
 262950364,Lamia Akter. 364. Teachers. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Deoutui Murong,Chattogram,Bandarban,Lama,Man,Resigned,,,Buddhist,
+3035179520,Deoutui Murong,Chattogram,Bandarban,Lama,Man,Resigned,,,Buddhist,
 3035131321,Nayon Tara,Chattogram,Bandarban,Lama,Woman,Active,,,,
 3035127731,Akhi Akter,Chattogram,Bandarban,Lama,Woman,Active,,,,
 3035127720,Ning Ning thoy Marma,Chattogram,Bandarban,Lama,Man,Active,,,,
@@ -2868,7 +2868,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 263743124,Halima Akther Bristy. 124. Teachers. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Maharun Nesa. 379. Teachers. EMDC. JCF,Dhaka,Dhaka,Dhaka South City Corporation,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 269025177,Mst. Salma Akter. 177. Teacher. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,H.S.C,1 Year,Islam,Unmarried
-,Asma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
+618181501,Asma Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Shakila Rahman.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,S.S.C,Below 1 year,Islam,Unmarried
 612385316,Sonia Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Married
 ,Farzana Akter Ruma.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -2893,7 +2893,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 30686041053,"Hasnara Akter,Teacher (Saikadi) VERC, EMDC",Dhaka,Narsingdi,Narsingdi Sadar,Woman,Active,S.S.C,2 Years,Islam,Married
 260418240,Shahida Akter. 240. Teachers. EMDC. JCF,Dhaka,Dhaka,Dhaka North City Corporation,Woman,Active,Masters,2 Years,Islam,Unmarried
 612372348,Shahina Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
-,Tania Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
+612381310,Tania Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Married
 ,Soyoda Lucky.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,1 Year,Islam,Married
 ,Sharmin Akter Sukhi.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
 ,Hawa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Gouripur,Woman,Resigned,Graduation,Below 1 year,Islam,Unmarried
@@ -3007,7 +3007,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 6090892220,Sharmin Akter.Teacher. ABAL.LUL.JCF,Sylhet,Sunamganj,Sunamganj Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 6090892201,Habiba Khatun.Teacher.ABAL.LUL.JCF,Sylhet,Sunamganj,Sunamganj Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Married
 6090182302,Monuara Akter.TeacherABAL.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,Graduation,2 Years,Islam,Unmarried
-,SONIA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
+4050702228,SONIA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Resigned,H.S.C,,Islam,Married
 4050713145,TANIA AKTER_TEACHER_EMDC_FIVDB,Chattogram,Brahmanbaria,Nasirnagar,Woman,Active,H.S.C,,Islam,Unmarried
 6090182301,Marufa Akter.Teacher.ABAL.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 6090182305,Tamanna Sultana.Teacher.ABAL.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
@@ -3109,7 +3109,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 ,Sabina yasmin.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Resigned,H.S.C,Below 1 year,Islam,Married
 613190215,Runa Akter.Teacher.EMDC.CODEC,Mymensingh,Mymensingh,Iswarganj,Woman,Active,S.S.C,Below 1 year,Islam,Married
 6090181302,Tania Akter.Teacher.PPE.LUL. JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
-,Purnima Akter.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,1 Year,Islam,Married
+6090181307,Purnima Akter.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,1 Year,Islam,Married
 6090271107,Mst. Sajeda Akter.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,2 Years,Islam,Unmarried
 6090271108,Sima Begum.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried
 ,Surma Akter.Teacher.PPE. LUL.JCF,Sylhet,Sunamganj,Bishwambarpur,Woman,Resigned,H.S.C,Below 1 year,Islam,Unmarried
@@ -3169,7 +3169,7 @@ center_id,teacher_name,division,district,upazila,gender,employment_status,educat
 6090271130,"Joba Das,Teacher,PPE,LUL,JCF",Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,2 Years,Hindu,Unmarried
 ,"Julekha Begum,Teacher,PPE,LUL,JCF",Sylhet,Sunamganj,Shantiganj,Woman,Resigned,H.S.C,2 Years,Islam,Unmarried
 6090271117,Jhorna Begum,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,1 Year,Islam,Unmarried
-,Jhorna Begum,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,1 Year,Islam,Unmarried
+6090271117,Jhorna Begum,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,1 Year,Islam,Unmarried
 6090271121,"Joniya Akther,Teacher,PPE,LUL,JCF",Sylhet,Sunamganj,Shantiganj,Woman,Active,H.S.C,,Islam,Unmarried
 6090271118,Sayema Tasmin Riya.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Shantiganj,Woman,Active,S.S.C,Below 1 year,Islam,Unmarried
 6090891216,Tanni Akter Dia.Teacher.PPE.LUL.JCF,Sylhet,Sunamganj,Sunamganj Sadar,Woman,Active,H.S.C,Below 1 year,Islam,Unmarried

@@ -21,7 +21,7 @@ const q = (p) => p.replace(/\\/g, '/');
 for (const t of ['students', 'attendance', 'assessments', 'teachers', 'centers'])
   await run(`CREATE TABLE ${t} AS SELECT * FROM read_csv_auto('${q(path.join(DATA, t + '.csv'))}', header=true, sample_size=-1)`);
 await run('CREATE TABLE attendance_monthly (month_num INTEGER, month VARCHAR, division VARCHAR, programme VARCHAR, n_students INTEGER, sum_attendance DOUBLE)');
-for (const s of fs.readFileSync(SEMANTIC, 'utf8').split(';').filter((x) => x.replace(/--[^\n]*/g, '').trim().length)) await run(s);
+for (const s of fs.readFileSync(SEMANTIC, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((x) => x.trim().length)) await run(s);
 
 const rows = await run(`
   SELECT CASE WHEN is_true_dropout THEN 'true_dropout' WHEN is_mainstreamed THEN 'mainstreamed' ELSE 'active/other' END AS grp,

@@ -5,7 +5,9 @@
  * `Database/` data exist. Do not re-add a mode without a real data source behind it.
  */
 
-import type { DynamicDashboardResponse } from "../utils/openAIHelper";
+import type { DynamicDashboardResponse } from "./dashboard-types";
+import type { AnswerEvidence } from "./ai/evidence";
+import type { AnswerReasoning } from "./ai/reasoning";
 
 export type ViewMode = "overview" | "ai-dashboard" | "chat";
 
@@ -36,6 +38,10 @@ export interface ChatMsg {
   cached?: boolean;
   /** The data can't answer this — no fabricated widget was returned. */
   refused?: boolean;
+  /** Answered WITHOUT a query: a definition, or a question about the dataset itself. */
+  explained?: boolean;
+  /** A short clarifying question, asked instead of guessing what a follow-up meant. */
+  clarifying?: boolean;
   /** Drill-down / adjacent-grain questions offered under the answer. */
   followups?: string[];
   /** Coverage/quality caption shown as honesty, e.g. attendance is coverage-limited. */
@@ -48,6 +54,11 @@ export interface ChatMsg {
   sources?: string[];
   /** The grounded facts the answer drew on (statement + source). */
   facts?: { statement: string; source: string }[];
+  /** The primary query result behind this answer — carried into the next turn's agent context so
+   *  follow-ups ("why are THESE at risk?") reason over the exact prior cohort. */
+  evidence?: AnswerEvidence;
+  /** The four reasoning layers behind this answer (finding / factors / confidence / action). */
+  reasoning?: AnswerReasoning;
 }
 
 /** A single chat thread in the Copilot's history sidebar. */

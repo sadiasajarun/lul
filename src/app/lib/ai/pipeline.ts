@@ -7,6 +7,8 @@ import { buildSystemPrompt, buildUserPrompt, buildFixPrompt, type HistoryTurn } 
 import { toResponse, type DashboardResponse, type Intent } from './interpret';
 import { aiLog } from './debug';
 import { ProviderError } from './openai';
+import type { AnswerEvidence } from './evidence';
+import type { AnswerReasoning } from './reasoning';
 
 /** True when an error is a provider rate-limit / quota exhaustion (429/503). */
 function isRateLimitError(e: unknown): { limited: boolean; retryMs?: number } {
@@ -34,6 +36,16 @@ export interface AskResult {
   provider?: string;
   /** True when the failure was a provider rate-limit (429/503) — surfaced clearly to the user. */
   rateLimited?: boolean;
+  /** The primary query result behind the answer — carried into the next turn (agent path only). */
+  evidence?: AnswerEvidence;
+  /** The four-layer answer: finding -> associated factors -> confidence -> action. */
+  reasoning?: AnswerReasoning;
+  /** Answered from the answer cache at zero model cost (agent path only). */
+  cached?: boolean;
+  /** Answered WITHOUT a query — a definition, or a question about the dataset itself. */
+  explained?: boolean;
+  /** A short clarifying question was asked instead of guessing what the user meant. */
+  clarifying?: boolean;
 }
 
 const MAX_ATTEMPTS = 3;

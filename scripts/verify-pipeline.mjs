@@ -18,7 +18,7 @@ const run = (sql) => new Promise((res, rej) => db.all(sql, (e, r) => (e ? rej(e)
 const p = (f) => path.join(DATA, f).replace(/\\/g, '/');
 for (const t of ['students', 'attendance', 'assessments', 'teachers', 'centers'])
   await run(`CREATE TABLE ${t} AS SELECT * FROM read_csv_auto('${p(t + '.csv')}', header=true, sample_size=-1)`);
-for (const s of fs.readFileSync(SEMANTIC, 'utf8').split(';').filter((x) => x.replace(/--[^\n]*/g, '').trim().length)) await run(s);
+for (const s of fs.readFileSync(SEMANTIC, 'utf8').replace(/--[^\n]*/g, '').split(';').filter((x) => x.trim().length)) await run(s);
 
 // A DataSource backed by node-duckdb (same shape the browser DuckDbSource returns).
 const dataSource = {

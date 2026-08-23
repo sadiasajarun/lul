@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option B — Guided Canvas · Let us learn AI assistant</title>
+<style>
+/* Tokens copied verbatim from src/styles/theme.css — the live product system. */
+:root{
+  --oo-primary:#6d5ef4; --oo-success:#28D094; --oo-danger:#FF4961;
+  --oo-warning:#FF9149; --oo-info:#1E9FF2;
+  --oo-canvas:#F4F5FA; --oo-surface:#FFFFFF; --oo-text:#6B6F82;
+  --oo-heading:#464855; --oo-muted:#7A7A7A; --oo-border:#E3EBF3;
+  --shadow:0 2px 18px 1px rgba(49,53,72,.10);
+  --shadow-sm:0 1px 3px rgba(49,53,72,.07);
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--oo-canvas);font-family:var(--font);color:var(--oo-text);
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+:focus-visible{outline:2px solid var(--oo-primary);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── app chrome ─────────────────────────────────────────── */
+.topbar{height:56px;background:var(--oo-surface);border-bottom:1px solid var(--oo-border);
+  display:flex;align-items:center;gap:14px;padding:0 18px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--oo-heading);font-size:14.5px}
+.brand .mark{width:28px;height:28px;border-radius:8px;background:var(--oo-primary);
+  display:grid;place-items:center;color:#fff;flex:none}
+.back{display:flex;align-items:center;gap:6px;color:var(--oo-text);font-size:13px;padding-right:14px;
+  border-right:1px solid var(--oo-border);height:26px}
+.back:hover{color:var(--oo-primary)}
+.spacer{flex:1}
+.seg{display:flex;background:var(--oo-canvas);border:1px solid var(--oo-border);border-radius:8px;padding:2px}
+.seg button{font-size:12px;font-weight:600;padding:4px 13px;border-radius:6px;color:var(--oo-muted)}
+.seg button[aria-pressed="true"]{background:var(--oo-warning);color:#fff}
+.ghost-btn{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--oo-text);
+  border:1px solid var(--oo-border);border-radius:8px;padding:6px 12px;background:var(--oo-surface)}
+.ghost-btn:hover{border-color:var(--oo-primary);color:var(--oo-primary)}
+.avatar{width:30px;height:30px;border-radius:50%;background:#b14ae0;color:#fff;display:grid;
+  place-items:center;font-size:12px;font-weight:600}
+.notice{background:#FFF6EC;border-bottom:1px solid #FFE2C4;color:#8a5a22;font-size:12.5px;
+  padding:9px 20px;display:flex;gap:8px;align-items:center}
+.notice b{color:#7a4a12}
+
+/* ── primitives ─────────────────────────────────────────── */
+.card{background:var(--oo-surface);border:1px solid var(--oo-border);border-radius:14px;box-shadow:var(--shadow-sm)}
+.chip{display:inline-flex;align-items:center;font-size:9.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.chip.preview{background:#FFF1E3;color:#B4661F}
+.chip.flag{background:#FFECEF;color:#D33049}
+.chip.pred{background:#EEF0FE;color:#5648d6}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--oo-muted)}
+.mod-icon{border-radius:12px;display:grid;place-items:center;flex:none}
+.m-att{--tint:#EEF0FE;--ink:#5648d6}
+.m-cen{--tint:#E7F8F1;--ink:#12A97B}
+.m-asm{--tint:#FFF1E3;--ink:#D9812F}
+.m-stu{--tint:#E8F4FE;--ink:#1E7FC2}
+
+/* ── OPTION B — guided canvas, quick prompts on the right ── */
+.app{display:flex;height:calc(100vh - 56px - 37px);min-height:600px}
+.canvas{flex:1;display:flex;flex-direction:column;min-width:0}
+.canvas > .head{height:54px;flex:none;display:flex;align-items:center;gap:11px;padding:0 22px;
+  background:var(--oo-surface);border-bottom:1px solid var(--oo-border)}
+.canvas .title{font-size:13.5px;font-weight:600;color:var(--oo-heading)}
+.canvas .online{font-size:11px;color:var(--oo-success);display:flex;align-items:center;gap:5px}
+.canvas .online::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--oo-success)}
+.newchat{background:var(--oo-primary);color:#fff;font-size:12.5px;font-weight:600;border-radius:9px;padding:8px 15px}
+.scroll{flex:1;overflow-y:auto;padding:26px 28px 30px}
+.inner{max-width:880px;margin:0 auto}
+
+/* launcher */
+.lead{text-align:center;margin-bottom:26px}
+.lead h1{font-size:24px;color:var(--oo-heading);margin:0 0 7px;letter-spacing:-.02em}
+.lead p{margin:0 auto;max-width:470px;font-size:13.5px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (max-width:780px){.grid{grid-template-columns:1fr}}
+.mcard{text-align:left;padding:20px;border-radius:16px;background:var(--oo-surface);
+  border:1px solid var(--oo-border);box-shadow:var(--shadow-sm);transition:box-shadow .16s,border-color .16s}
+.mcard:hover{border-color:var(--ink);box-shadow:var(--shadow)}
+.mcard .top{display:flex;align-items:center;gap:12px}
+.mcard .mod-icon{width:42px;height:42px;background:var(--tint);color:var(--ink)}
+.mcard h3{font-size:15.5px;font-weight:650;color:var(--oo-heading);margin:0;letter-spacing:-.01em}
+.mcard .why{font-size:12.5px;color:var(--oo-muted);margin-top:13px;line-height:1.5}
+.mcard .foot{display:flex;align-items:center;gap:7px;margin-top:14px;padding-top:13px;
+  border-top:1px solid var(--oo-border);font-size:11.5px;font-weight:600;color:var(--ink)}
+.mcard .n{margin-left:auto;font-size:11px;color:var(--oo-muted);font-weight:500}
+
+/* tabs after a module is chosen */
+.tabs{display:flex;gap:7px;margin-bottom:20px;flex-wrap:wrap}
+.tab{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:11px;font-size:12.5px;
+  font-weight:600;color:var(--oo-text);background:var(--oo-surface);border:1px solid var(--oo-border)}
+.tab:hover{border-color:var(--ink);color:var(--ink)}
+.tab .mod-icon{width:22px;height:22px;border-radius:7px;background:var(--tint);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab[aria-selected="true"] .mod-icon{background:rgba(255,255,255,.22);color:#fff}
+
+.qhead{display:flex;align-items:center;gap:13px;margin-bottom:15px}
+.qhead .mod-icon{width:40px;height:40px;background:var(--tint);color:var(--ink)}
+.qhead h2{font-size:18px;color:var(--oo-heading);margin:0;letter-spacing:-.015em}
+.qhead p{margin:1px 0 0;font-size:12.5px;color:var(--oo-muted)}
+.qlist{display:grid;gap:8px}
+.qrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;
+  background:var(--oo-surface);border:1px solid var(--oo-border);border-radius:12px;box-shadow:var(--shadow-sm)}
+.qrow:hover{border-color:var(--ink);box-shadow:var(--shadow)}
+.qrow .num{width:24px;height:24px;border-radius:7px;background:var(--tint);color:var(--ink);
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.qrow .t{font-size:13.5px;color:var(--oo-heading);font-weight:500}
+.qrow .go{margin-left:auto;color:#C3C7D4;font-size:15px;flex:none}
+.qrow:hover .go{color:var(--ink)}
+
+/* right rail */
+.rail{width:250px;flex:none;background:var(--oo-surface);border-left:1px solid var(--oo-border);
+  padding:20px 14px;overflow-y:auto}
+.rail section + section{margin-top:20px;padding-top:18px;border-top:1px solid var(--oo-border)}
+.rail .eyebrow{padding:0 6px;margin-bottom:10px;display:block}
+.qp{width:100%;text-align:left;font-size:12.5px;color:var(--oo-text);padding:9px 10px;border-radius:9px;
+  display:flex;gap:9px;align-items:flex-start;line-height:1.4}
+.qp:hover{background:var(--oo-canvas);color:var(--oo-primary)}
+.qp .dot{width:6px;height:6px;border-radius:50%;background:var(--oo-primary);flex:none;margin-top:6px;opacity:.5}
+
+/* ── answer surface ─────────────────────────────────────── */
+.stack{display:grid;gap:15px}
+.crumb{font-size:11.5px;color:var(--oo-muted);display:flex;align-items:center;gap:6px}
+.crumb b{color:var(--oo-primary);font-weight:600}
+.answer h2{font-size:18px;color:var(--oo-heading);margin:0;letter-spacing:-.015em}
+.insight{background:linear-gradient(180deg,#F7F6FF,#FDFDFF);border:1px solid #E4E1FB;
+  border-radius:14px;padding:16px 18px}
+.insight ul{margin:0;padding:0;list-style:none;display:grid;gap:9px}
+.insight li{display:flex;gap:9px;font-size:13px;color:#3f4356;line-height:1.5}
+.insight li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--oo-primary);
+  margin-top:8px;flex:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{padding:14px 15px}
+.kpi .lab{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--oo-muted)}
+.kpi .val{font-size:22px;font-weight:700;color:var(--oo-heading);letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .sub{font-size:11.5px;color:var(--oo-muted)}
+.chart{padding:16px 18px}
+.chart .ct{font-size:12.5px;font-weight:700;color:var(--oo-heading)}
+.chart .cap{font-size:11px;color:var(--oo-muted);margin-top:2px;line-height:1.45}
+.bars{display:flex;align-items:flex-end;gap:14px;height:150px;margin-top:16px;
+  border-bottom:1px solid var(--oo-border)}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}
+.bar i{display:block;width:100%;max-width:56px;border-radius:5px 5px 0 0;background:var(--oo-primary)}
+.bar.warn i{background:var(--oo-warning)}
+.bar.bad i{background:var(--oo-danger)}
+.bar.good i{background:var(--oo-success)}
+.bar span{font-size:10.5px;color:var(--oo-muted);text-align:center;line-height:1.25}
+.bar b{font-size:11px;color:var(--oo-heading);font-variant-numeric:tabular-nums}
+.followups{display:flex;flex-wrap:wrap;gap:8px}
+.followups button{font-size:12px;color:var(--oo-primary);border:1px solid #DAD6FB;background:#F8F7FF;
+  border-radius:20px;padding:6px 13px}
+.followups button:hover{background:#EFEDFF}
+
+/* ── composer ───────────────────────────────────────────── */
+.composer{display:flex;gap:10px;align-items:center;padding:12px 22px;border-top:1px solid var(--oo-border);
+  background:var(--oo-surface);flex:none}
+.composer .field{flex:1;display:flex;align-items:center;gap:9px;background:var(--oo-canvas);
+  border:1px solid var(--oo-border);border-radius:10px;padding:10px 13px;color:var(--oo-muted);font-size:13px}
+.ask{background:var(--oo-primary);color:#fff;font-weight:600;font-size:13px;border-radius:10px;
+  padding:10px 20px;display:flex;align-items:center;gap:7px}
+.ask:hover{filter:brightness(1.07)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="back">&#8592; Dashboard</button>
+  <div class="brand">
+    <span class="mark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M9 3v4M15 3v4M9 13h.01M15 13h.01"/></svg></span>
+    Let us learn <span style="color:var(--oo-primary);margin-left:3px">AI assistant</span>
+  </div>
+  <span class="spacer"></span>
+  <button class="ghost-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Chats
+  </button>
+  <div class="seg"><button aria-pressed="false">Real</button><button aria-pressed="true">Preview</button></div>
+  <button class="ghost-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg>
+    Data
+  </button>
+  <div class="avatar">A</div>
+</header>
+
+<div class="notice">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+  <span><b>Preview mode</b> &mdash; attendance, marks and status are <b>estimated</b> where the real data was blank. For demonstration only, not for decisions.</span>
+</div>
+
+<div class="app">
+  <main class="canvas">
+    <div class="head">
+      <div>
+        <div class="title">AI Chat</div>
+        <div class="online">AI assistant is online</div>
+      </div>
+      <span class="spacer"></span>
+      <button class="newchat">+ New Chat</button>
+    </div>
+
+    <div class="scroll" id="scroll">
+      <div class="inner">
+        <!-- STEP 1 — launcher -->
+        <div id="launcher">
+          <div class="lead">
+            <h1>What do you need to decide?</h1>
+            <p>Choose an area to see the questions it can answer &mdash; or type your own question at any time.</p>
+          </div>
+          <div class="grid" id="cards"></div>
+        </div>
+
+        <!-- STEP 2 — questions, STEP 3 — answer -->
+        <div id="drill" hidden>
+          <div class="tabs" id="tabs"></div>
+          <div id="panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="field">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        Ask anything about attendance, centres, assessment or students&hellip;
+      </div>
+      <button class="ask">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
+        Ask
+      </button>
+    </div>
+  </main>
+
+  <!-- ═══ RIGHT RAIL — the trimmed quick prompts ═══ -->
+  <aside class="rail">
+    <section>
+      <span class="eyebrow">Quick prompts</span>
+      <button class="qp"><span class="dot"></span>Centres below 85% attendance</button>
+      <button class="qp"><span class="dot"></span>Highest dropout risk right now</button>
+      <button class="qp"><span class="dot"></span>Weakest subject across programmes</button>
+      <button class="qp"><span class="dot"></span>Ghost / inactive students</button>
+    </section>
+    <section>
+      <span class="eyebrow">Recent</span>
+      <button class="qp"><span class="dot" style="background:#C3C7D4"></span>Attendance below 85%</button>
+      <button class="qp"><span class="dot" style="background:#C3C7D4"></span>Income vs attendance</button>
+    </section>
+  </aside>
+</div>
+
+<script>
+var ICONS = {
+  att: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+  cen: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 12h.01M9 16h.01M15 12h.01M15 16h.01"/>',
+  asm: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h6M9 16h4"/>',
+  stu: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'
+};
+
+var MODULES = [
+  { id:'att', name:'Attendance', short:'Where children are slipping away',
+    why:'Track who is turning up, spot the centres and partners falling below the line, and see the reasons behind it before children stop coming altogether.',
+    questions:[
+      { t:'Centres below 85% attendance', chip:'flag', chipText:'Threshold' },
+      { t:'Centre-wise total attendance' },
+      { t:'Low attendance by location / partner' },
+      { t:'Why is attendance low &mdash; the reasons behind it' },
+      { t:'Attendance trend, month by month', chip:'preview', chipText:'Preview' }
+  ]},
+  { id:'cen', name:'Centres', short:'Who to visit, who to learn from',
+    why:'Rank every centre on its monitoring indicators, so you know where to send support this week and which centres are worth copying.',
+    questions:[
+      { t:'Lowest-performing centres' },
+      { t:'Highest-performing centres' },
+      { t:'Which indicator scored lowest this month' },
+      { t:'Compare centres across all 5 indicators' },
+      { t:'Centres likely to be worst next month', chip:'pred', chipText:'Forecast' }
+  ]},
+  { id:'asm', name:'Assessment &amp; Monitoring', short:'Whether children are actually learning',
+    why:'Read grade-level results by area, centre and subject &mdash; and see plainly where there is too little assessment data to draw a conclusion.',
+    questions:[
+      { t:'Grade-level reading by area' },
+      { t:'Grade-level reading by centre' },
+      { t:'Weakest subject across programmes' },
+      { t:'Average marks by subject and centre' },
+      { t:'Centres with too little data to trust' }
+  ]},
+  { id:'stu', name:'Students', short:'The individual children who need help',
+    why:'Move from the aggregate to the child: who is thriving, who has quietly stopped coming, and how household income relates to both.',
+    questions:[
+      { t:'Students who are doing well' },
+      { t:'Students who are regularly absent' },
+      { t:'Ghost / inactive students' },
+      { t:'Why they missed this month &mdash; link to poverty' },
+      { t:'Family income vs attendance and marks', chip:'pred', chipText:'Correlation' },
+      { t:'Highest dropout risk' }
+  ]}
+];
+
+function svg(id, size) {
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + ICONS[id] + '</svg>';
+}
+
+/* STEP 1 — the launcher cards */
+document.getElementById('cards').innerHTML = MODULES.map(function (m) {
+  return '<button class="mcard m-' + m.id + '" data-mod="' + m.id + '">' +
+    '<span class="top"><span class="mod-icon">' + svg(m.id, 20) + '</span>' +
+      '<span><h3>' + m.name + '</h3></span></span>' +
+    '<span class="why">' + m.why + '</span>' +
+    '<span class="foot">Explore ' + m.name.replace('&amp;', 'and').toLowerCase() +
+      '<span class="n">' + m.questions.length + ' questions</span></span>' +
+  '</button>';
+}).join('');
+
+/* STEP 2 — module tabs + question list */
+function renderTabs(activeId) {
+  document.getElementById('tabs').innerHTML =
+    '<button class="tab" data-home="1" style="--ink:#7A7A7A;--tint:#F0F1F5">&#8592; All areas</button>' +
+    MODULES.map(function (m) {
+      return '<button class="tab m-' + m.id + '" data-mod="' + m.id + '" aria-selected="' + (m.id === activeId) + '">' +
+        '<span class="mod-icon">' + svg(m.id, 13) + '</span>' + m.name + '</button>';
+    }).join('');
+}
+
+function openModule(id) {
+  var mod = null;
+  for (var k = 0; k < MODULES.length; k++) if (MODULES[k].id === id) mod = MODULES[k];
+  document.getElementById('launcher').hidden = true;
+  document.getElementById('drill').hidden = false;
+  renderTabs(id);
+  document.getElementById('panel').className = 'm-' + id;
+  document.getElementById('panel').innerHTML =
+    '<div class="qhead"><span class="mod-icon">' + svg(id, 19) + '</span>' +
+      '<span><h2>' + mod.name + '</h2><p>' + mod.short + '</p></span></div>' +
+    '<div class="qlist">' + mod.questions.map(function (q, i) {
+      var chip = q.chip ? '<span class="chip ' + q.chip + '">' + q.chipText + '</span>' : '';
+      return '<button class="qrow" data-mod="' + id + '" data-i="' + i + '">' +
+        '<span class="num">' + (i + 1) + '</span><span class="t">' + q.t + '</span>' +
+        chip + '<span class="go">&#8594;</span></button>';
+    }).join('') + '</div>';
+  document.getElementById('scroll').scrollTop = 0;
+}
+
+function goHome() {
+  document.getElementById('launcher').hidden = false;
+  document.getElementById('drill').hidden = true;
+  document.getElementById('scroll').scrollTop = 0;
+}
+
+/* STEP 3 — illustrative answered state (figures are placeholders) */
+function showAnswer(modId, i) {
+  var mod = null;
+  for (var k = 0; k < MODULES.length; k++) if (MODULES[k].id === modId) mod = MODULES[k];
+  var q = mod.questions[i];
+  renderTabs(modId);
+  document.getElementById('panel').className = 'm-' + modId;
+  document.getElementById('panel').innerHTML =
+    '<div class="stack">' +
+      '<div class="crumb">' + mod.name + ' <span>&#8250;</span> <b>' + q.t + '</b></div>' +
+      '<div class="answer"><h2>' + q.t + '</h2></div>' +
+      '<div class="kpis">' +
+        '<div class="card kpi"><div class="lab">Centres below 85%</div><div class="val">412</div><div class="sub">of 1,630 centres</div></div>' +
+        '<div class="card kpi"><div class="lab">Children affected</div><div class="val">18,340</div><div class="sub">7.3% of all learners</div></div>' +
+        '<div class="card kpi"><div class="lab">Lowest centre</div><div class="val">61.2%</div><div class="sub">Sylhet &middot; Centre 001</div></div>' +
+        '<div class="card kpi"><div class="lab">Worst division</div><div class="val">Sylhet</div><div class="sub">31% of its centres below</div></div>' +
+      '</div>' +
+      '<div class="insight"><ul>' +
+        '<li><b>412 centres sit below the 85% line</b> &mdash; a quarter of the network, concentrated in Sylhet and Mymensingh.</li>' +
+        '<li><b>Sylhet is the priority.</b> Nearly a third of its centres fall below the threshold, against a network average of 25%.</li>' +
+        '<li><b>Poverty tracks with it.</b> Centres below 85% draw 1.7&times; more children from the lowest income band.</li>' +
+        '<li><b>Recommended:</b> send field teams to the 24 Sylhet centres under 70% first &mdash; they hold 4,100 children between them.</li>' +
+      '</ul></div>' +
+      '<div class="card chart">' +
+        '<div class="ct">Lowest centres by attendance</div>' +
+        '<div class="cap">Attendance % for each centre &mdash; the six furthest below the 85% threshold.</div>' +
+        '<div class="bars">' +
+          '<div class="bar bad"><b>61%</b><i style="height:61%"></i><span>Centre 001</span></div>' +
+          '<div class="bar bad"><b>64%</b><i style="height:64%"></i><span>Centre 613</span></div>' +
+          '<div class="bar bad"><b>67%</b><i style="height:67%"></i><span>Centre 035</span></div>' +
+          '<div class="bar warn"><b>71%</b><i style="height:71%"></i><span>Centre 618</span></div>' +
+          '<div class="bar warn"><b>74%</b><i style="height:74%"></i><span>Centre 030</span></div>' +
+          '<div class="bar warn"><b>78%</b><i style="height:78%"></i><span>Centre 612</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="followups">' +
+        '<button>Why is attendance low there?</button>' +
+        '<button>Which partner runs these centres?</button>' +
+        '<button>Show the children affected</button>' +
+        '<button>&#8592; Back to ' + mod.name.replace('&amp;', 'and') + ' questions</button>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('scroll').scrollTop = 0;
+}
+
+document.addEventListener('click', function (e) {
+  var card = e.target.closest('.mcard');
+  if (card) { openModule(card.dataset.mod); return; }
+  var tab = e.target.closest('.tab');
+  if (tab) { tab.dataset.home ? goHome() : openModule(tab.dataset.mod); return; }
+  var row = e.target.closest('.qrow');
+  if (row) { showAnswer(row.dataset.mod, +row.dataset.i); return; }
+  var fu = e.target.closest('.followups button');
+  if (fu && fu.textContent.indexOf('Back to') > -1) {
+    openModule(document.getElementById('panel').className.replace('m-', ''));
+  }
+});
+</script>
+</body>
+</html>

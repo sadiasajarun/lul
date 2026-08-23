@@ -47,6 +47,9 @@ export async function openaiGenerate(system: string, user: string, opts: OpenAiO
     promptTokens: u.prompt_tokens ?? 0,
     outputTokens: u.completion_tokens ?? 0,
     totalTokens: u.total_tokens ?? 0,
+    // OpenAI serves an identical prompt prefix from cache at a discount. Reading it is the only way
+    // to tell whether that discount is actually landing.
+    cachedTokens: u.prompt_tokens_details?.cached_tokens ?? 0,
   });
   const text = (json?.choices?.[0]?.message?.content ?? '').trim();
   if (!text) throw new ProviderError('Empty OpenAI response', 502);

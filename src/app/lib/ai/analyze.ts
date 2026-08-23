@@ -11,6 +11,7 @@
 // the widgets below still show the SQL-grounded figures. Fires only for "why" questions.
 import { CAVEATS } from '../db/catalog';
 import type { DashboardResponse } from './interpret';
+import { extractJson } from './exec';
 
 type Generate = (system: string, user: string) => Promise<string>;
 
@@ -28,17 +29,6 @@ export function rowsOf(response: DashboardResponse): Record<string, unknown>[] {
     }
   }
   return [];
-}
-
-function extractJson<T>(raw: string): T | null {
-  try {
-    let t = raw.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
-    const s = t.indexOf('{'), e = t.lastIndexOf('}');
-    if (s >= 0 && e > s) t = t.slice(s, e + 1);
-    return JSON.parse(t) as T;
-  } catch {
-    return null;
-  }
 }
 
 /** Step 1 — propose ONE follow-up question that would best reveal WHY, or null if the result suffices. */

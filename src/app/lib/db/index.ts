@@ -9,7 +9,10 @@ import type { DataSource } from './types';
 
 const MODE_KEY = 'dataMode';
 function savedMode(): DataMode {
-  try { return localStorage.getItem(MODE_KEY) === 'tuned' ? 'tuned' : 'real'; } catch { return 'real'; }
+  try {
+    const m = localStorage.getItem(MODE_KEY);
+    return m === 'tuned' || m === 'v2' ? m : 'real';
+  } catch { return 'real'; }
 }
 
 let instance: DuckDbSource | null = null;
