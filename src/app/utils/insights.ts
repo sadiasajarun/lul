@@ -10,6 +10,11 @@
  */
 
 import type { Lang } from "../lib/fmt";
+
+/** True only in a dev build. See the note at its call site for why the expression is spelled out. */
+function isDev(): boolean {
+  try { return Boolean(import.meta.env.DEV); } catch { return false; }
+}
 import { toBnNumerals } from "../lib/fmt";
 
 /** Bengali numerals → ASCII, so BN text validates against the same payload numbers. */
@@ -205,7 +210,12 @@ function findFirstRowSet(
 export function narrate(text: string, payload: unknown, lang: Lang = "en"): string {
   if (!text?.trim()) return templateSummary(payload, lang);
   if (validateNarrative(text, payload)) return lang === "bn" ? toBnNumerals(text) : text;
-  if (import.meta.env?.DEV) {
+  // Written EXACTLY as `import.meta.env.DEV` on purpose. Vite replaces this precise expression with a
+  // literal at build time. The optional-chaining form (`import.meta.env?.DEV`) does NOT match that
+  // pattern, so Vite falls back to inlining the ENTIRE env object — which shipped every VITE_* value
+  // into the public bundle, including API keys for providers this app never calls. The try/catch
+  // keeps it safe under plain Node, where import.meta.env does not exist.
+  if (isDev()) {
     console.warn("[insights] ungrounded numbers rejected:", ungroundedNumbers(text, payload), "\ntext:", text);
   }
   // Rejected → rebuild from the data rather than discarding the answer entirely.

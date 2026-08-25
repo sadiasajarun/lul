@@ -40,8 +40,8 @@ const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
-  // AI keys + provider failover (Gemini → OpenAI on rate-limit) are handled inside askViaPipeline,
-  // driven by .env (VITE_GEMINI_API_KEY / VITE_OPENAI_API_KEY). No key plumbing needed here.
+  // The AI key is handled inside askViaPipeline, driven by .env (VITE_OPENAI_API_KEY). OpenAI is the
+  // only provider — Gemini is disabled there. No key plumbing needed here.
 
   const [isThinking, setIsThinking] = useState(false);
 

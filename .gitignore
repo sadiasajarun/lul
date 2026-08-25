@@ -10,11 +10,15 @@ dist/
 # Real personal data (PII: student/teacher names, parents, income, GPS). The app ships on the
 # synthetic Database/demo/ set, which IS committed. Only the raw root CSVs are excluded.
 Database/*.csv
-# Cleaned analytics tables built from the real CSVs by scripts/build-analytics-data.mjs.
-# These still contain PII (kept for the local/private no-backend build) — never commit them.
-public/data/
-# Gap-filled PREVIEW dataset (real PII + estimated values) — regenerated via build:data:tuned.
-public/data-tuned/
+
+# public/data, public/data-tuned and public/data-v2 are deliberately NOT ignored.
+# This is a static site with no backend: the browser fetches these CSVs by URL, so a file that is
+# not committed does not exist in production and its request 404s. They were once ignored and
+# force-added, which left the rules in place while the files were tracked — so every NEW file added
+# to these directories was silently dropped from the build. That is what broke the Real ·26 toggle
+# and the Preview attendance tables. Keeping the rules off means a new file is simply committed.
+# These datasets contain real personal data, which is why THIS REPOSITORY MUST STAY PRIVATE and the
+# deployment stays behind its team password.
 
 # Claude Code secrets (keep .gitkeep)
 .claude-project/secrets/*
@@ -26,10 +30,3 @@ public/data-tuned/
 
 # Local Claude settings
 .claude/settings.local.json
-
-# NOTE on public/data, public/data-tuned and public/data-v2:
-# These ARE committed, deliberately. The app is a static site with no backend — the browser fetches
-# these CSVs directly, so a dataset that is not in the repo is not in the build, and its toggle 404s
-# in production. They contain real personal data, which is why THIS REPOSITORY MUST STAY PRIVATE.
-# (public/data-tuned/ is listed above for historical reasons but its files are already tracked; the
-# rule has no effect on them.)
