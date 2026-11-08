@@ -5,8 +5,8 @@ import { validateSql } from './validate';
 
 /** Validate + run ONE read-only SQL over the DataSource. Throws with a clear message on a
  *  validation or execution error, so callers can feed it back to the model or surface it. */
-export async function executeValidatedSql(sql: string, dataSource: DataSource): Promise<QueryResult> {
-  const check = validateSql(sql);
+export async function executeValidatedSql(sql: string, dataSource: DataSource, extraAllowed?: ReadonlySet<string>): Promise<QueryResult> {
+  const check = validateSql(sql, extraAllowed);
   if (!check.ok) throw new Error(check.error ?? 'invalid SQL');
   return dataSource.query(check.sql);
 }

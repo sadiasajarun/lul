@@ -21,7 +21,8 @@ export interface ValidationResult {
   error?: string;
 }
 
-export function validateSql(raw: string): ValidationResult {
+/** `extraAllowed` is for app-written SQL only. Model-written SQL never passes it. */
+export function validateSql(raw: string, extraAllowed?: ReadonlySet<string>): ValidationResult {
   let sql = (raw ?? '').trim().replace(/;+\s*$/, ''); // drop trailing semicolons
   if (!sql) return { ok: false, sql, error: 'empty SQL' };
   if (sql.includes(';')) return { ok: false, sql, error: 'multiple statements are not allowed' };
@@ -32,7 +33,7 @@ export function validateSql(raw: string): ValidationResult {
   const refs = [...sql.matchAll(/\b(?:from|join)\s+("?[a-zA-Z_][\w]*"?)/gi)].map((m) => m[1].replace(/"/g, '').toLowerCase());
   const ctes = new Set([...sql.matchAll(/\b([a-zA-Z_][\w]*)\s+as\s*\(/gi)].map((m) => m[1].toLowerCase()));
   for (const r of refs) {
-    if (!ALLOWED_RELATIONS.has(r) && !ctes.has(r)) {
+    if (!ALLOWED_RELATIONS.has(r) && !ctes.has(r) && !extraAllowed?.has(r)) {
       return { ok: false, sql, error: `relation "${r}" is not queryable — use only the semantic views (v_*)` };
     }
   }

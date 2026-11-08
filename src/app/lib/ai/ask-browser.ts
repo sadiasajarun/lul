@@ -22,6 +22,10 @@ import { routeQuestion } from './router';
 import { answerDefinition, answerDataset } from './explain';
 import { detectFollowUp, needsClarification, requestedFactors } from './followup';
 import { aiLog } from './debug';
+import type { ConversationContext } from './context/types';
+import { deriveTurn } from './context/derive';
+import { answerBoundTurn } from './trained/bound';
+import { answerTrained } from './trained/registry';
 
 // Console helpers for inspecting the pipeline live:
 //   showSystemPrompt()  → prints the exact system prompt sent to the model
@@ -150,9 +154,19 @@ function getResilient(): ResilientGenerate {
   return resilient;
 }
 
-/** Answer a question end-to-end. `history` (recent turns) lets follow-ups resolve references.
+/** Answer a question end-to-end. `history` (recent turns) lets follow-ups resolve references, and
+ *  `context` carries what earlier answers produced, however long ago they were.
  *  Returns an honest refusal (no throw) when no key is configured. */
-export async function askViaPipeline(question: string, history: HistoryTurn[] = []): Promise<AskResult> {
+export async function askViaPipeline(question: string, history: HistoryTurn[] = [], context?: ConversationContext): Promise<AskResult> {
+  const res = await answerQuestion(question, history, context);
+  if (context && !res.turn) {
+    // Observational only: a failure here must never cost the user their answer.
+    try { res.turn = await deriveTurn(res, getDataMode(), getDataSource()); } catch (e) { aiLog('turn record skipped:', (e as Error).message); }
+  }
+  return res;
+}
+
+async function answerQuestion(question: string, history: HistoryTurn[], context?: ConversationContext): Promise<AskResult> {
   const r = getResilient();
   if (r.count === 0) {
     return {
@@ -170,6 +184,15 @@ export async function askViaPipeline(question: string, history: HistoryTurn[] = 
   // model will invent one, so the explanation is returned from code instead.
   const guarded = modeGuard(question, dataMode);
   if (guarded) return guarded;
+
+  // Does this turn refer back to an earlier answer? If not, nothing below changes.
+  const bound = await answerBoundTurn(question, context, { ds: getDataSource(), mode: dataMode, generate: r.generate });
+  if (bound.result) return bound.result;
+  // A fixed answer exists only for questions the normal path provably cannot handle.
+  if (!bound.instruction) {
+    const trained = await answerTrained(question, context, { ds: getDataSource(), mode: dataMode });
+    if (trained) return trained;
+  }
 
   // WHAT KIND OF QUESTION IS THIS? Not everything is a query. A definition ("what does vulnerability
   // score mean?") and a question about the data itself ("how complete is attendance?") have no SQL
@@ -228,7 +251,7 @@ export async function askViaPipeline(question: string, history: HistoryTurn[] = 
       res = await runAgent(
         question,
         { dataSource: deps.dataSource, generate: r.generate, synth: r.generate, dataMode,
-          followUpInstruction: followUp?.instruction, forceFactors },
+          followUpInstruction: bound.instruction ?? followUp?.instruction, forceFactors },
         history,
       );
     } catch (e) {

@@ -66,6 +66,25 @@ Columns: `Center ID`, `Teacher Name`, `Father Name`, `Spouse Name`, `Mothers Nam
 `Date Of Joining`, `Religion`, `Marital Status`, `Teacher Education`,
 `Teacher Experience`, `Employment Status`
 
+## Preview side tables (`public/data-tuned/side_*.csv`)
+
+Simulated, Preview only, estimated and not for decisions. Built by `npm run build:data:side` and checked by
+`npm run check:side`. They are new files, so existing Preview rows are untouched, and they load only when
+an answer needs them.
+
+| Table | Grain | Consistent with |
+|-------|-------|-----------------|
+| `side_center_visits` | one visit | Student-backed centers; staff names are generic codes |
+| `side_center_observations` | center, round, category | Latest round equals the existing M&E scores |
+| `side_center_org` | center | CMC status follows the `engagement` score |
+| `side_teacher_attendance` | teacher, month | Active teachers linked to a center |
+| `side_cash_transfers` | payment | Low-income learners; includes labelled anomalies |
+| `side_dropout_events` | true dropout | Dates fall after `education_start_date` |
+| `side_unit_marks` | center, subject, unit | Preserves each center-subject mean |
+| `side_cycle_marks` | student, subject, cycle | Anchored to baseline; never duplicates a mark |
+| `side_student_monthly` | student, month | Averages to the existing `attendance_pct` |
+| `side_ppe_centers`, `side_ppe_students`, `side_ppe_marks` | new records | Used only by PPE vs NFPE questions, so totals are unchanged |
+
 ## Entity Relationships (logical)
 
 ```

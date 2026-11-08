@@ -22,7 +22,14 @@
     "build:data:v2": "node --max-old-space-size=8192 scripts/build-analytics-data-v2.mjs",
     "check:datasets": "node scripts/check-datasets.mjs",
     "e2e:full": "tsx scripts/e2e-full.mjs",
-    "compare": "node scripts/compare-datasets.mjs"
+    "compare": "node scripts/compare-datasets.mjs",
+    "build:data:side": "node --max-old-space-size=8192 scripts/build-preview-side-tables.mjs",
+    "check:side": "node scripts/check-side-tables.mjs",
+    "audit:triage": "tsx scripts/audit/triage.mjs",
+    "audit:data": "node scripts/audit/data-hashes.mjs",
+    "audit:prompts": "tsx scripts/audit/prompt-snapshot.mjs",
+    "audit:scenarios": "tsx scripts/audit/scenarios.mjs",
+    "audit:bank": "tsx scripts/audit/bank-check.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.32.0",

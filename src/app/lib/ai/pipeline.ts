@@ -9,6 +9,7 @@ import { aiLog } from './debug';
 import { ProviderError } from './openai';
 import type { AnswerEvidence } from './evidence';
 import type { AnswerReasoning } from './reasoning';
+import type { TurnDelta } from './context/types';
 
 /** True when an error is a provider rate-limit / quota exhaustion (429/503). */
 function isRateLimitError(e: unknown): { limited: boolean; retryMs?: number } {
@@ -46,6 +47,10 @@ export interface AskResult {
   explained?: boolean;
   /** A short clarifying question was asked instead of guessing what the user meant. */
   clarifying?: boolean;
+  /** Answered by the follow-up or trained path, so generic playbook text does not apply. */
+  trained?: boolean;
+  /** This turn's contribution to the conversation context. */
+  turn?: TurnDelta;
 }
 
 const MAX_ATTEMPTS = 3;

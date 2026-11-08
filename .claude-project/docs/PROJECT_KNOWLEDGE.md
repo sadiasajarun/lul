@@ -138,6 +138,28 @@ Two deliberate refusals to guess:
 what would need collecting, and what to ask instead. A vague limitation is indistinguishable from a
 bug and leaves the client nothing to act on.
 
+## Follow-up scenarios and trained answers
+
+Each answered turn stores a small record on its message (`ChatMsg.turn`): the list shown, the cohort,
+the selected center, the ranking metric, comparison pairs and derived lists. `foldContext`
+(`src/app/lib/ai/context/fold.ts`) rebuilds these from the whole conversation, so follow-ups are not
+limited by the 10-message history. Records are per dataset, so switching dataset resets them.
+
+Order in `askViaPipeline`: `modeGuard`, then `answerBoundTurn` (`trained/bound.ts`), then
+`answerTrained` (`trained/registry.ts`), then the existing path unchanged.
+
+- `context/resolve.ts` decides whether a turn refers back. It returns null when it does not. Edits such
+  as "sort by attendance instead" stay with `followup.ts`.
+- `trained/entries.ts` holds fixed SQL for questions the normal path provably cannot answer. Patterns are
+  anchored, so an extra qualifier falls through to the AI path.
+- `trained/unavailable.ts` gives Real and Real ·26 an honest "not recorded" answer for missing data.
+- `tv_center_scorecard`, `tv_marks_cycle` and `side_*` are readable only by app-written SQL. They are not
+  in the catalog, so the system prompt is unchanged and the model cannot query them.
+
+Checks, all without AI calls: `npm run audit:triage`, `audit:prompts`, `audit:bank`, `audit:scenarios`
+(each takes `real`, `v2` or `tuned`, except triage) and `audit:data`. The harness is `scripts/audit/`.
+Add a question to `scripts/audit/bank/questions.mjs` first, then re-run triage.
+
 ## Conventions (differ from the .claude fullstack defaults!)
 
 This is a **Figma Make export**, not a `/fullstack`-pipeline project. The

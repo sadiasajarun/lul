@@ -5,6 +5,7 @@ import {
   MapPin, Layers, FileText, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { askViaPipeline, type AskResult, type HistoryTurn } from "./lib/ai/ask-browser";
+import { foldContext } from "./lib/ai/context/fold";
 import { getDataMode, setDataSourceMode, type DataMode } from "./lib/db";
 import type { DynamicDashboardResponse } from "./lib/dashboard-types";
 import type { ChatMsg, Conversation } from "./lib/types";
@@ -202,7 +203,7 @@ export default function App() {
     // An explanation is not an analysis: no playbook recommendation, no coverage caption, no
     // drill-down chips. Bolting them on would dress a definition up as a finding.
     const plain = res.explained || res.clarifying;
-    const pb = res.refused || plain ? undefined : matchPlaybook(text);
+    const pb = res.refused || plain || res.trained ? undefined : matchPlaybook(text);
     // A recommendation must be EARNED. The reasoning layer emits one only for analytical/predictive
     // questions that produced something specific; a retrieval answer gets none. The old generic
     // "prioritise the worst cases and route to the field team" default is gone — it appeared on
@@ -222,12 +223,13 @@ export default function App() {
       clarifying: res.clarifying,
       cached: res.cached,
       followups: plain ? undefined : deriveFollowups(text, widgets),
-      coverage: res.refused || plain ? undefined : playbookCoverage(text, dataMode),
+      coverage: res.refused || plain || res.trained ? undefined : playbookCoverage(text, dataMode),
       engine: res.cached || res.provider === "cache" ? "cache" : res.provider === "openai" ? "openai" : "gemini",
       sources: res.sql ? [res.sql] : undefined,
       // Carry the primary result rows so a follow-up ("why are these…") reasons over the exact cohort.
       evidence: res.refused ? undefined : res.evidence,
     reasoning: res.refused ? undefined : res.reasoning,
+      turn: res.turn,
     };
   };
 
@@ -258,7 +260,7 @@ export default function App() {
         .filter((m) => m.role === "user" || m.response !== undefined || m.refused)
         .slice(-10)
         .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null, columns: m.evidence?.columns, rows: m.evidence?.rows, rowCount: m.evidence?.rowCount }));
-      const res = await askViaPipeline(text, history);
+      const res = await askViaPipeline(text, history, foldContext(messages, dataMode));
       appendAi(buildPipelineMessage(text, res));
     } catch (e) {
       console.error("AI query error:", e);
@@ -291,7 +293,7 @@ export default function App() {
         .filter((m) => m.role === "user" || m.response !== undefined || m.refused)
         .slice(-10)
         .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null, columns: m.evidence?.columns, rows: m.evidence?.rows, rowCount: m.evidence?.rowCount }));
-      const res = await askViaPipeline(userText, history);
+      const res = await askViaPipeline(userText, history, foldContext(msgs.slice(0, index), dataMode));
       const ai = buildPipelineMessage(userText, res);
       setConversations((prev) => prev.map((c) => (c.id === targetId ? { ...c, messages: c.messages.map((m, i) => (i === index ? ai : m)) } : c)));
     } catch (e) {

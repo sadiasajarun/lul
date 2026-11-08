@@ -1,0 +1,65 @@
+{
+  "note": "PREVIEW ONLY. Simulated tables for questions no dataset can answer. Estimated, not for decisions. Existing Preview files are never modified.",
+  "tables": {
+    "side_center_visits": {
+      "rows": 12429,
+      "bytes": 1214028,
+      "sha256": "dcda14050f4d7533188a7c37f3778aed5ef9069fa730b015916099661e7a8ecf"
+    },
+    "side_center_observations": {
+      "rows": 24450,
+      "bytes": 1277608,
+      "sha256": "f571a431221f703dd96cd899aec046f21452deb4c229951ade5c79712bd0f18a"
+    },
+    "side_center_org": {
+      "rows": 1630,
+      "bytes": 106110,
+      "sha256": "12debb9de0ccd9c432da0ec4fa3024938dbbe0f0baa766529c46b07b81ee5380"
+    },
+    "side_teacher_attendance": {
+      "rows": 19404,
+      "bytes": 1028576,
+      "sha256": "44db26945147a1dd87a5d95a30afcd1449712ff8480411a5c59f2774916a7d8d"
+    },
+    "side_dropout_events": {
+      "rows": 20446,
+      "bytes": 736799,
+      "sha256": "ebeb6df27d165463230da75dc82dc5a6fc658e9d159f24f44521e82b3a147a13"
+    },
+    "side_cash_transfers": {
+      "rows": 71104,
+      "bytes": 5424335,
+      "sha256": "5573605fbe33ad7083c48ad76a11f723b78adc65cdb07443effea873237607d0"
+    },
+    "side_unit_marks": {
+      "rows": 68460,
+      "bytes": 2102893,
+      "sha256": "58bd8020faa19d21b93467c1bb83ef89da15cbff7b09fbd167bda5963b330b59"
+    },
+    "side_cycle_marks": {
+      "rows": 144772,
+      "bytes": 6835000,
+      "sha256": "55fe9c818df7c717844a68520b1f1e3e979cc02f372ad526de6a0c8c24a712c6"
+    },
+    "side_student_monthly": {
+      "rows": 195024,
+      "bytes": 6842080,
+      "sha256": "9c87ba88959a192174b7dc4a37b5808cfe481aeb2748ad2c823551fe57c86738"
+    },
+    "side_ppe_centers": {
+      "rows": 150,
+      "bytes": 9000,
+      "sha256": "4d755cf2cdc2ec49cc42b62257e682ac145e8f902cb103b81e69b75b328cb27f"
+    },
+    "side_ppe_students": {
+      "rows": 6000,
+      "bytes": 338492,
+      "sha256": "2313efbe1d60c22d2c948b6b7afa0155b402aed3468fd1a5cfd53d3d85acb75f"
+    },
+    "side_ppe_marks": {
+      "rows": 48000,
+      "bytes": 1778432,
+      "sha256": "12d79d5f33efd99ea1a071c219d5639447f2cbabeb52b0e2aa5e2abcb1d8bf0d"
+    }
+  }
+}

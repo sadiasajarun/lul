@@ -1,0 +1,1631 @@
+center_id,organization,cmc_status,cmc_meetings_per_year,cmc_members,cmc_last_meeting
+001,Partner Organization H,Partly functioning,7,10,2025-11-08
+030431101,Partner Organization G,Partly functioning,7,10,2025-08-20
+030431102,Partner Organization G,Functioning,12,12,2025-07-30
+030431103,Partner Organization G,Partly functioning,4,12,2025-06-19
+030431104,Partner Organization G,Functioning,8,10,2025-12-05
+030431105,Partner Organization G,Functioning,9,9,2025-07-04
+030431106,Partner Organization G,Partly functioning,7,11,2025-12-13
+030431107,Partner Organization G,Functioning,10,10,2025-07-07
+030431111,Partner Organization G,Partly functioning,7,12,2025-07-31
+030431112,Partner Organization G,Partly functioning,4,7,2025-12-14
+030431113,Partner Organization G,Partly functioning,6,13,2025-10-22
+030431114,Partner Organization G,Functioning,8,10,2025-09-06
+030431115,Partner Organization G,Functioning,9,11,2025-07-10
+030431116,Partner Organization G,Functioning,11,7,2025-09-24
+030431117,Partner Organization G,Partly functioning,7,9,2025-07-17
+030431118,Partner Organization G,Partly functioning,6,12,2025-10-31
+030431121,Partner Organization G,Weak,3,8,2025-08-22
+030431122,Partner Organization G,Partly functioning,7,12,2025-10-26
+030431123,Partner Organization G,Partly functioning,7,10,2025-12-21
+030431124,Partner Organization G,Partly functioning,6,11,2025-08-30
+030431125,Partner Organization G,Partly functioning,7,9,2025-09-26
+030431126,Partner Organization G,Partly functioning,5,12,2025-12-05
+030463201,Partner Organization G,Partly functioning,5,13,2025-09-06
+030463202,Partner Organization G,Partly functioning,5,12,2025-10-31
+030463203,Partner Organization G,Functioning,11,10,2025-11-16
+030463204,Partner Organization G,Partly functioning,7,12,2025-07-08
+030463205,Partner Organization G,Partly functioning,7,7,2025-12-24
+030463206,Partner Organization G,Functioning,11,10,2025-06-25
+030463207,Partner Organization G,Partly functioning,6,7,2025-08-04
+030463208,Partner Organization G,Functioning,10,8,2025-06-29
+030463209,Partner Organization G,Functioning,8,11,2025-12-05
+030463210,Partner Organization G,Functioning,8,11,2025-11-19
+030463211,Partner Organization G,Functioning,11,13,2025-08-22
+030463212,Partner Organization G,Partly functioning,5,8,2025-06-15
+030463213,Partner Organization G,Partly functioning,4,9,2025-11-17
+030463214,Partner Organization G,Functioning,8,9,2025-09-21
+030463215,Partner Organization G,Functioning,12,13,2025-06-28
+030463216,Partner Organization G,Weak,2,13,2025-08-23
+030463217,Partner Organization G,Partly functioning,7,7,2025-10-23
+030463218,Partner Organization G,Partly functioning,4,13,2025-06-26
+030463219,Partner Organization G,Partly functioning,4,8,2025-06-24
+030463220,Partner Organization G,Partly functioning,6,9,2025-12-23
+030463221,Partner Organization G,Partly functioning,4,10,2025-12-08
+030463222,Partner Organization G,Partly functioning,4,11,2025-09-30
+030463231,Partner Organization G,Functioning,12,8,2025-09-23
+030463241,Partner Organization G,Functioning,8,11,2025-10-10
+030463242,Partner Organization G,Functioning,9,10,2025-08-26
+030463243,Partner Organization G,Functioning,10,11,2025-08-15
+030463244,Partner Organization G,Partly functioning,5,9,2025-11-20
+030463245,Partner Organization G,Partly functioning,4,10,2025-11-05
+030480301,Partner Organization G,Partly functioning,6,10,2025-06-24
+030480302,Partner Organization G,Partly functioning,4,7,2025-10-23
+030480303,Partner Organization G,Partly functioning,5,13,2025-11-13
+030480304,Partner Organization G,Functioning,9,9,2025-11-30
+030480305,Partner Organization G,Functioning,8,9,2025-09-04
+030480306,Partner Organization G,Partly functioning,7,11,2025-08-07
+030480307,Partner Organization G,Partly functioning,7,11,2025-08-06
+030480308,Partner Organization G,Partly functioning,7,9,2025-12-09
+030480309,Partner Organization G,Functioning,10,8,2025-08-24
+030480311,Partner Organization G,Partly functioning,7,12,2025-12-25
+030480312,Partner Organization G,Partly functioning,7,9,2025-09-03
+030480313,Partner Organization G,Partly functioning,5,7,2025-08-20
+030480314,Partner Organization G,Partly functioning,6,8,2025-11-18
+030480315,Partner Organization G,Functioning,9,10,2025-12-01
+030480316,Partner Organization G,Partly functioning,4,9,2025-08-20
+030480317,Partner Organization G,Functioning,8,9,2025-06-14
+030480318,Partner Organization G,Partly functioning,4,8,2025-11-07
+030480319,Partner Organization G,Partly functioning,7,7,2025-12-19
+030480320,Partner Organization G,Functioning,12,8,2025-09-18
+030480321,Partner Organization G,Partly functioning,6,8,2025-11-19
+030480322,Partner Organization G,Partly functioning,5,12,2025-10-15
+030483241,Partner Organization G,Functioning,12,13,2025-10-30
+030483242,Partner Organization G,Partly functioning,7,12,2025-08-23
+030483243,Partner Organization G,Functioning,11,13,2025-06-28
+035115401,Partner Organization G,Functioning,9,9,2025-09-16
+035115402,Partner Organization G,Functioning,11,10,2025-12-10
+035115403,Partner Organization G,Partly functioning,7,13,2025-07-12
+035115411,Partner Organization G,Partly functioning,5,9,2025-06-29
+035115412,Partner Organization G,Partly functioning,5,8,2025-08-07
+035115413,Partner Organization G,Weak,3,12,2025-09-14
+035115414,Partner Organization G,Partly functioning,7,13,2025-10-20
+035115415,Partner Organization G,Weak,0,7,2025-11-30
+035115421,Partner Organization G,Partly functioning,7,12,2025-12-12
+035115422,Partner Organization G,Functioning,8,10,2025-06-28
+035115423,Partner Organization G,Weak,1,12,2025-06-21
+035127701,Partner Organization G,Partly functioning,7,9,2025-07-08
+035127702,Partner Organization G,Partly functioning,7,7,2025-06-18
+035127703,Partner Organization G,Partly functioning,6,7,2025-06-20
+035127711,Partner Organization G,Partly functioning,7,12,2025-08-12
+035127712,Partner Organization G,Weak,0,8,2025-09-16
+035127721,Partner Organization G,Weak,0,11,2025-06-27
+035127722,Partner Organization G,Functioning,9,12,2025-07-01
+035127723,Partner Organization G,Functioning,8,8,2025-12-19
+035127724,Partner Organization G,Functioning,9,9,2025-11-10
+035127725,Partner Organization G,Partly functioning,7,8,2025-10-20
+035127726,Partner Organization G,Partly functioning,4,8,2025-11-25
+035127727,Partner Organization G,Partly functioning,7,10,2025-07-22
+035131301,Partner Organization G,Partly functioning,6,12,2025-11-18
+035131302,Partner Organization G,Functioning,8,8,2025-12-07
+035131303,Partner Organization G,Functioning,11,11,2025-08-15
+035131304,Partner Organization G,Partly functioning,4,12,2025-09-11
+035131305,Partner Organization G,Partly functioning,4,12,2025-09-21
+035131306,Partner Organization G,Partly functioning,4,12,2025-09-05
+035131311,Partner Organization G,Functioning,12,8,2025-08-25
+035131312,Partner Organization G,Partly functioning,4,8,2025-12-22
+035131313,Partner Organization G,Functioning,8,10,2025-10-24
+035131314,Partner Organization G,Partly functioning,5,13,2025-10-14
+035131315,Partner Organization G,Weak,3,7,2025-07-09
+035131316,Partner Organization G,Partly functioning,4,8,2025-08-09
+035131317,Partner Organization G,Partly functioning,4,11,2025-10-09
+035131318,Partner Organization G,Functioning,8,11,2025-11-02
+035131321,Partner Organization G,Partly functioning,5,7,2025-07-02
+035147101,Partner Organization G,Partly functioning,5,8,2025-07-15
+035147102,Partner Organization G,Partly functioning,6,13,2025-07-07
+035147103,Partner Organization G,Partly functioning,6,9,2025-09-01
+035147111,Partner Organization G,Partly functioning,4,12,2025-08-11
+035147112,Partner Organization G,Weak,0,13,2025-09-19
+035147113,Partner Organization G,Partly functioning,6,7,2025-10-14
+035147114,Partner Organization G,Partly functioning,4,7,2025-12-11
+035147115,Partner Organization G,Functioning,11,9,2025-12-05
+035147116,Partner Organization G,Functioning,12,7,2025-06-25
+035147117,Partner Organization G,Partly functioning,7,8,2025-06-17
+035147118,Partner Organization G,Partly functioning,6,11,2025-08-26
+035147119,Partner Organization G,Partly functioning,7,8,2025-09-12
+035147120,Partner Organization G,Weak,1,8,2025-11-02
+035147121,Partner Organization G,Partly functioning,7,9,2025-09-18
+035147122,Partner Organization G,Partly functioning,6,10,2025-06-28
+035147123,Partner Organization G,Functioning,12,7,2025-11-11
+035147124,Partner Organization G,Weak,0,12,2025-07-27
+035147125,Partner Organization G,Partly functioning,5,11,2025-07-24
+035147126,Partner Organization G,Weak,1,8,2025-07-02
+035147127,Partner Organization G,Functioning,12,11,2025-07-24
+035162801,Partner Organization G,Functioning,10,13,2025-11-12
+035162802,Partner Organization G,Partly functioning,7,9,2025-08-26
+035162811,Partner Organization G,Partly functioning,6,11,2025-08-14
+035162812,Partner Organization G,Functioning,9,12,2025-09-15
+035162813,Partner Organization G,Partly functioning,6,12,2025-07-25
+035162814,Partner Organization G,Partly functioning,7,13,2025-09-06
+035162821,Partner Organization G,Functioning,12,7,2025-12-10
+035162822,Partner Organization G,Partly functioning,7,7,2025-11-18
+035162823,Partner Organization G,Functioning,8,8,2025-12-19
+035162824,Partner Organization G,Partly functioning,7,8,2025-12-23
+035163201,Partner Organization G,Partly functioning,6,9,2025-11-04
+035163202,Partner Organization G,Partly functioning,4,11,2025-11-16
+035163203,Partner Organization G,Functioning,10,12,2025-08-07
+035163204,Partner Organization G,Partly functioning,4,7,2025-08-13
+035163205,Partner Organization G,Partly functioning,7,12,2025-06-16
+035163206,Partner Organization G,Partly functioning,4,10,2025-08-27
+035163211,Partner Organization G,Partly functioning,7,11,2025-08-24
+035163212,Partner Organization G,Partly functioning,5,9,2025-12-17
+035163221,Partner Organization G,Partly functioning,5,8,2025-07-02
+035163222,Partner Organization G,Partly functioning,5,11,2025-12-10
+035163223,Partner Organization G,Partly functioning,6,11,2025-08-12
+035168601,Partner Organization G,Functioning,8,12,2025-11-28
+035168602,Partner Organization G,Functioning,8,11,2025-11-22
+035168603,Partner Organization G,Partly functioning,6,10,2025-10-12
+035168604,Partner Organization G,Partly functioning,4,13,2025-12-10
+035168605,Partner Organization G,Functioning,11,11,2025-11-03
+035168606,Partner Organization G,Partly functioning,6,13,2025-08-23
+035168607,Partner Organization G,Functioning,10,12,2025-09-03
+035168611,Partner Organization G,Partly functioning,7,12,2025-12-06
+035168612,Partner Organization G,Functioning,12,9,2025-10-04
+035168613,Partner Organization G,Partly functioning,7,8,2025-08-25
+035168621,Partner Organization G,Partly functioning,6,9,2025-10-04
+035168622,Partner Organization G,Functioning,8,10,2025-11-14
+035168623,Partner Organization G,Functioning,8,7,2025-09-01
+035168624,Partner Organization G,Functioning,11,7,2025-12-18
+035168625,Partner Organization G,Partly functioning,5,8,2025-09-16
+035179501,Partner Organization G,Partly functioning,5,8,2025-06-15
+035179502,Partner Organization G,Functioning,9,11,2025-07-05
+035179503,Partner Organization G,Partly functioning,7,11,2025-11-29
+035179504,Partner Organization G,Functioning,10,10,2025-10-08
+035179505,Partner Organization G,Partly functioning,7,11,2025-09-21
+035179511,Partner Organization G,Weak,1,8,2025-08-27
+035179512,Partner Organization G,Functioning,11,12,2025-08-31
+035179513,Partner Organization G,Partly functioning,5,7,2025-11-25
+035179514,Partner Organization G,Partly functioning,4,12,2025-07-05
+035179515,Partner Organization G,Partly functioning,5,12,2025-06-19
+035179516,Partner Organization G,Partly functioning,6,13,2025-09-26
+035179517,Partner Organization G,Partly functioning,4,8,2025-10-19
+035179521,Partner Organization G,Partly functioning,4,8,2025-09-12
+1030431101,Partner Organization G,Weak,0,8,2025-08-25
+1030431102,Partner Organization G,Partly functioning,6,7,2025-11-01
+1030431103,Partner Organization G,Partly functioning,4,13,2025-08-06
+1030431104,Partner Organization G,Weak,0,9,2025-12-14
+1030431105,Partner Organization G,Partly functioning,6,9,2025-10-10
+1030431106,Partner Organization G,Partly functioning,7,9,2025-10-19
+1030431107,Partner Organization G,Functioning,11,11,2025-12-12
+1030431108,Partner Organization G,Functioning,11,7,2025-07-24
+1030431109,Partner Organization G,Partly functioning,7,9,2025-12-10
+1030463201,Partner Organization G,Partly functioning,7,12,2025-10-06
+1030463202,Partner Organization G,Partly functioning,6,9,2025-12-14
+1030463203,Partner Organization G,Functioning,11,11,2025-07-29
+1030463204,Partner Organization G,Partly functioning,4,10,2025-06-18
+1030463205,Partner Organization G,Functioning,8,10,2025-09-11
+1030463206,Partner Organization G,Weak,0,12,2025-09-21
+1030463207,Partner Organization G,Functioning,12,10,2025-11-29
+1030463208,Partner Organization G,Functioning,11,10,2025-08-04
+1030470401,Partner Organization G,Partly functioning,5,12,2025-06-25
+1030480301,Partner Organization G,Partly functioning,5,11,2025-07-14
+1030480302,Partner Organization G,Partly functioning,4,9,2025-08-01
+1030480303,Partner Organization G,Partly functioning,7,12,2025-10-12
+1030480304,Partner Organization G,Partly functioning,7,12,2025-10-23
+1030480305,Partner Organization G,Weak,0,7,2025-07-20
+1030480306,Partner Organization G,Partly functioning,7,12,2025-08-25
+1030480307,Partner Organization G,Partly functioning,6,9,2025-09-12
+1035115401,Partner Organization G,Functioning,12,10,2025-08-31
+1035115402,Partner Organization G,Partly functioning,5,7,2025-06-20
+1035115403,Partner Organization G,Functioning,8,7,2025-12-11
+1035115404,Partner Organization G,Partly functioning,5,10,2025-10-29
+1035115405,Partner Organization G,Partly functioning,7,11,2025-12-18
+1035115406,Partner Organization G,Functioning,11,11,2025-06-25
+1035127701,Partner Organization G,Functioning,12,13,2025-11-01
+1035127702,Partner Organization G,Partly functioning,7,13,2025-09-08
+1035127703,Partner Organization G,Functioning,10,7,2025-09-19
+1035127704,Partner Organization G,Partly functioning,4,12,2025-07-23
+1035127705,Partner Organization G,Functioning,9,13,2025-11-05
+1035127706,Partner Organization G,Functioning,10,8,2025-10-28
+1035127707,Partner Organization G,Partly functioning,6,7,2025-06-20
+1035131301,Partner Organization G,Partly functioning,7,8,2025-08-29
+1035131302,Partner Organization G,Functioning,9,9,2025-07-07
+1035131303,Partner Organization G,Partly functioning,5,11,2025-09-14
+1035131304,Partner Organization G,Functioning,11,9,2025-08-27
+1035131305,Partner Organization G,Partly functioning,4,7,2025-08-22
+1035131306,Partner Organization G,Functioning,9,12,2025-09-20
+1035131307,Partner Organization G,Functioning,8,9,2025-12-13
+1035131308,Partner Organization G,Functioning,11,11,2025-08-17
+1035131309,Partner Organization G,Partly functioning,5,10,2025-10-03
+1035131310,Partner Organization G,Functioning,9,10,2025-08-30
+1035131311,Partner Organization G,Functioning,10,7,2025-07-17
+1035131312,Partner Organization G,Weak,0,13,2025-07-27
+1035131313,Partner Organization G,Weak,3,7,2025-11-24
+1035147101,Partner Organization G,Partly functioning,6,13,2025-08-28
+1035147102,Partner Organization G,Partly functioning,6,11,2025-10-14
+1035147103,Partner Organization G,Partly functioning,6,10,2025-08-17
+1035147104,Partner Organization G,Functioning,10,8,2025-10-17
+1035147105,Partner Organization G,Weak,2,12,2025-08-11
+1035147106,Partner Organization G,Partly functioning,6,8,2025-12-22
+1035162801,Partner Organization G,Functioning,11,11,2025-12-21
+1035162802,Partner Organization G,Partly functioning,7,13,2025-07-19
+1035162803,Partner Organization G,Partly functioning,5,10,2025-08-29
+1035162804,Partner Organization G,Partly functioning,5,7,2025-08-30
+1035162805,Partner Organization G,Partly functioning,7,8,2025-10-28
+1035162806,Partner Organization G,Functioning,12,8,2025-09-30
+1035162807,Partner Organization G,Weak,2,10,2025-10-31
+1035162808,Partner Organization G,Partly functioning,7,12,2025-10-10
+1035162809,Partner Organization G,Partly functioning,6,11,2025-09-08
+1035162810,Partner Organization G,Partly functioning,6,8,2025-07-22
+1035163201,Partner Organization G,Partly functioning,7,12,2025-12-26
+1035163202,Partner Organization G,Weak,0,13,2025-07-19
+1035163203,Partner Organization G,Functioning,9,7,2025-09-17
+1035163204,Partner Organization G,Partly functioning,7,12,2025-08-13
+1035168601,Partner Organization G,Partly functioning,7,9,2025-07-30
+1035168602,Partner Organization G,Functioning,9,11,2025-11-03
+1035168603,Partner Organization G,Functioning,10,8,2025-06-30
+1035168604,Partner Organization G,Functioning,10,11,2025-07-08
+1035168605,Partner Organization G,Partly functioning,7,12,2025-09-03
+1035168606,Partner Organization G,Partly functioning,4,12,2025-09-23
+1035179501,Partner Organization G,Functioning,11,9,2025-11-01
+1035179502,Partner Organization G,Functioning,11,11,2025-07-10
+1035179503,Partner Organization G,Functioning,8,11,2025-10-20
+123,Partner Organization H,Functioning,11,8,2025-12-02
+260418240,Partner Organization A,Functioning,8,10,2025-07-18
+260421146,Partner Organization A,Functioning,12,10,2025-10-21
+260421147,Partner Organization A,Partly functioning,6,13,2025-11-12
+260421148,Partner Organization A,Functioning,9,9,2025-08-12
+260421149,Partner Organization A,Functioning,8,8,2025-08-10
+260421150,Partner Organization A,Functioning,12,13,2025-10-28
+260421167,Partner Organization A,Functioning,9,7,2025-08-17
+260421168,Partner Organization A,Functioning,11,9,2025-06-18
+260421169,Partner Organization A,Functioning,11,13,2025-09-05
+260421170,Partner Organization A,Functioning,11,8,2025-09-25
+260421179,Partner Organization A,Functioning,8,7,2025-07-22
+260421180,Partner Organization A,Functioning,8,13,2025-07-29
+260421239,Partner Organization A,Partly functioning,7,12,2025-11-15
+260422152,Partner Organization A,Partly functioning,5,12,2025-11-10
+260422155,Partner Organization A,Functioning,11,11,2025-06-25
+260422156,Partner Organization A,Functioning,12,9,2025-11-16
+260422231,Partner Organization A,Functioning,12,8,2025-08-12
+260423151,Partner Organization A,Functioning,12,8,2025-12-10
+260423153,Partner Organization A,Functioning,12,10,2025-12-19
+260423154,Partner Organization A,Functioning,8,12,2025-08-13
+260423157,Partner Organization A,Functioning,11,7,2025-08-19
+260423158,Partner Organization A,Functioning,8,12,2025-11-09
+260423159,Partner Organization A,Functioning,10,12,2025-09-15
+260423160,Partner Organization A,Functioning,10,9,2025-10-03
+260601102,Partner Organization A,Functioning,8,10,2025-07-05
+260601103,Partner Organization A,Functioning,8,7,2025-06-16
+260816203,Partner Organization A,Partly functioning,5,11,2025-10-03
+261616302,Partner Organization A,Functioning,12,10,2025-07-23
+261617301,Partner Organization A,Functioning,11,11,2025-10-11
+262618131,Partner Organization A,Partly functioning,6,13,2025-07-29
+262618132,Partner Organization A,Partly functioning,4,8,2025-11-10
+262618133,Partner Organization A,Partly functioning,5,8,2025-12-21
+262618134,Partner Organization A,Functioning,8,9,2025-07-31
+262618135,Partner Organization A,Partly functioning,5,9,2025-09-05
+262618136,Partner Organization A,Partly functioning,5,13,2025-08-07
+262618137,Partner Organization A,Partly functioning,4,9,2025-07-28
+262618138,Partner Organization A,Partly functioning,4,8,2025-10-07
+262618139,Partner Organization A,Partly functioning,5,11,2025-11-25
+262618140,Partner Organization A,Functioning,8,10,2025-08-11
+262814303,Partner Organization A,Partly functioning,7,7,2025-09-18
+262814304,Partner Organization A,Functioning,10,13,2025-11-25
+262814305,Partner Organization A,Partly functioning,7,10,2025-09-25
+262814306,Partner Organization A,Partly functioning,7,11,2025-10-21
+262814307,Partner Organization A,Partly functioning,5,10,2025-11-27
+262814308,Partner Organization A,Partly functioning,6,10,2025-12-11
+262814309,Partner Organization A,Partly functioning,5,11,2025-06-26
+262814310,Partner Organization A,Partly functioning,7,13,2025-06-27
+262814311,Partner Organization A,Partly functioning,6,8,2025-11-28
+262814312,Partner Organization A,Partly functioning,7,13,2025-11-16
+262814313,Partner Organization A,Partly functioning,5,9,2025-07-06
+262814314,Partner Organization A,Partly functioning,6,12,2025-11-22
+262814315,Partner Organization A,Partly functioning,7,8,2025-09-05
+262814316,Partner Organization A,Partly functioning,5,10,2025-12-08
+262814317,Partner Organization A,Functioning,11,12,2025-09-21
+262814318,Partner Organization A,Functioning,11,10,2025-07-07
+262814319,Partner Organization A,Partly functioning,7,11,2025-08-12
+262814320,Partner Organization A,Functioning,10,7,2025-11-25
+262814321,Partner Organization A,Functioning,10,8,2025-11-11
+262814322,Partner Organization A,Partly functioning,5,12,2025-08-16
+262814323,Partner Organization A,Partly functioning,4,11,2025-06-22
+262814324,Partner Organization A,Partly functioning,4,9,2025-06-17
+262814325,Partner Organization A,Functioning,9,13,2025-07-06
+262814326,Partner Organization A,Partly functioning,6,9,2025-09-09
+262814327,Partner Organization A,Partly functioning,5,8,2025-12-22
+262814328,Partner Organization A,Functioning,11,12,2025-09-19
+262814329,Partner Organization A,Functioning,12,12,2025-12-19
+262814330,Partner Organization A,Functioning,10,9,2025-07-14
+262814331,Partner Organization A,Partly functioning,4,9,2025-08-11
+262814332,Partner Organization A,Partly functioning,6,7,2025-11-03
+262814333,Partner Organization A,Functioning,10,10,2025-06-16
+262814334,Partner Organization A,Partly functioning,5,11,2025-08-25
+262814335,Partner Organization A,Functioning,10,7,2025-08-27
+262948380,Partner Organization A,Functioning,12,11,2025-08-27
+262950361,Partner Organization A,Functioning,11,11,2025-12-02
+262950362,Partner Organization A,Partly functioning,4,10,2025-12-05
+262950363,Partner Organization A,Functioning,8,11,2025-07-16
+262950364,Partner Organization A,Partly functioning,4,8,2025-10-22
+262950365,Partner Organization A,Functioning,12,7,2025-06-17
+262950366,Partner Organization A,Partly functioning,4,10,2025-11-25
+262950367,Partner Organization A,Functioning,9,9,2025-10-04
+262950368,Partner Organization A,Partly functioning,4,13,2025-08-03
+262950371,Partner Organization A,Functioning,11,13,2025-10-31
+262950372,Partner Organization A,Functioning,8,11,2025-11-12
+262950373,Partner Organization A,Functioning,12,11,2025-07-03
+262950374,Partner Organization A,Functioning,12,10,2025-09-19
+262950375,Partner Organization A,Functioning,8,12,2025-09-21
+262950376,Partner Organization A,Functioning,12,7,2025-11-05
+262950377,Partner Organization A,Partly functioning,7,7,2025-10-23
+262950378,Partner Organization A,Functioning,11,12,2025-06-30
+262950379,Partner Organization A,Functioning,9,7,2025-07-30
+262950381,Partner Organization A,Partly functioning,5,11,2025-10-20
+262952369,Partner Organization A,Functioning,10,9,2025-12-02
+263004201,Partner Organization A,Partly functioning,6,12,2025-06-25
+263004202,Partner Organization A,Partly functioning,4,7,2025-06-21
+263004204,Partner Organization A,Partly functioning,6,8,2025-08-09
+263013184,Partner Organization A,Partly functioning,5,7,2025-09-09
+263013187,Partner Organization A,Functioning,9,13,2025-11-16
+263016182,Partner Organization A,Functioning,10,11,2025-07-21
+263016191,Partner Organization A,Partly functioning,6,11,2025-08-26
+263016192,Partner Organization A,Partly functioning,6,11,2025-08-28
+263016193,Partner Organization A,Partly functioning,7,13,2025-09-01
+263016194,Partner Organization A,Partly functioning,5,8,2025-07-19
+263016195,Partner Organization A,Partly functioning,7,13,2025-09-12
+263601401,Partner Organization A,Partly functioning,5,8,2025-09-25
+263601402,Partner Organization A,Partly functioning,4,9,2025-12-14
+263602392,Partner Organization A,Partly functioning,5,7,2025-07-31
+263602393,Partner Organization A,Partly functioning,7,13,2025-10-20
+263602409,Partner Organization A,Partly functioning,6,7,2025-08-01
+263603394,Partner Organization A,Partly functioning,7,12,2025-08-16
+263603395,Partner Organization A,Partly functioning,6,12,2025-07-27
+263603396,Partner Organization A,Partly functioning,6,9,2025-09-19
+263603397,Partner Organization A,Partly functioning,5,7,2025-07-17
+263603398,Partner Organization A,Partly functioning,4,7,2025-06-24
+263603399,Partner Organization A,Partly functioning,6,11,2025-12-15
+263603400,Partner Organization A,Partly functioning,6,13,2025-10-16
+263609404,Partner Organization A,Partly functioning,4,8,2025-07-19
+263610383,Partner Organization A,Partly functioning,7,10,2025-10-28
+263612386,Partner Organization A,Partly functioning,7,8,2025-10-29
+263612387,Partner Organization A,Partly functioning,7,12,2025-07-28
+263612388,Partner Organization A,Partly functioning,4,12,2025-11-17
+263612389,Partner Organization A,Partly functioning,5,9,2025-07-14
+263612390,Partner Organization A,Partly functioning,5,10,2025-07-18
+263612403,Partner Organization A,Partly functioning,4,12,2025-10-26
+263612405,Partner Organization A,Partly functioning,5,12,2025-09-21
+263612406,Partner Organization A,Partly functioning,6,8,2025-07-01
+263612407,Partner Organization A,Partly functioning,7,12,2025-07-08
+263612408,Partner Organization A,Partly functioning,4,7,2025-07-03
+263623238,Partner Organization A,Functioning,12,10,2025-09-12
+263627391,Partner Organization A,Functioning,12,7,2025-12-15
+263640410,Partner Organization A,Partly functioning,5,9,2025-10-24
+263743121,Partner Organization A,Partly functioning,4,8,2025-09-11
+263743122,Partner Organization A,Partly functioning,4,13,2025-06-17
+263743123,Partner Organization A,Partly functioning,4,11,2025-08-01
+263743124,Partner Organization A,Partly functioning,7,11,2025-12-22
+263743125,Partner Organization A,Functioning,10,7,2025-08-30
+263743126,Partner Organization A,Partly functioning,5,13,2025-09-17
+263743127,Partner Organization A,Partly functioning,6,13,2025-07-31
+263743128,Partner Organization A,Partly functioning,6,13,2025-06-23
+263743129,Partner Organization A,Partly functioning,7,9,2025-07-02
+263743130,Partner Organization A,Partly functioning,7,7,2025-09-26
+263743142,Partner Organization A,Functioning,12,11,2025-12-07
+263743143,Partner Organization A,Functioning,8,8,2025-10-12
+263743144,Partner Organization A,Functioning,12,13,2025-10-25
+263743145,Partner Organization A,Functioning,8,9,2025-10-09
+263743370,Partner Organization A,Partly functioning,4,8,2025-11-06
+264804196,Partner Organization A,Functioning,11,11,2025-06-19
+264804198,Partner Organization A,Functioning,10,9,2025-11-22
+264804199,Partner Organization A,Functioning,11,7,2025-11-08
+264804200,Partner Organization A,Partly functioning,4,12,2025-09-28
+264812161,Partner Organization A,Partly functioning,7,13,2025-07-05
+264812162,Partner Organization A,Partly functioning,6,7,2025-08-11
+264812163,Partner Organization A,Partly functioning,5,12,2025-07-05
+264812164,Partner Organization A,Partly functioning,7,13,2025-10-22
+264812165,Partner Organization A,Partly functioning,5,7,2025-09-01
+264812166,Partner Organization A,Partly functioning,5,13,2025-08-17
+264812211,Partner Organization A,Partly functioning,4,11,2025-11-12
+264812215,Partner Organization A,Functioning,11,11,2025-10-31
+264812216,Partner Organization A,Functioning,11,10,2025-09-20
+264812217,Partner Organization A,Partly functioning,7,11,2025-09-20
+264812218,Partner Organization A,Partly functioning,5,8,2025-09-21
+264812219,Partner Organization A,Partly functioning,5,10,2025-09-16
+264813189,Partner Organization A,Functioning,9,12,2025-07-01
+264813197,Partner Organization A,Functioning,9,12,2025-08-20
+264813212,Partner Organization A,Partly functioning,6,8,2025-06-18
+264813213,Partner Organization A,Functioning,8,8,2025-07-19
+264813214,Partner Organization A,Partly functioning,4,10,2025-08-23
+264813220,Partner Organization A,Functioning,11,7,2025-10-10
+264813223,Partner Organization A,Functioning,9,9,2025-09-11
+264813225,Partner Organization A,Functioning,11,11,2025-08-10
+264813226,Partner Organization A,Functioning,9,8,2025-07-24
+264813227,Partner Organization A,Functioning,8,10,2025-08-27
+264814181,Partner Organization A,Partly functioning,4,9,2025-07-17
+264814205,Partner Organization A,Partly functioning,6,13,2025-12-22
+264814206,Partner Organization A,Partly functioning,5,8,2025-12-01
+264814207,Partner Organization A,Partly functioning,6,13,2025-09-22
+264814208,Partner Organization A,Partly functioning,5,11,2025-08-09
+264814209,Partner Organization A,Partly functioning,7,9,2025-10-19
+264814210,Partner Organization A,Partly functioning,4,12,2025-12-24
+264814221,Partner Organization A,Functioning,10,8,2025-08-05
+264814222,Partner Organization A,Partly functioning,4,8,2025-08-16
+264814224,Partner Organization A,Functioning,8,13,2025-08-25
+264814228,Partner Organization A,Functioning,12,9,2025-09-08
+264814229,Partner Organization A,Functioning,11,11,2025-06-19
+264814230,Partner Organization A,Functioning,9,8,2025-12-13
+265029190,Partner Organization A,Partly functioning,4,8,2025-11-23
+265409382,Partner Organization A,Partly functioning,7,11,2025-08-13
+266513385,Partner Organization A,Partly functioning,5,7,2025-07-23
+266563384,Partner Organization A,Partly functioning,4,13,2025-06-14
+266722232,Partner Organization A,Functioning,12,11,2025-12-19
+266722233,Partner Organization A,Functioning,10,13,2025-10-14
+266722234,Partner Organization A,Functioning,11,9,2025-10-15
+266722235,Partner Organization A,Functioning,12,12,2025-09-01
+266722236,Partner Organization A,Functioning,9,9,2025-09-08
+266722237,Partner Organization A,Partly functioning,6,11,2025-06-16
+267652351,Partner Organization A,Partly functioning,7,10,2025-11-10
+267652352,Partner Organization A,Functioning,8,7,2025-11-07
+267652353,Partner Organization A,Functioning,10,12,2025-12-14
+267652354,Partner Organization A,Partly functioning,5,11,2025-11-19
+267652355,Partner Organization A,Partly functioning,7,11,2025-06-16
+267652356,Partner Organization A,Functioning,8,11,2025-10-14
+267652357,Partner Organization A,Partly functioning,7,13,2025-11-12
+267652358,Partner Organization A,Functioning,9,9,2025-09-08
+267652359,Partner Organization A,Partly functioning,6,10,2025-12-24
+267652360,Partner Organization A,Functioning,8,7,2025-12-16
+268013185,Partner Organization A,Partly functioning,6,13,2025-10-24
+268013186,Partner Organization A,Partly functioning,6,7,2025-08-18
+268016183,Partner Organization A,Functioning,9,10,2025-10-03
+268027188,Partner Organization A,Partly functioning,4,8,2025-07-27
+268838338,Partner Organization A,Partly functioning,7,11,2025-11-30
+268844336,Partner Organization A,Functioning,11,8,2025-12-24
+268844337,Partner Organization A,Functioning,8,10,2025-11-11
+268844339,Partner Organization A,Partly functioning,4,13,2025-11-11
+268846340,Partner Organization A,Partly functioning,7,13,2025-06-26
+268846342,Partner Organization A,Functioning,11,10,2025-09-01
+268846346,Partner Organization A,Functioning,9,12,2025-11-10
+268847341,Partner Organization A,Functioning,10,10,2025-10-09
+268847343,Partner Organization A,Functioning,10,13,2025-09-18
+268847344,Partner Organization A,Functioning,11,13,2025-07-06
+268847345,Partner Organization A,Functioning,8,11,2025-08-14
+268847347,Partner Organization A,Functioning,11,11,2025-09-29
+268847348,Partner Organization A,Functioning,8,10,2025-09-29
+268847349,Partner Organization A,Functioning,9,11,2025-09-30
+268847350,Partner Organization A,Functioning,11,10,2025-07-14
+269025171,Partner Organization A,Functioning,8,7,2025-08-21
+269025172,Partner Organization A,Functioning,9,12,2025-06-24
+269025173,Partner Organization A,Partly functioning,4,10,2025-12-03
+269025174,Partner Organization A,Partly functioning,5,12,2025-07-24
+269025175,Partner Organization A,Functioning,12,10,2025-06-24
+269025176,Partner Organization A,Functioning,10,7,2025-10-17
+269025177,Partner Organization A,Partly functioning,7,8,2025-06-16
+269025178,Partner Organization A,Partly functioning,5,8,2025-11-09
+269501101,Partner Organization A,Functioning,8,8,2025-07-12
+269501104,Partner Organization A,Functioning,8,12,2025-07-06
+269501105,Partner Organization A,Functioning,8,11,2025-09-15
+269501106,Partner Organization A,Functioning,10,9,2025-09-02
+269501107,Partner Organization A,Functioning,11,8,2025-06-17
+269501108,Partner Organization A,Functioning,11,13,2025-06-27
+269501109,Partner Organization A,Functioning,8,9,2025-11-10
+269501141,Partner Organization A,Functioning,8,11,2025-12-17
+269644110,Partner Organization A,Functioning,10,13,2025-07-10
+269644111,Partner Organization A,Functioning,8,7,2025-12-02
+269644112,Partner Organization A,Functioning,12,9,2025-10-18
+269644113,Partner Organization A,Functioning,12,12,2025-07-22
+269644114,Partner Organization A,Functioning,12,11,2025-09-01
+269644115,Partner Organization A,Functioning,9,12,2025-06-27
+269644116,Partner Organization A,Functioning,11,8,2025-08-08
+269644117,Partner Organization A,Functioning,11,12,2025-06-14
+269644118,Partner Organization A,Partly functioning,5,11,2025-08-07
+269644119,Partner Organization A,Functioning,8,12,2025-11-28
+269644120,Partner Organization A,Functioning,12,13,2025-06-16
+3030431111,Partner Organization G,Weak,0,7,2025-08-04
+3030431112,Partner Organization G,Weak,0,8,2025-12-24
+3030431113,Partner Organization G,Weak,1,7,2025-06-23
+3030431114,Partner Organization G,Partly functioning,6,8,2025-11-03
+3030431115,Partner Organization G,Weak,2,11,2025-09-12
+3030431116,Partner Organization G,Partly functioning,4,12,2025-12-11
+3030431117,Partner Organization G,Weak,3,10,2025-08-24
+3030431118,Partner Organization G,Partly functioning,6,10,2025-10-19
+3030431119,Partner Organization G,Weak,3,8,2025-09-08
+3030431120,Partner Organization G,Weak,0,11,2025-09-13
+3030431121,Partner Organization G,Partly functioning,6,7,2025-07-23
+3030431141,Partner Organization G,Weak,2,10,2025-09-15
+3030431142,Partner Organization G,Weak,3,12,2025-08-04
+3030463211,Partner Organization G,Weak,0,11,2025-11-13
+3030463213,Partner Organization G,Weak,3,10,2025-12-17
+3030463214,Partner Organization G,Partly functioning,4,11,2025-12-21
+3030463215,Partner Organization G,Weak,0,13,2025-06-23
+3030463216,Partner Organization G,Weak,0,10,2025-10-09
+3030463217,Partner Organization G,Weak,2,11,2025-10-22
+3030463218,Partner Organization G,Weak,3,7,2025-10-17
+3030463219,Partner Organization G,Weak,3,11,2025-11-08
+3030463220,Partner Organization G,Weak,1,10,2025-06-28
+3030463221,Partner Organization G,Weak,1,11,2025-11-13
+3030463241,Partner Organization G,Partly functioning,7,8,2025-09-13
+3030463242,Partner Organization G,Weak,3,10,2025-08-08
+3030463243,Partner Organization G,Functioning,11,8,2025-12-07
+3030463244,Partner Organization G,Weak,1,11,2025-11-28
+3030463245,Partner Organization G,Partly functioning,5,12,2025-08-30
+3030463246,Partner Organization G,Partly functioning,5,10,2025-12-20
+3030463247,Partner Organization G,Weak,3,8,2025-11-05
+3030463248,Partner Organization G,Weak,0,13,2025-06-25
+3030463249,Partner Organization G,Weak,2,11,2025-06-25
+3030463250,Partner Organization G,Weak,2,7,2025-07-09
+3030463251,Partner Organization G,Weak,1,9,2025-10-20
+3030463252,Partner Organization G,Weak,1,8,2025-06-30
+3030463253,Partner Organization G,Partly functioning,4,9,2025-11-12
+3030470401,Partner Organization G,Weak,1,13,2025-07-17
+3030470402,Partner Organization G,Partly functioning,5,7,2025-07-30
+3030470403,Partner Organization G,Partly functioning,4,8,2025-07-26
+3030470404,Partner Organization G,Weak,2,8,2025-12-02
+3030470405,Partner Organization G,Weak,2,13,2025-10-08
+3030470406,Partner Organization G,Weak,3,9,2025-12-24
+3030470407,Partner Organization G,Partly functioning,5,9,2025-12-09
+3030470408,Partner Organization G,Partly functioning,5,8,2025-09-16
+3030470409,Partner Organization G,Weak,3,13,2025-08-31
+3030470410,Partner Organization G,Weak,0,12,2025-09-09
+3030470411,Partner Organization G,Partly functioning,7,10,2025-10-13
+3030470412,Partner Organization G,Partly functioning,5,11,2025-07-17
+3030470413,Partner Organization G,Weak,2,10,2025-09-26
+3030470414,Partner Organization G,Weak,1,9,2025-11-20
+3030470415,Partner Organization G,Weak,1,7,2025-10-12
+3030470416,Partner Organization G,Weak,1,12,2025-07-25
+3030470417,Partner Organization G,Weak,3,8,2025-11-14
+3030470418,Partner Organization G,Weak,1,8,2025-07-23
+3030470419,Partner Organization G,Weak,0,12,2025-12-05
+3030470420,Partner Organization G,Weak,0,8,2025-11-17
+3030470421,Partner Organization G,Weak,0,12,2025-06-16
+3030470422,Partner Organization G,Weak,3,7,2025-07-05
+3030470423,Partner Organization G,Weak,2,12,2025-12-06
+3030470424,Partner Organization G,Partly functioning,4,9,2025-08-13
+3030470425,Partner Organization G,Weak,3,9,2025-07-30
+3030470426,Partner Organization G,Weak,2,10,2025-09-02
+3030470427,Partner Organization G,Weak,2,13,2025-10-12
+3030470428,Partner Organization G,Weak,0,7,2025-08-13
+3030470429,Partner Organization G,Partly functioning,4,9,2025-06-27
+3030470430,Partner Organization G,Weak,0,13,2025-09-03
+3030470431,Partner Organization G,Partly functioning,4,12,2025-07-17
+3030470432,Partner Organization G,Weak,3,12,2025-11-15
+3030470433,Partner Organization G,Partly functioning,6,10,2025-09-02
+3030470434,Partner Organization G,Weak,0,11,2025-08-01
+3030470435,Partner Organization G,Weak,1,7,2025-10-24
+3030470436,Partner Organization G,Weak,3,8,2025-10-12
+3030470437,Partner Organization G,Weak,1,12,2025-09-02
+3030470438,Partner Organization G,Weak,3,11,2025-07-04
+3030470439,Partner Organization G,Partly functioning,6,9,2025-09-22
+3030470440,Partner Organization G,Weak,2,8,2025-09-05
+3030470441,Partner Organization G,Weak,3,9,2025-11-18
+3030470442,Partner Organization G,Partly functioning,5,8,2025-11-18
+3030480311,Partner Organization G,Weak,0,7,2025-09-12
+3030480312,Partner Organization G,Weak,1,8,2025-08-28
+3030480313,Partner Organization G,Partly functioning,6,7,2025-10-14
+3030480314,Partner Organization G,Weak,3,12,2025-12-19
+3030480315,Partner Organization G,Weak,0,13,2025-06-29
+3030480316,Partner Organization G,Partly functioning,4,8,2025-10-21
+3030480317,Partner Organization G,Partly functioning,6,12,2025-08-31
+3030480318,Partner Organization G,Weak,3,8,2025-09-12
+3030480319,Partner Organization G,Partly functioning,7,9,2025-06-25
+3030480320,Partner Organization G,Weak,0,7,2025-11-11
+3030480321,Partner Organization G,Weak,3,10,2025-11-13
+3030480341,Partner Organization G,Partly functioning,4,12,2025-11-19
+3030480342,Partner Organization G,Weak,0,13,2025-07-30
+3030480343,Partner Organization G,Weak,3,13,2025-06-27
+3035115411,Partner Organization G,Partly functioning,7,10,2025-08-04
+3035115412,Partner Organization G,Partly functioning,5,7,2025-11-04
+3035115413,Partner Organization G,Partly functioning,4,10,2025-11-11
+3035115414,Partner Organization G,Partly functioning,6,7,2025-10-03
+3035115415,Partner Organization G,Partly functioning,7,7,2025-07-06
+3035115416,Partner Organization G,Partly functioning,6,12,2025-07-02
+3035115417,Partner Organization G,Partly functioning,7,12,2025-12-02
+3035115418,Partner Organization G,Partly functioning,5,7,2025-07-03
+3035115419,Partner Organization G,Partly functioning,6,8,2025-12-14
+3035115421,Partner Organization G,Partly functioning,5,10,2025-11-04
+3035115422,Partner Organization G,Partly functioning,7,8,2025-08-20
+3035115423,Partner Organization G,Partly functioning,5,8,2025-11-05
+3035115431,Partner Organization G,Partly functioning,7,10,2025-10-03
+3035127711,Partner Organization G,Weak,1,12,2025-12-02
+3035127712,Partner Organization G,Partly functioning,7,7,2025-11-25
+3035127713,Partner Organization G,Weak,1,12,2025-12-01
+3035127714,Partner Organization G,Functioning,12,11,2025-12-03
+3035127715,Partner Organization G,Weak,3,10,2025-07-07
+3035127716,Partner Organization G,Weak,3,13,2025-08-10
+3035127717,Partner Organization G,Weak,2,11,2025-07-03
+3035127718,Partner Organization G,Weak,3,7,2025-10-20
+3035127719,Partner Organization G,Weak,2,7,2025-10-30
+3035127720,Partner Organization G,Weak,3,8,2025-07-11
+3035127731,Partner Organization G,Weak,1,12,2025-12-24
+3035131311,Partner Organization G,Weak,2,8,2025-10-13
+3035131312,Partner Organization G,Weak,1,13,2025-09-11
+3035131313,Partner Organization G,Weak,2,13,2025-10-24
+3035131314,Partner Organization G,Weak,2,10,2025-07-05
+3035131315,Partner Organization G,Partly functioning,4,9,2025-09-26
+3035131316,Partner Organization G,Partly functioning,4,10,2025-12-15
+3035131317,Partner Organization G,Weak,2,9,2025-09-09
+3035131318,Partner Organization G,Weak,2,10,2025-12-21
+3035131319,Partner Organization G,Weak,2,9,2025-11-20
+3035131320,Partner Organization G,Weak,1,13,2025-06-26
+3035131321,Partner Organization G,Weak,0,9,2025-07-28
+3035147111,Partner Organization G,Partly functioning,7,10,2025-06-28
+3035147112,Partner Organization G,Partly functioning,6,8,2025-07-20
+3035147113,Partner Organization G,Partly functioning,4,11,2025-11-02
+3035147114,Partner Organization G,Partly functioning,4,13,2025-09-15
+3035147116,Partner Organization G,Partly functioning,6,7,2025-08-13
+3035147117,Partner Organization G,Partly functioning,7,12,2025-10-29
+3035147118,Partner Organization G,Partly functioning,4,8,2025-11-14
+3035162811,Partner Organization G,Partly functioning,5,10,2025-12-02
+3035162821,Partner Organization G,Partly functioning,7,8,2025-09-01
+3035163211,Partner Organization G,Partly functioning,6,12,2025-06-14
+3035163213,Partner Organization G,Partly functioning,6,8,2025-10-04
+3035163214,Partner Organization G,Partly functioning,4,8,2025-11-24
+3035163215,Partner Organization G,Partly functioning,4,7,2025-10-08
+3035163216,Partner Organization G,Partly functioning,7,7,2025-08-20
+3035163221,Partner Organization G,Partly functioning,6,10,2025-12-22
+3035168611,Partner Organization G,Partly functioning,5,8,2025-12-26
+3035168612,Partner Organization G,Partly functioning,7,10,2025-08-21
+3035168613,Partner Organization G,Partly functioning,4,9,2025-10-14
+3035168614,Partner Organization G,Partly functioning,5,10,2025-06-17
+3035168615,Partner Organization G,Partly functioning,4,12,2025-07-21
+3035168616,Partner Organization G,Partly functioning,7,9,2025-11-06
+3035168617,Partner Organization G,Partly functioning,6,12,2025-09-30
+3035168618,Partner Organization G,Partly functioning,6,10,2025-07-29
+3035168619,Partner Organization G,Partly functioning,7,11,2025-06-25
+3035168620,Partner Organization G,Partly functioning,4,7,2025-07-10
+3035179511,Partner Organization G,Partly functioning,5,9,2025-11-24
+3035179512,Partner Organization G,Partly functioning,7,7,2025-12-16
+3035179513,Partner Organization G,Partly functioning,4,12,2025-07-01
+3035179514,Partner Organization G,Partly functioning,7,8,2025-08-12
+3035179515,Partner Organization G,Partly functioning,5,9,2025-08-06
+3035179516,Partner Organization G,Partly functioning,6,13,2025-09-01
+3035179517,Partner Organization G,Partly functioning,6,13,2025-07-19
+3035179518,Partner Organization G,Partly functioning,4,11,2025-08-27
+3035179519,Partner Organization G,Partly functioning,4,10,2025-10-05
+3035179520,Partner Organization G,Partly functioning,5,13,2025-10-06
+3035179521,Partner Organization G,Partly functioning,5,12,2025-06-30
+3035179531,Partner Organization G,Partly functioning,7,7,2025-06-17
+30686020012,Partner Organization C,Partly functioning,5,10,2025-08-14
+30686020013,Partner Organization C,Partly functioning,4,10,2025-10-17
+30686020014,Partner Organization C,Partly functioning,4,10,2025-12-01
+30686020015,Partner Organization C,Partly functioning,7,12,2025-12-15
+30686020016,Partner Organization C,Partly functioning,4,10,2025-11-15
+30686020017,Partner Organization C,Partly functioning,6,13,2025-12-04
+30686020018,Partner Organization C,Partly functioning,4,7,2025-12-03
+30686020019,Partner Organization C,Partly functioning,5,12,2025-09-29
+30686021020,Partner Organization C,Functioning,10,8,2025-12-19
+30686021021,Partner Organization C,Functioning,11,12,2025-12-18
+30686021022,Partner Organization C,Functioning,9,13,2025-07-05
+30686021023,Partner Organization C,Functioning,8,7,2025-11-25
+30686021024,Partner Organization C,Functioning,8,7,2025-08-24
+30686021025,Partner Organization C,Functioning,11,11,2025-08-20
+30686021026,Partner Organization C,Functioning,8,8,2025-11-03
+30686021027,Partner Organization C,Functioning,8,10,2025-07-24
+30686021028,Partner Organization C,Functioning,10,9,2025-12-02
+30686023029,Partner Organization C,Partly functioning,4,11,2025-10-28
+30686023030,Partner Organization C,Partly functioning,4,10,2025-11-08
+30686023031,Partner Organization C,Partly functioning,6,11,2025-08-03
+30686023032,Partner Organization C,Partly functioning,7,8,2025-11-10
+30686023033,Partner Organization C,Partly functioning,5,11,2025-06-14
+30686023034,Partner Organization C,Partly functioning,5,10,2025-10-17
+30686023035,Partner Organization C,Partly functioning,7,9,2025-06-24
+30686025036,Partner Organization C,Functioning,8,8,2025-11-12
+30686025037,Partner Organization C,Partly functioning,5,11,2025-07-25
+30686025038,Partner Organization C,Partly functioning,4,10,2025-10-14
+30686025039,Partner Organization C,Functioning,11,11,2025-06-17
+30686025040,Partner Organization C,Functioning,11,13,2025-12-05
+30686025066,Partner Organization C,Partly functioning,7,13,2025-09-29
+30686025067,Partner Organization C,Partly functioning,7,8,2025-12-09
+30686025068,Partner Organization C,Partly functioning,4,10,2025-07-07
+30686025069,Partner Organization C,Partly functioning,6,10,2025-09-15
+30686025070,Partner Organization C,Partly functioning,4,9,2025-12-26
+30686029041,Partner Organization C,Partly functioning,4,9,2025-08-14
+30686029042,Partner Organization C,Partly functioning,6,10,2025-06-24
+30686029043,Partner Organization C,Partly functioning,7,10,2025-10-09
+30686029044,Partner Organization C,Partly functioning,5,9,2025-10-14
+30686029045,Partner Organization C,Partly functioning,4,12,2025-07-20
+30686029046,Partner Organization C,Partly functioning,4,7,2025-09-07
+30686029047,Partner Organization C,Partly functioning,5,10,2025-08-17
+30686029048,Partner Organization C,Partly functioning,6,10,2025-08-25
+30686029049,Partner Organization C,Partly functioning,4,12,2025-11-21
+30686041050,Partner Organization C,Partly functioning,4,7,2025-10-01
+30686041051,Partner Organization C,Functioning,10,12,2025-10-11
+30686041052,Partner Organization C,Partly functioning,7,10,2025-07-02
+30686041053,Partner Organization C,Functioning,10,12,2025-07-06
+30686041054,Partner Organization C,Partly functioning,7,9,2025-11-26
+30686041055,Partner Organization C,Partly functioning,7,7,2025-09-23
+30686047056,Partner Organization C,Functioning,8,11,2025-11-25
+30686047057,Partner Organization C,Functioning,9,13,2025-08-26
+30686047058,Partner Organization C,Functioning,8,7,2025-08-29
+30686047059,Partner Organization C,Functioning,9,8,2025-09-14
+30686047060,Partner Organization C,Functioning,8,12,2025-06-28
+30686047061,Partner Organization C,Functioning,8,7,2025-09-07
+30686047062,Partner Organization C,Functioning,12,12,2025-08-13
+30686047063,Partner Organization C,Functioning,9,13,2025-10-01
+30686047064,Partner Organization C,Functioning,11,9,2025-06-30
+30686047065,Partner Organization C,Functioning,11,9,2025-06-26
+30686050091,Partner Organization C,Functioning,11,7,2025-10-04
+30686050092,Partner Organization C,Functioning,9,11,2025-12-18
+30686050093,Partner Organization C,Functioning,8,7,2025-10-04
+30686050094,Partner Organization C,Functioning,10,12,2025-11-22
+30686050095,Partner Organization C,Functioning,9,7,2025-10-23
+30686050096,Partner Organization C,Partly functioning,4,9,2025-12-11
+30686050097,Partner Organization C,Functioning,9,11,2025-07-26
+30686053102,Partner Organization C,Partly functioning,4,13,2025-07-08
+30686053103,Partner Organization C,Partly functioning,6,13,2025-10-13
+30686053104,Partner Organization C,Functioning,12,7,2025-09-05
+30686053105,Partner Organization C,Functioning,8,10,2025-10-07
+30686053106,Partner Organization C,Functioning,10,12,2025-06-29
+30686053107,Partner Organization C,Functioning,12,10,2025-07-16
+30686053108,Partner Organization C,Functioning,12,10,2025-10-13
+30686053109,Partner Organization C,Functioning,9,12,2025-09-24
+30686053110,Partner Organization C,Functioning,9,10,2025-09-23
+30686053111,Partner Organization C,Functioning,11,8,2025-10-04
+30686053112,Partner Organization C,Functioning,11,10,2025-11-23
+30686059071,Partner Organization C,Functioning,11,8,2025-11-07
+30686059072,Partner Organization C,Functioning,12,13,2025-11-15
+30686059073,Partner Organization C,Functioning,10,7,2025-09-16
+30686059074,Partner Organization C,Functioning,9,9,2025-09-09
+30686059075,Partner Organization C,Functioning,9,12,2025-10-01
+30686059076,Partner Organization C,Functioning,12,11,2025-08-26
+30686059077,Partner Organization C,Functioning,11,7,2025-08-25
+30686059078,Partner Organization C,Functioning,12,9,2025-11-28
+30686059079,Partner Organization C,Functioning,12,9,2025-10-02
+30686059080,Partner Organization C,Functioning,8,12,2025-11-25
+30686065081,Partner Organization C,Partly functioning,4,13,2025-12-18
+30686065082,Partner Organization C,Functioning,10,13,2025-11-09
+30686065083,Partner Organization C,Functioning,10,7,2025-07-14
+30686065084,Partner Organization C,Partly functioning,6,7,2025-11-29
+30686065085,Partner Organization C,Functioning,8,10,2025-06-22
+30686065086,Partner Organization C,Functioning,12,12,2025-12-05
+30686065087,Partner Organization C,Functioning,11,11,2025-12-08
+30686065088,Partner Organization C,Functioning,11,12,2025-10-12
+30686065089,Partner Organization C,Functioning,11,13,2025-12-18
+30686065090,Partner Organization C,Functioning,11,12,2025-09-30
+30686077098,Partner Organization C,Functioning,12,11,2025-08-15
+30686077099,Partner Organization C,Partly functioning,5,13,2025-12-09
+30686077100,Partner Organization C,Partly functioning,6,9,2025-06-24
+30686077101,Partner Organization C,Functioning,10,13,2025-12-13
+30686083001,Partner Organization C,Functioning,8,11,2025-08-28
+30686083002,Partner Organization C,Functioning,12,8,2025-11-13
+30686083003,Partner Organization C,Functioning,9,11,2025-06-22
+30686083004,Partner Organization C,Functioning,10,7,2025-07-28
+30686083005,Partner Organization C,Functioning,10,12,2025-12-23
+30686083006,Partner Organization C,Functioning,12,11,2025-09-13
+30686083007,Partner Organization C,Functioning,10,10,2025-09-19
+30686083008,Partner Organization C,Partly functioning,4,12,2025-11-14
+30686083009,Partner Organization C,Functioning,11,10,2025-11-23
+30686083010,Partner Organization C,Functioning,9,12,2025-07-25
+30686083011,Partner Organization C,Functioning,12,9,2025-07-16
+30686089113,Partner Organization C,Functioning,9,11,2025-07-19
+30686089114,Partner Organization C,Functioning,9,9,2025-10-22
+30686089115,Partner Organization C,Functioning,9,10,2025-09-18
+30686089116,Partner Organization C,Functioning,10,7,2025-08-13
+30686089117,Partner Organization C,Functioning,8,12,2025-07-31
+30686089118,Partner Organization C,Functioning,12,11,2025-08-10
+30686089119,Partner Organization C,Functioning,9,13,2025-09-05
+30686089120,Partner Organization C,Functioning,9,11,2025-11-30
+30686089121,Partner Organization C,Functioning,8,8,2025-08-04
+30686089122,Partner Organization C,Functioning,8,10,2025-08-19
+30686089123,Partner Organization C,Functioning,9,12,2025-07-10
+30686095124,Partner Organization C,Functioning,11,12,2025-06-20
+30686095125,Partner Organization C,Functioning,12,9,2025-09-12
+30686095126,Partner Organization C,Functioning,12,9,2025-12-25
+30686095127,Partner Organization C,Functioning,10,9,2025-08-16
+30686095128,Partner Organization C,Functioning,8,8,2025-07-03
+30686095129,Partner Organization C,Functioning,8,9,2025-09-21
+30686095130,Partner Organization C,Functioning,8,7,2025-06-30
+30686095131,Partner Organization C,Functioning,9,8,2025-10-08
+30686095132,Partner Organization C,Functioning,9,13,2025-06-18
+30686095133,Partner Organization C,Functioning,12,13,2025-10-29
+30686406289,Partner Organization C,Partly functioning,5,13,2025-09-15
+30686406290,Partner Organization C,Functioning,8,9,2025-09-14
+30686406291,Partner Organization C,Functioning,10,7,2025-09-04
+30686406292,Partner Organization C,Functioning,12,7,2025-10-11
+30686406293,Partner Organization C,Functioning,10,13,2025-11-06
+30686408326,Partner Organization C,Functioning,9,13,2025-09-16
+30686408327,Partner Organization C,Partly functioning,6,12,2025-11-08
+30686408328,Partner Organization C,Partly functioning,7,10,2025-07-16
+30686408329,Partner Organization C,Partly functioning,6,7,2025-11-14
+30686408330,Partner Organization C,Partly functioning,7,13,2025-09-16
+30686408331,Partner Organization C,Partly functioning,6,12,2025-08-13
+30686408332,Partner Organization C,Partly functioning,6,12,2025-09-22
+30686410267,Partner Organization C,Functioning,11,7,2025-07-11
+30686410268,Partner Organization C,Functioning,12,9,2025-06-30
+30686410269,Partner Organization C,Functioning,8,10,2025-11-08
+30686410270,Partner Organization C,Functioning,12,13,2025-08-30
+30686410271,Partner Organization C,Functioning,11,9,2025-11-20
+30686410272,Partner Organization C,Functioning,10,7,2025-10-04
+30686410273,Partner Organization C,Functioning,8,8,2025-09-22
+30686410274,Partner Organization C,Functioning,11,8,2025-11-07
+30686410275,Partner Organization C,Functioning,9,11,2025-08-04
+30686410276,Partner Organization C,Functioning,11,9,2025-07-15
+30686410277,Partner Organization C,Functioning,8,13,2025-08-30
+30686416247,Partner Organization C,Functioning,11,8,2025-08-23
+30686416248,Partner Organization C,Functioning,11,9,2025-12-11
+30686416249,Partner Organization C,Functioning,12,9,2025-10-09
+30686416250,Partner Organization C,Functioning,9,8,2025-09-03
+30686416251,Partner Organization C,Functioning,8,11,2025-10-23
+30686423333,Partner Organization C,Partly functioning,5,9,2025-08-17
+30686423334,Partner Organization C,Partly functioning,6,13,2025-08-11
+30686423335,Partner Organization C,Partly functioning,6,11,2025-12-19
+30686423336,Partner Organization C,Partly functioning,5,7,2025-07-21
+30686423337,Partner Organization C,Partly functioning,7,13,2025-07-08
+30686423338,Partner Organization C,Partly functioning,4,10,2025-12-11
+30686430201,Partner Organization C,Partly functioning,4,12,2025-10-12
+30686430202,Partner Organization C,Partly functioning,6,8,2025-09-04
+30686430203,Partner Organization C,Partly functioning,6,10,2025-06-30
+30686430204,Partner Organization C,Partly functioning,6,7,2025-10-25
+30686430205,Partner Organization C,Partly functioning,4,9,2025-08-24
+30686430206,Partner Organization C,Partly functioning,5,8,2025-08-12
+30686430207,Partner Organization C,Partly functioning,7,13,2025-12-02
+30686437278,Partner Organization C,Partly functioning,4,13,2025-11-18
+30686437279,Partner Organization C,Partly functioning,4,7,2025-11-09
+30686437280,Partner Organization C,Partly functioning,4,13,2025-12-26
+30686437281,Partner Organization C,Partly functioning,6,12,2025-06-29
+30686437282,Partner Organization C,Functioning,11,8,2025-11-15
+30686440294,Partner Organization C,Functioning,10,12,2025-07-10
+30686440295,Partner Organization C,Functioning,12,9,2025-12-17
+30686440296,Partner Organization C,Partly functioning,6,10,2025-07-20
+30686440297,Partner Organization C,Partly functioning,5,12,2025-09-05
+30686440298,Partner Organization C,Partly functioning,6,8,2025-12-23
+30686444283,Partner Organization C,Partly functioning,4,10,2025-06-29
+30686444284,Partner Organization C,Partly functioning,7,8,2025-07-08
+30686444285,Partner Organization C,Functioning,12,12,2025-07-22
+30686444286,Partner Organization C,Partly functioning,6,13,2025-11-01
+30686444287,Partner Organization C,Partly functioning,5,11,2025-12-07
+30686444288,Partner Organization C,Partly functioning,7,12,2025-12-21
+30686447315,Partner Organization C,Partly functioning,4,8,2025-07-10
+30686447316,Partner Organization C,Partly functioning,6,9,2025-12-11
+30686447317,Partner Organization C,Partly functioning,5,10,2025-11-22
+30686447318,Partner Organization C,Partly functioning,7,10,2025-06-14
+30686447319,Partner Organization C,Partly functioning,6,12,2025-11-02
+30686447320,Partner Organization C,Partly functioning,5,11,2025-09-03
+30686447321,Partner Organization C,Partly functioning,7,12,2025-12-11
+30686447322,Partner Organization C,Partly functioning,5,11,2025-07-26
+30686447323,Partner Organization C,Partly functioning,4,10,2025-10-26
+30686447324,Partner Organization C,Partly functioning,7,8,2025-08-07
+30686447325,Partner Organization C,Partly functioning,7,7,2025-11-24
+30686450339,Partner Organization C,Partly functioning,5,7,2025-11-09
+30686450340,Partner Organization C,Partly functioning,5,10,2025-12-25
+30686450341,Partner Organization C,Partly functioning,5,11,2025-07-25
+30686450342,Partner Organization C,Partly functioning,5,9,2025-08-12
+30686450343,Partner Organization C,Partly functioning,5,13,2025-12-15
+30686450344,Partner Organization C,Partly functioning,7,11,2025-07-06
+30686454257,Partner Organization C,Partly functioning,5,13,2025-11-21
+30686454258,Partner Organization C,Partly functioning,4,8,2025-11-09
+30686454259,Partner Organization C,Functioning,9,8,2025-12-05
+30686454260,Partner Organization C,Partly functioning,5,8,2025-08-31
+30686454261,Partner Organization C,Partly functioning,7,10,2025-12-20
+30686454262,Partner Organization C,Functioning,12,9,2025-11-16
+30686454263,Partner Organization C,Partly functioning,6,13,2025-08-31
+30686454264,Partner Organization C,Partly functioning,5,7,2025-12-14
+30686454265,Partner Organization C,Partly functioning,6,7,2025-08-04
+30686454266,Partner Organization C,Partly functioning,7,11,2025-07-23
+30686457308,Partner Organization C,Partly functioning,6,11,2025-11-09
+30686457309,Partner Organization C,Partly functioning,6,12,2025-11-11
+30686457310,Partner Organization C,Functioning,8,7,2025-09-09
+30686457311,Partner Organization C,Functioning,10,8,2025-06-22
+30686457312,Partner Organization C,Functioning,10,11,2025-10-30
+30686457313,Partner Organization C,Functioning,9,12,2025-07-01
+30686457314,Partner Organization C,Functioning,10,13,2025-08-05
+30686464299,Partner Organization C,Partly functioning,4,9,2025-07-20
+30686464300,Partner Organization C,Partly functioning,6,9,2025-09-22
+30686464301,Partner Organization C,Partly functioning,6,9,2025-09-06
+30686464302,Partner Organization C,Partly functioning,7,7,2025-08-06
+30686464303,Partner Organization C,Partly functioning,4,13,2025-09-07
+30686464304,Partner Organization C,Partly functioning,6,10,2025-07-05
+30686464305,Partner Organization C,Partly functioning,7,12,2025-11-12
+30686464306,Partner Organization C,Partly functioning,5,12,2025-07-06
+30686464307,Partner Organization C,Partly functioning,4,10,2025-11-04
+30686471359,Partner Organization C,Functioning,11,10,2025-08-15
+30686471360,Partner Organization C,Functioning,12,8,2025-08-29
+30686471361,Partner Organization C,Functioning,9,11,2025-11-15
+30686471362,Partner Organization C,Functioning,10,13,2025-12-02
+30686471363,Partner Organization C,Functioning,11,10,2025-09-07
+30686471364,Partner Organization C,Functioning,11,8,2025-09-26
+30686471365,Partner Organization C,Functioning,9,12,2025-06-17
+30686471366,Partner Organization C,Functioning,12,10,2025-11-28
+30686471367,Partner Organization C,Functioning,10,9,2025-08-14
+30686474208,Partner Organization C,Functioning,12,8,2025-08-18
+30686474209,Partner Organization C,Functioning,12,11,2025-10-23
+30686474210,Partner Organization C,Functioning,10,7,2025-07-05
+30686474211,Partner Organization C,Functioning,10,7,2025-06-23
+30686474212,Partner Organization C,Functioning,12,13,2025-08-15
+30686474213,Partner Organization C,Functioning,9,11,2025-12-20
+30686474214,Partner Organization C,Functioning,12,12,2025-10-16
+30686474215,Partner Organization C,Functioning,11,10,2025-10-25
+30686474216,Partner Organization C,Functioning,12,10,2025-07-12
+30686474217,Partner Organization C,Functioning,12,12,2025-12-19
+30686474218,Partner Organization C,Functioning,9,13,2025-11-12
+30686478252,Partner Organization C,Functioning,10,9,2025-08-01
+30686478253,Partner Organization C,Functioning,10,9,2025-09-07
+30686478254,Partner Organization C,Functioning,8,7,2025-09-16
+30686478255,Partner Organization C,Partly functioning,5,10,2025-10-21
+30686478256,Partner Organization C,Functioning,9,13,2025-11-15
+30686480226,Partner Organization C,Partly functioning,4,7,2025-08-04
+30686480227,Partner Organization C,Functioning,11,13,2025-09-05
+30686480228,Partner Organization C,Partly functioning,6,9,2025-06-16
+30686480229,Partner Organization C,Functioning,8,13,2025-06-21
+30686480230,Partner Organization C,Functioning,10,12,2025-11-22
+30686480231,Partner Organization C,Partly functioning,4,10,2025-12-18
+30686480232,Partner Organization C,Functioning,12,8,2025-10-01
+30686480233,Partner Organization C,Functioning,8,12,2025-06-14
+30686480234,Partner Organization C,Partly functioning,4,10,2025-09-10
+30686480235,Partner Organization C,Partly functioning,4,8,2025-06-17
+30686480236,Partner Organization C,Partly functioning,4,7,2025-11-10
+30686481345,Partner Organization C,Functioning,8,11,2025-12-21
+30686481346,Partner Organization C,Functioning,11,10,2025-07-15
+30686481347,Partner Organization C,Functioning,10,7,2025-08-31
+30686481348,Partner Organization C,Functioning,8,12,2025-06-20
+30686481349,Partner Organization C,Functioning,8,7,2025-10-22
+30686481350,Partner Organization C,Functioning,12,9,2025-12-25
+30686484351,Partner Organization C,Functioning,9,12,2025-08-08
+30686484352,Partner Organization C,Functioning,9,11,2025-11-28
+30686484353,Partner Organization C,Functioning,8,7,2025-10-24
+30686484354,Partner Organization C,Functioning,10,7,2025-06-26
+30686484355,Partner Organization C,Functioning,8,11,2025-11-30
+30686484356,Partner Organization C,Functioning,12,13,2025-09-06
+30686484357,Partner Organization C,Functioning,10,8,2025-09-03
+30686484358,Partner Organization C,Partly functioning,6,7,2025-09-26
+30686491219,Partner Organization C,Functioning,8,11,2025-07-06
+30686491220,Partner Organization C,Functioning,11,9,2025-11-06
+30686491221,Partner Organization C,Functioning,10,13,2025-09-21
+30686491222,Partner Organization C,Functioning,10,11,2025-08-10
+30686491223,Partner Organization C,Functioning,9,11,2025-09-11
+30686491224,Partner Organization C,Functioning,9,8,2025-06-22
+30686491225,Partner Organization C,Functioning,12,12,2025-11-08
+30686494237,Partner Organization C,Partly functioning,7,12,2025-12-21
+30686494238,Partner Organization C,Partly functioning,4,7,2025-08-15
+30686494239,Partner Organization C,Partly functioning,5,11,2025-09-30
+30686494240,Partner Organization C,Partly functioning,5,13,2025-11-24
+30686494241,Partner Organization C,Partly functioning,5,10,2025-08-19
+30686494242,Partner Organization C,Partly functioning,6,7,2025-07-05
+30686494243,Partner Organization C,Partly functioning,6,7,2025-11-04
+30686494244,Partner Organization C,Partly functioning,6,12,2025-10-14
+30686494245,Partner Organization C,Partly functioning,7,13,2025-07-13
+30686494246,Partner Organization C,Partly functioning,5,9,2025-10-18
+4010412301,Partner Organization H,Functioning,12,13,2025-12-04
+4010412302,Partner Organization H,Functioning,8,8,2025-06-28
+4010412303,Partner Organization H,Partly functioning,4,8,2025-08-09
+4010412304,Partner Organization H,Functioning,12,9,2025-10-19
+4010412305,Partner Organization H,Partly functioning,5,10,2025-12-26
+4010412306,Partner Organization H,Functioning,10,13,2025-12-24
+4010412307,Partner Organization H,Functioning,11,12,2025-08-01
+4010412308,Partner Organization H,Functioning,12,13,2025-11-24
+4010412309,Partner Organization H,Functioning,11,7,2025-06-30
+4010412310,Partner Organization H,Functioning,11,8,2025-07-19
+4010423320,Partner Organization H,Partly functioning,5,12,2025-08-19
+4010423321,Partner Organization H,Partly functioning,5,13,2025-12-06
+4010423322,Partner Organization H,Partly functioning,5,12,2025-12-09
+4010423323,Partner Organization H,Partly functioning,7,7,2025-07-02
+4010423324,Partner Organization H,Partly functioning,4,9,2025-07-12
+4010423325,Partner Organization H,Functioning,9,10,2025-12-23
+4010423326,Partner Organization H,Partly functioning,5,12,2025-10-18
+4010430355,Partner Organization H,Partly functioning,6,12,2025-12-14
+4010430356,Partner Organization H,Partly functioning,7,11,2025-08-26
+4010430357,Partner Organization H,Partly functioning,6,7,2025-08-31
+4010430358,Partner Organization H,Partly functioning,5,9,2025-10-15
+4010430359,Partner Organization H,Partly functioning,4,13,2025-12-02
+4010430360,Partner Organization H,Partly functioning,6,10,2025-12-11
+4010430361,Partner Organization H,Partly functioning,5,11,2025-12-09
+4010430362,Partner Organization H,Partly functioning,5,8,2025-10-03
+4010430363,Partner Organization H,Partly functioning,6,13,2025-10-08
+4010436318,Partner Organization H,Partly functioning,4,12,2025-12-18
+4010436377,Partner Organization H,Partly functioning,5,12,2025-10-10
+4010436378,Partner Organization H,Partly functioning,6,12,2025-08-02
+4010436379,Partner Organization H,Partly functioning,6,10,2025-12-16
+4010436380,Partner Organization H,Partly functioning,5,13,2025-11-29
+4010436381,Partner Organization H,Partly functioning,4,11,2025-07-07
+4010436382,Partner Organization H,Partly functioning,4,12,2025-08-23
+4010436383,Partner Organization H,Partly functioning,5,11,2025-08-18
+4010436384,Partner Organization H,Partly functioning,5,8,2025-11-21
+4010436385,Partner Organization H,Partly functioning,6,7,2025-07-19
+4010436386,Partner Organization H,Partly functioning,5,10,2025-11-12
+4010436387,Partner Organization H,Partly functioning,7,9,2025-07-12
+4010436388,Partner Organization H,Partly functioning,6,13,2025-09-23
+4010436389,Partner Organization H,Partly functioning,6,7,2025-07-22
+4010445364,Partner Organization H,Partly functioning,7,10,2025-12-02
+4010445365,Partner Organization H,Partly functioning,6,9,2025-07-06
+4010445366,Partner Organization H,Partly functioning,5,13,2025-08-25
+4010445367,Partner Organization H,Partly functioning,5,12,2025-12-03
+4010445368,Partner Organization H,Partly functioning,4,11,2025-09-26
+4010445369,Partner Organization H,Partly functioning,7,8,2025-11-27
+4010445370,Partner Organization H,Partly functioning,7,11,2025-10-30
+4010445371,Partner Organization H,Partly functioning,4,9,2025-12-17
+4010445372,Partner Organization H,Partly functioning,4,13,2025-08-12
+4010445373,Partner Organization H,Partly functioning,6,13,2025-12-15
+4010445374,Partner Organization H,Partly functioning,5,11,2025-08-25
+4010445375,Partner Organization H,Partly functioning,6,11,2025-08-25
+4010445376,Partner Organization H,Partly functioning,6,13,2025-10-11
+4010454345,Partner Organization H,Partly functioning,6,8,2025-09-12
+4010454346,Partner Organization H,Functioning,8,8,2025-11-10
+4010454347,Partner Organization H,Partly functioning,7,12,2025-08-18
+4010454349,Partner Organization H,Partly functioning,5,12,2025-06-23
+4010454350,Partner Organization H,Partly functioning,6,12,2025-12-05
+4010454351,Partner Organization H,Partly functioning,4,10,2025-08-09
+4010454352,Partner Organization H,Partly functioning,6,10,2025-12-09
+4010454353,Partner Organization H,Partly functioning,5,8,2025-10-26
+4010454354,Partner Organization H,Partly functioning,4,13,2025-10-01
+4010459327,Partner Organization H,Partly functioning,7,12,2025-10-26
+4010459328,Partner Organization H,Partly functioning,6,8,2025-12-18
+4010459329,Partner Organization H,Partly functioning,7,13,2025-10-16
+4010459330,Partner Organization H,Partly functioning,7,11,2025-07-06
+4010459331,Partner Organization H,Partly functioning,4,9,2025-08-18
+4010459332,Partner Organization H,Partly functioning,6,11,2025-12-07
+4010459333,Partner Organization H,Partly functioning,6,9,2025-08-11
+4010459334,Partner Organization H,Partly functioning,4,13,2025-11-28
+4010459335,Partner Organization H,Partly functioning,5,7,2025-11-21
+4010468336,Partner Organization H,Partly functioning,7,7,2025-11-03
+4010468337,Partner Organization H,Partly functioning,5,12,2025-08-31
+4010468338,Partner Organization H,Partly functioning,7,11,2025-12-06
+4010468339,Partner Organization H,Partly functioning,5,7,2025-10-15
+4010468340,Partner Organization H,Partly functioning,7,13,2025-09-21
+4010468341,Partner Organization H,Partly functioning,6,8,2025-10-14
+4010468342,Partner Organization H,Partly functioning,7,7,2025-10-29
+4010468343,Partner Organization H,Partly functioning,6,10,2025-07-12
+4010468344,Partner Organization H,Partly functioning,4,10,2025-10-04
+4010477422,Partner Organization H,Partly functioning,6,11,2025-10-15
+4010477423,Partner Organization H,Partly functioning,7,7,2025-09-26
+4010477424,Partner Organization H,Partly functioning,4,9,2025-08-29
+4010477425,Partner Organization H,Partly functioning,4,12,2025-07-26
+4010477426,Partner Organization H,Partly functioning,4,7,2025-11-09
+4010477427,Partner Organization H,Partly functioning,7,10,2025-10-08
+4010477428,Partner Organization H,Partly functioning,7,11,2025-11-25
+4010477429,Partner Organization H,Partly functioning,7,12,2025-10-17
+4010477430,Partner Organization H,Partly functioning,7,7,2025-07-27
+4010481319,Partner Organization H,Partly functioning,5,12,2025-07-01
+4010481390,Partner Organization H,Partly functioning,6,12,2025-12-18
+4010481391,Partner Organization H,Partly functioning,5,10,2025-12-12
+4010481392,Partner Organization H,Partly functioning,6,11,2025-10-20
+4010481393,Partner Organization H,Partly functioning,6,7,2025-07-10
+4010481394,Partner Organization H,Partly functioning,7,7,2025-07-12
+4010481395,Partner Organization H,Partly functioning,4,9,2025-06-19
+4010481396,Partner Organization H,Partly functioning,7,9,2025-08-09
+4010481397,Partner Organization H,Partly functioning,4,13,2025-07-16
+4010481398,Partner Organization H,Partly functioning,5,9,2025-07-19
+4010481399,Partner Organization H,Partly functioning,5,8,2025-10-20
+4010481400,Partner Organization H,Partly functioning,4,11,2025-12-09
+4010483401,Partner Organization H,Functioning,8,10,2025-10-25
+4010483402,Partner Organization H,Partly functioning,7,9,2025-10-16
+4010483403,Partner Organization H,Partly functioning,5,10,2025-07-09
+4010483404,Partner Organization H,Partly functioning,6,9,2025-12-09
+4010483405,Partner Organization H,Partly functioning,7,11,2025-12-15
+4010483406,Partner Organization H,Functioning,8,10,2025-08-21
+4010483407,Partner Organization H,Partly functioning,6,12,2025-10-21
+4010483408,Partner Organization H,Partly functioning,7,7,2025-11-20
+4010483409,Partner Organization H,Partly functioning,7,9,2025-10-21
+4010483410,Partner Organization H,Partly functioning,7,8,2025-08-10
+4010483411,Partner Organization H,Functioning,11,12,2025-11-05
+4010488348,Partner Organization H,Partly functioning,7,12,2025-08-30
+4010488412,Partner Organization H,Partly functioning,6,12,2025-06-25
+4010488413,Partner Organization H,Partly functioning,5,11,2025-07-08
+4010488414,Partner Organization H,Partly functioning,5,12,2025-10-05
+4010488415,Partner Organization H,Partly functioning,6,7,2025-08-12
+4010488416,Partner Organization H,Partly functioning,6,11,2025-07-01
+4010488417,Partner Organization H,Partly functioning,4,11,2025-08-31
+4010488418,Partner Organization H,Partly functioning,4,7,2025-10-09
+4010488419,Partner Organization H,Partly functioning,6,11,2025-10-10
+4010488420,Partner Organization H,Partly functioning,4,12,2025-11-19
+4010488421,Partner Organization H,Partly functioning,7,12,2025-08-29
+4010494311,Partner Organization H,Partly functioning,7,12,2025-06-23
+4010494312,Partner Organization H,Partly functioning,7,11,2025-11-16
+4010494313,Partner Organization H,Partly functioning,7,12,2025-12-17
+4010494314,Partner Organization H,Partly functioning,7,11,2025-10-08
+4010494315,Partner Organization H,Partly functioning,7,13,2025-12-08
+4010494316,Partner Organization H,Partly functioning,4,8,2025-11-15
+4010494317,Partner Organization H,Partly functioning,6,7,2025-10-06
+4050701131,Partner Organization H,Partly functioning,6,13,2025-11-14
+4050701132,Partner Organization H,Partly functioning,6,10,2025-11-07
+4050701133,Partner Organization H,Partly functioning,6,13,2025-07-14
+4050701134,Partner Organization H,Partly functioning,6,13,2025-11-30
+4050701135,Partner Organization H,Partly functioning,5,9,2025-12-25
+4050701136,Partner Organization H,Partly functioning,5,7,2025-10-17
+4050701137,Partner Organization H,Partly functioning,7,13,2025-08-02
+4050701138,Partner Organization H,Partly functioning,6,12,2025-12-23
+4050701139,Partner Organization H,Partly functioning,7,12,2025-09-29
+4050701225,Partner Organization H,Weak,1,13,2025-09-03
+4050702101,Partner Organization H,Weak,2,7,2025-12-01
+4050702102,Partner Organization H,Weak,0,8,2025-11-25
+4050702103,Partner Organization H,Weak,1,11,2025-10-04
+4050702104,Partner Organization H,Weak,0,11,2025-11-06
+4050702105,Partner Organization H,Weak,2,9,2025-11-25
+4050702106,Partner Organization H,Weak,1,11,2025-10-17
+4050702107,Partner Organization H,Weak,1,10,2025-09-08
+4050702108,Partner Organization H,Weak,1,11,2025-10-13
+4050702109,Partner Organization H,Weak,0,7,2025-10-31
+4050702110,Partner Organization H,Weak,1,12,2025-06-22
+4050702228,Partner Organization H,Weak,0,11,2025-12-15
+4050702229,Partner Organization H,Weak,2,9,2025-10-10
+4050703187,Partner Organization H,Partly functioning,7,7,2025-07-27
+4050703188,Partner Organization H,Partly functioning,6,8,2025-10-28
+4050703189,Partner Organization H,Functioning,12,7,2025-11-25
+4050703190,Partner Organization H,Functioning,11,9,2025-07-10
+4050703191,Partner Organization H,Functioning,8,12,2025-11-15
+4050703192,Partner Organization H,Partly functioning,7,11,2025-10-15
+4050703193,Partner Organization H,Functioning,12,9,2025-07-17
+4050703194,Partner Organization H,Functioning,9,10,2025-07-26
+4050703195,Partner Organization H,Functioning,8,7,2025-09-02
+4050704155,Partner Organization H,Weak,3,8,2025-09-29
+4050704156,Partner Organization H,Partly functioning,5,8,2025-10-25
+4050704157,Partner Organization H,Partly functioning,4,10,2025-06-19
+4050704158,Partner Organization H,Partly functioning,7,9,2025-08-02
+4050705196,Partner Organization H,Functioning,11,12,2025-08-18
+4050705197,Partner Organization H,Partly functioning,4,13,2025-07-17
+4050705198,Partner Organization H,Partly functioning,6,12,2025-11-26
+4050705199,Partner Organization H,Partly functioning,7,7,2025-06-18
+4050705200,Partner Organization H,Partly functioning,6,12,2025-09-08
+4050705201,Partner Organization H,Partly functioning,7,9,2025-11-10
+4050705202,Partner Organization H,Partly functioning,7,9,2025-07-31
+4050705203,Partner Organization H,Partly functioning,6,8,2025-07-08
+4050705204,Partner Organization H,Partly functioning,4,13,2025-08-09
+4050705205,Partner Organization H,Partly functioning,4,10,2025-11-10
+4050705206,Partner Organization H,Partly functioning,7,10,2025-07-31
+4050705207,Partner Organization H,Partly functioning,7,13,2025-07-25
+4050706111,Partner Organization H,Partly functioning,4,12,2025-11-14
+4050706112,Partner Organization H,Partly functioning,7,11,2025-11-19
+4050706113,Partner Organization H,Partly functioning,7,11,2025-07-04
+4050706114,Partner Organization H,Partly functioning,7,7,2025-07-13
+4050706115,Partner Organization H,Partly functioning,4,11,2025-10-25
+4050706116,Partner Organization H,Partly functioning,5,13,2025-08-15
+4050706117,Partner Organization H,Partly functioning,5,13,2025-07-23
+4050706118,Partner Organization H,Partly functioning,5,11,2025-11-06
+4050706119,Partner Organization H,Partly functioning,7,10,2025-09-28
+4050706120,Partner Organization H,Partly functioning,6,8,2025-12-25
+4050706121,Partner Organization H,Partly functioning,5,13,2025-12-24
+4050706122,Partner Organization H,Partly functioning,6,11,2025-09-04
+4050707148,Partner Organization H,Partly functioning,4,8,2025-11-24
+4050707149,Partner Organization H,Partly functioning,5,7,2025-09-02
+4050707150,Partner Organization H,Partly functioning,4,7,2025-09-17
+4050707151,Partner Organization H,Partly functioning,6,10,2025-08-21
+4050707152,Partner Organization H,Partly functioning,5,12,2025-07-16
+4050707153,Partner Organization H,Partly functioning,4,10,2025-10-30
+4050707154,Partner Organization H,Partly functioning,7,11,2025-06-30
+4050708168,Partner Organization H,Partly functioning,4,12,2025-07-04
+4050708169,Partner Organization H,Partly functioning,6,11,2025-06-17
+4050708170,Partner Organization H,Partly functioning,4,8,2025-11-13
+4050708171,Partner Organization H,Partly functioning,4,7,2025-07-30
+4050708172,Partner Organization H,Partly functioning,7,7,2025-07-10
+4050708173,Partner Organization H,Partly functioning,4,8,2025-12-13
+4050708174,Partner Organization H,Partly functioning,7,13,2025-11-08
+4050708175,Partner Organization H,Partly functioning,4,7,2025-07-01
+4050708176,Partner Organization H,Partly functioning,4,10,2025-10-07
+4050709123,Partner Organization H,Partly functioning,6,13,2025-07-30
+4050709124,Partner Organization H,Partly functioning,5,9,2025-08-21
+4050709125,Partner Organization H,Partly functioning,7,12,2025-06-30
+4050709126,Partner Organization H,Partly functioning,6,10,2025-09-11
+4050709127,Partner Organization H,Partly functioning,7,11,2025-10-09
+4050709128,Partner Organization H,Partly functioning,6,11,2025-08-28
+4050709129,Partner Organization H,Partly functioning,4,7,2025-12-22
+4050709130,Partner Organization H,Partly functioning,7,8,2025-06-28
+4050710159,Partner Organization H,Partly functioning,6,9,2025-12-07
+4050710160,Partner Organization H,Partly functioning,7,13,2025-10-03
+4050710161,Partner Organization H,Partly functioning,7,10,2025-12-14
+4050710162,Partner Organization H,Partly functioning,6,10,2025-08-15
+4050710163,Partner Organization H,Partly functioning,6,12,2025-08-12
+4050710164,Partner Organization H,Partly functioning,6,9,2025-10-04
+4050710165,Partner Organization H,Partly functioning,5,9,2025-08-22
+4050710166,Partner Organization H,Partly functioning,4,10,2025-08-22
+4050710167,Partner Organization H,Partly functioning,6,9,2025-10-08
+4050711208,Partner Organization H,Partly functioning,6,12,2025-09-30
+4050711209,Partner Organization H,Partly functioning,7,12,2025-09-27
+4050711210,Partner Organization H,Partly functioning,5,7,2025-12-25
+4050711211,Partner Organization H,Partly functioning,6,9,2025-09-17
+4050711212,Partner Organization H,Partly functioning,4,12,2025-08-28
+4050711213,Partner Organization H,Partly functioning,7,10,2025-07-18
+4050711214,Partner Organization H,Partly functioning,6,11,2025-07-13
+4050711215,Partner Organization H,Partly functioning,6,13,2025-10-20
+4050711216,Partner Organization H,Partly functioning,6,13,2025-09-25
+4050711217,Partner Organization H,Partly functioning,6,11,2025-11-01
+4050711218,Partner Organization H,Partly functioning,4,11,2025-12-04
+4050711219,Partner Organization H,Partly functioning,4,8,2025-06-27
+4050711220,Partner Organization H,Partly functioning,5,7,2025-10-13
+4050712177,Partner Organization H,Partly functioning,6,11,2025-07-02
+4050712178,Partner Organization H,Partly functioning,7,9,2025-06-27
+4050712179,Partner Organization H,Partly functioning,4,11,2025-06-24
+4050712180,Partner Organization H,Partly functioning,5,10,2025-11-19
+4050712181,Partner Organization H,Partly functioning,6,13,2025-11-04
+4050712182,Partner Organization H,Partly functioning,4,13,2025-12-07
+4050712183,Partner Organization H,Partly functioning,4,10,2025-10-17
+4050712184,Partner Organization H,Partly functioning,4,8,2025-11-22
+4050712185,Partner Organization H,Partly functioning,6,13,2025-10-09
+4050712186,Partner Organization H,Partly functioning,4,10,2025-06-29
+4050713140,Partner Organization H,Partly functioning,4,9,2025-07-25
+4050713141,Partner Organization H,Partly functioning,4,8,2025-07-04
+4050713142,Partner Organization H,Partly functioning,7,9,2025-07-19
+4050713143,Partner Organization H,Partly functioning,7,10,2025-09-14
+4050713144,Partner Organization H,Partly functioning,5,12,2025-12-22
+4050713145,Partner Organization H,Partly functioning,6,10,2025-10-30
+4050713146,Partner Organization H,Partly functioning,5,10,2025-10-31
+4050713147,Partner Organization H,Partly functioning,5,7,2025-12-26
+4050713230,Partner Organization H,Partly functioning,6,11,2025-11-29
+612315396,Partner Organization G,Partly functioning,5,7,2025-12-14
+612315397,Partner Organization G,Partly functioning,7,8,2025-12-04
+612315398,Partner Organization G,Partly functioning,5,11,2025-06-25
+612315399,Partner Organization G,Partly functioning,6,10,2025-09-04
+612315400,Partner Organization G,Partly functioning,6,10,2025-09-29
+612315401,Partner Organization G,Partly functioning,6,10,2025-07-09
+612315402,Partner Organization G,Partly functioning,7,11,2025-11-05
+612315403,Partner Organization G,Partly functioning,7,9,2025-11-30
+612315404,Partner Organization G,Partly functioning,7,9,2025-07-04
+612315405,Partner Organization G,Partly functioning,5,13,2025-11-29
+612315406,Partner Organization G,Partly functioning,4,11,2025-10-04
+612315407,Partner Organization G,Partly functioning,4,13,2025-07-08
+612315408,Partner Organization G,Partly functioning,5,10,2025-08-07
+612318373,Partner Organization G,Partly functioning,5,10,2025-11-04
+612318374,Partner Organization G,Partly functioning,7,7,2025-12-11
+612318375,Partner Organization G,Partly functioning,7,8,2025-10-07
+612318376,Partner Organization G,Partly functioning,7,9,2025-10-29
+612318377,Partner Organization G,Partly functioning,6,7,2025-12-18
+612318378,Partner Organization G,Partly functioning,5,7,2025-08-23
+612318379,Partner Organization G,Partly functioning,7,10,2025-10-26
+612318380,Partner Organization G,Partly functioning,7,13,2025-06-15
+612318381,Partner Organization G,Partly functioning,5,8,2025-10-06
+612318382,Partner Organization G,Partly functioning,7,11,2025-10-15
+612318383,Partner Organization G,Partly functioning,5,11,2025-09-05
+612322333,Partner Organization G,Partly functioning,4,11,2025-11-22
+612322334,Partner Organization G,Partly functioning,5,13,2025-06-25
+612322335,Partner Organization G,Partly functioning,5,13,2025-11-10
+612322336,Partner Organization G,Partly functioning,4,10,2025-09-05
+612322337,Partner Organization G,Partly functioning,6,13,2025-12-15
+612322338,Partner Organization G,Partly functioning,4,8,2025-08-24
+612322339,Partner Organization G,Partly functioning,5,8,2025-11-29
+612322340,Partner Organization G,Partly functioning,6,10,2025-09-21
+612322341,Partner Organization G,Partly functioning,6,9,2025-11-24
+612322342,Partner Organization G,Partly functioning,7,10,2025-12-25
+612322343,Partner Organization G,Partly functioning,5,13,2025-12-18
+612322344,Partner Organization G,Partly functioning,7,8,2025-07-11
+612327301,Partner Organization G,Partly functioning,5,12,2025-06-14
+612327302,Partner Organization G,Partly functioning,4,8,2025-11-09
+612327303,Partner Organization G,Partly functioning,5,10,2025-09-03
+612327304,Partner Organization G,Partly functioning,7,12,2025-07-20
+612327305,Partner Organization G,Partly functioning,5,11,2025-09-09
+612327306,Partner Organization G,Partly functioning,5,10,2025-12-24
+612327307,Partner Organization G,Partly functioning,7,7,2025-11-16
+612327308,Partner Organization G,Partly functioning,4,10,2025-07-31
+612331323,Partner Organization G,Partly functioning,4,9,2025-12-09
+612331324,Partner Organization G,Partly functioning,6,13,2025-09-04
+612331325,Partner Organization G,Partly functioning,6,13,2025-06-24
+612331326,Partner Organization G,Partly functioning,5,11,2025-08-15
+612331327,Partner Organization G,Partly functioning,4,13,2025-12-01
+612331328,Partner Organization G,Partly functioning,7,7,2025-08-09
+612331329,Partner Organization G,Partly functioning,6,10,2025-07-18
+612331330,Partner Organization G,Partly functioning,4,11,2025-11-01
+612331331,Partner Organization G,Partly functioning,6,8,2025-07-04
+612331332,Partner Organization G,Partly functioning,7,11,2025-10-06
+612349420,Partner Organization G,Partly functioning,4,10,2025-11-24
+612349421,Partner Organization G,Partly functioning,5,13,2025-07-30
+612349422,Partner Organization G,Partly functioning,5,7,2025-12-17
+612349423,Partner Organization G,Partly functioning,7,12,2025-06-26
+612349424,Partner Organization G,Partly functioning,5,11,2025-08-08
+612349425,Partner Organization G,Partly functioning,7,10,2025-09-18
+612349426,Partner Organization G,Partly functioning,4,7,2025-08-15
+612349427,Partner Organization G,Weak,2,12,2025-08-10
+612349428,Partner Organization G,Weak,0,13,2025-07-03
+612349429,Partner Organization G,Partly functioning,7,9,2025-06-29
+612349430,Partner Organization G,Partly functioning,6,8,2025-10-27
+612358365,Partner Organization G,Partly functioning,6,12,2025-08-08
+612358366,Partner Organization G,Partly functioning,4,9,2025-12-23
+612358367,Partner Organization G,Partly functioning,4,7,2025-11-04
+612358368,Partner Organization G,Partly functioning,6,12,2025-06-28
+612358369,Partner Organization G,Partly functioning,7,13,2025-09-20
+612358370,Partner Organization G,Partly functioning,4,11,2025-11-21
+612358371,Partner Organization G,Partly functioning,7,8,2025-07-19
+612358372,Partner Organization G,Partly functioning,7,9,2025-06-22
+612358409,Partner Organization G,Partly functioning,7,7,2025-09-09
+612358410,Partner Organization G,Partly functioning,5,12,2025-09-30
+612358411,Partner Organization G,Partly functioning,4,11,2025-09-12
+612358412,Partner Organization G,Partly functioning,4,9,2025-07-18
+612358413,Partner Organization G,Partly functioning,7,8,2025-12-07
+612358414,Partner Organization G,Partly functioning,7,10,2025-12-01
+612358415,Partner Organization G,Partly functioning,6,13,2025-10-26
+612358416,Partner Organization G,Partly functioning,6,11,2025-08-05
+612372345,Partner Organization G,Partly functioning,7,10,2025-12-26
+612372346,Partner Organization G,Partly functioning,6,12,2025-10-13
+612372347,Partner Organization G,Partly functioning,5,13,2025-07-16
+612372348,Partner Organization G,Partly functioning,4,10,2025-07-02
+612372349,Partner Organization G,Partly functioning,4,7,2025-12-08
+612372350,Partner Organization G,Partly functioning,4,11,2025-08-23
+612372351,Partner Organization G,Partly functioning,6,9,2025-08-30
+612372352,Partner Organization G,Partly functioning,7,9,2025-09-01
+612372353,Partner Organization G,Partly functioning,5,10,2025-06-27
+612372354,Partner Organization G,Partly functioning,7,8,2025-12-07
+612381309,Partner Organization G,Partly functioning,4,8,2025-10-09
+612381310,Partner Organization G,Partly functioning,5,11,2025-07-19
+612381311,Partner Organization G,Partly functioning,7,11,2025-12-02
+612381320,Partner Organization G,Partly functioning,7,12,2025-07-12
+612381321,Partner Organization G,Partly functioning,4,11,2025-06-14
+612381322,Partner Organization G,Partly functioning,7,9,2025-09-15
+612381384,Partner Organization G,Functioning,12,10,2025-07-16
+612381385,Partner Organization G,Partly functioning,5,7,2025-11-07
+612381386,Partner Organization G,Partly functioning,4,12,2025-07-21
+612381387,Partner Organization G,Partly functioning,7,11,2025-08-01
+612381388,Partner Organization G,Partly functioning,4,9,2025-08-04
+612381389,Partner Organization G,Partly functioning,5,7,2025-11-27
+612381390,Partner Organization G,Partly functioning,6,11,2025-08-09
+612381391,Partner Organization G,Partly functioning,4,7,2025-09-14
+612381392,Partner Organization G,Partly functioning,7,9,2025-12-01
+612381393,Partner Organization G,Partly functioning,4,10,2025-08-23
+612381394,Partner Organization G,Partly functioning,7,7,2025-08-15
+612381395,Partner Organization G,Partly functioning,6,9,2025-10-13
+612381417,Partner Organization G,Partly functioning,6,12,2025-10-06
+612381418,Partner Organization G,Partly functioning,4,7,2025-06-23
+612381419,Partner Organization G,Partly functioning,7,7,2025-07-05
+612385312,Partner Organization G,Weak,2,12,2025-09-22
+612385313,Partner Organization G,Weak,0,8,2025-09-06
+612385314,Partner Organization G,Weak,2,11,2025-12-01
+612385315,Partner Organization G,Weak,3,10,2025-07-11
+612385316,Partner Organization G,Weak,2,11,2025-11-23
+612385317,Partner Organization G,Weak,2,13,2025-07-13
+612385318,Partner Organization G,Partly functioning,5,13,2025-07-30
+612385319,Partner Organization G,Weak,0,7,2025-07-22
+612385355,Partner Organization G,Partly functioning,6,7,2025-11-03
+612385356,Partner Organization G,Partly functioning,7,7,2025-06-23
+612385357,Partner Organization G,Partly functioning,4,10,2025-06-22
+612385358,Partner Organization G,Partly functioning,7,12,2025-12-02
+612385359,Partner Organization G,Partly functioning,4,13,2025-07-23
+612385360,Partner Organization G,Partly functioning,5,7,2025-07-10
+612385361,Partner Organization G,Partly functioning,6,8,2025-11-27
+612385362,Partner Organization G,Partly functioning,5,7,2025-09-24
+612385363,Partner Organization G,Partly functioning,7,12,2025-10-28
+612385364,Partner Organization G,Partly functioning,5,11,2025-08-27
+613111109,Partner Organization G,Partly functioning,6,7,2025-12-02
+613111110,Partner Organization G,Partly functioning,6,13,2025-07-27
+613111111,Partner Organization G,Partly functioning,7,13,2025-10-02
+613111112,Partner Organization G,Partly functioning,4,12,2025-06-27
+613111113,Partner Organization G,Partly functioning,7,8,2025-12-14
+613111114,Partner Organization G,Functioning,9,7,2025-07-08
+613111115,Partner Organization G,Partly functioning,5,9,2025-11-26
+613111116,Partner Organization G,Partly functioning,7,13,2025-09-06
+613111117,Partner Organization G,Partly functioning,6,12,2025-08-20
+613111118,Partner Organization G,Partly functioning,6,10,2025-10-19
+613111119,Partner Organization G,Partly functioning,4,12,2025-08-16
+613113120,Partner Organization G,Partly functioning,7,10,2025-08-02
+613113121,Partner Organization G,Functioning,11,7,2025-09-15
+613113122,Partner Organization G,Functioning,11,10,2025-07-26
+613113123,Partner Organization G,Partly functioning,6,11,2025-09-05
+613113124,Partner Organization G,Functioning,12,7,2025-08-18
+613113125,Partner Organization G,Partly functioning,4,7,2025-06-16
+613113126,Partner Organization G,Functioning,9,7,2025-09-08
+613113127,Partner Organization G,Partly functioning,4,10,2025-12-04
+613113128,Partner Organization G,Partly functioning,7,11,2025-09-12
+613113129,Partner Organization G,Partly functioning,6,10,2025-10-11
+613140130,Partner Organization G,Partly functioning,4,11,2025-10-29
+613140131,Partner Organization G,Partly functioning,5,13,2025-09-18
+613140132,Partner Organization G,Partly functioning,6,12,2025-08-21
+613140133,Partner Organization G,Partly functioning,4,10,2025-07-31
+613140134,Partner Organization G,Partly functioning,4,10,2025-10-07
+613140135,Partner Organization G,Partly functioning,6,13,2025-10-30
+613140136,Partner Organization G,Partly functioning,5,7,2025-10-21
+613140137,Partner Organization G,Partly functioning,6,8,2025-07-08
+613140138,Partner Organization G,Partly functioning,4,10,2025-07-27
+613144101,Partner Organization G,Partly functioning,7,7,2025-07-27
+613144102,Partner Organization G,Partly functioning,5,13,2025-07-08
+613144103,Partner Organization G,Partly functioning,4,12,2025-09-20
+613144104,Partner Organization G,Partly functioning,5,11,2025-08-04
+613144105,Partner Organization G,Partly functioning,4,10,2025-11-02
+613144106,Partner Organization G,Partly functioning,6,12,2025-10-22
+613144107,Partner Organization G,Partly functioning,6,12,2025-08-11
+613144108,Partner Organization G,Partly functioning,6,7,2025-09-13
+613145139,Partner Organization G,Partly functioning,6,8,2025-09-27
+613145140,Partner Organization G,Partly functioning,7,10,2025-12-07
+613145141,Partner Organization G,Partly functioning,5,7,2025-07-11
+613145142,Partner Organization G,Partly functioning,6,7,2025-11-23
+613145143,Partner Organization G,Partly functioning,4,7,2025-06-28
+613145144,Partner Organization G,Partly functioning,7,12,2025-10-27
+613145145,Partner Organization G,Partly functioning,5,12,2025-08-31
+613145146,Partner Organization G,Partly functioning,7,11,2025-10-15
+613145147,Partner Organization G,Partly functioning,6,7,2025-08-19
+613145148,Partner Organization G,Partly functioning,4,8,2025-07-13
+613145149,Partner Organization G,Partly functioning,6,12,2025-09-23
+613154150,Partner Organization G,Functioning,11,10,2025-08-06
+613154151,Partner Organization G,Partly functioning,6,12,2025-09-05
+613154152,Partner Organization G,Partly functioning,6,9,2025-12-18
+613154153,Partner Organization G,Partly functioning,4,8,2025-09-19
+613154154,Partner Organization G,Partly functioning,6,10,2025-12-13
+613154155,Partner Organization G,Partly functioning,4,9,2025-06-18
+613154156,Partner Organization G,Partly functioning,4,7,2025-11-23
+613154157,Partner Organization G,Partly functioning,6,7,2025-06-18
+613154158,Partner Organization G,Functioning,8,10,2025-09-29
+613154159,Partner Organization G,Partly functioning,6,13,2025-08-28
+613154160,Partner Organization G,Partly functioning,6,12,2025-09-25
+613154161,Partner Organization G,Partly functioning,4,9,2025-10-27
+613154162,Partner Organization G,Functioning,11,9,2025-10-22
+613154163,Partner Organization G,Functioning,10,9,2025-09-27
+613163164,Partner Organization G,Partly functioning,4,12,2025-07-29
+613163165,Partner Organization G,Partly functioning,5,8,2025-08-26
+613163166,Partner Organization G,Partly functioning,4,10,2025-11-12
+613163167,Partner Organization G,Partly functioning,4,7,2025-06-14
+613163168,Partner Organization G,Partly functioning,5,13,2025-06-14
+613163169,Partner Organization G,Partly functioning,4,12,2025-07-22
+613163170,Partner Organization G,Partly functioning,6,7,2025-08-30
+613163171,Partner Organization G,Partly functioning,6,7,2025-09-02
+613163172,Partner Organization G,Partly functioning,6,9,2025-09-15
+613163173,Partner Organization G,Partly functioning,6,11,2025-08-07
+613163174,Partner Organization G,Partly functioning,5,13,2025-08-14
+613167175,Partner Organization G,Partly functioning,4,11,2025-11-10
+613167176,Partner Organization G,Partly functioning,6,8,2025-10-10
+613167177,Partner Organization G,Partly functioning,6,8,2025-07-19
+613167178,Partner Organization G,Partly functioning,4,7,2025-11-23
+613167179,Partner Organization G,Partly functioning,4,13,2025-11-29
+613167180,Partner Organization G,Partly functioning,6,11,2025-08-09
+613167181,Partner Organization G,Partly functioning,7,8,2025-07-08
+613167182,Partner Organization G,Partly functioning,6,11,2025-10-29
+613167183,Partner Organization G,Partly functioning,7,8,2025-07-04
+613167184,Partner Organization G,Partly functioning,7,9,2025-10-31
+613176185,Partner Organization G,Partly functioning,7,11,2025-08-21
+613176186,Partner Organization G,Partly functioning,5,13,2025-07-14
+613176187,Partner Organization G,Partly functioning,6,13,2025-08-13
+613176188,Partner Organization G,Functioning,10,12,2025-11-20
+613176189,Partner Organization G,Partly functioning,4,12,2025-11-07
+613176190,Partner Organization G,Functioning,8,11,2025-11-18
+613176191,Partner Organization G,Partly functioning,7,8,2025-08-28
+613176192,Partner Organization G,Partly functioning,6,9,2025-11-02
+613176193,Partner Organization G,Partly functioning,5,10,2025-11-30
+613176194,Partner Organization G,Partly functioning,4,9,2025-08-17
+613176195,Partner Organization G,Partly functioning,4,8,2025-11-19
+613176196,Partner Organization G,Partly functioning,6,11,2025-08-13
+613185197,Partner Organization G,Partly functioning,6,9,2025-06-25
+613185198,Partner Organization G,Partly functioning,6,11,2025-07-28
+613185199,Partner Organization G,Partly functioning,5,9,2025-06-15
+613185200,Partner Organization G,Partly functioning,4,7,2025-07-20
+613185201,Partner Organization G,Functioning,11,10,2025-10-27
+613185202,Partner Organization G,Partly functioning,7,13,2025-09-27
+613185203,Partner Organization G,Functioning,10,12,2025-11-08
+613185204,Partner Organization G,Partly functioning,6,12,2025-08-30
+613185205,Partner Organization G,Functioning,9,11,2025-08-16
+613185206,Partner Organization G,Functioning,12,8,2025-08-03
+613190207,Partner Organization G,Partly functioning,5,7,2025-11-12
+613190208,Partner Organization G,Partly functioning,6,11,2025-08-06
+613190209,Partner Organization G,Partly functioning,4,11,2025-06-27
+613190210,Partner Organization G,Partly functioning,4,11,2025-07-08
+613190211,Partner Organization G,Partly functioning,7,8,2025-10-23
+613190212,Partner Organization G,Partly functioning,6,9,2025-06-28
+613190213,Partner Organization G,Partly functioning,4,11,2025-06-24
+613190214,Partner Organization G,Partly functioning,6,10,2025-07-12
+613190215,Partner Organization G,Partly functioning,4,10,2025-08-01
+613190216,Partner Organization G,Partly functioning,4,11,2025-10-06
+613190217,Partner Organization G,Partly functioning,4,12,2025-09-14
+613190218,Partner Organization G,Partly functioning,6,9,2025-10-24
+613194219,Partner Organization G,Partly functioning,7,9,2025-12-25
+613194220,Partner Organization G,Partly functioning,4,12,2025-11-03
+613194221,Partner Organization G,Functioning,11,7,2025-08-24
+613194222,Partner Organization G,Partly functioning,4,10,2025-10-21
+613194223,Partner Organization G,Weak,3,11,2025-08-31
+613194224,Partner Organization G,Weak,2,8,2025-06-18
+613194225,Partner Organization G,Weak,0,7,2025-12-11
+613194226,Partner Organization G,Partly functioning,4,11,2025-12-06
+613194227,Partner Organization G,Weak,0,9,2025-07-20
+613194228,Partner Organization G,Partly functioning,5,7,2025-08-23
+613194229,Partner Organization G,Partly functioning,4,7,2025-09-11
+613194230,Partner Organization G,Weak,2,8,2025-11-02
+618111602,Partner Organization G,Partly functioning,6,11,2025-11-23
+618111603,Partner Organization G,Functioning,10,13,2025-06-16
+618111604,Partner Organization G,Functioning,12,9,2025-11-26
+618111605,Partner Organization G,Functioning,8,8,2025-10-28
+618111606,Partner Organization G,Functioning,11,8,2025-08-07
+618111607,Partner Organization G,Functioning,9,7,2025-12-04
+618111608,Partner Organization G,Partly functioning,4,8,2025-12-21
+618111609,Partner Organization G,Functioning,9,7,2025-09-18
+618111610,Partner Organization G,Functioning,10,8,2025-08-09
+618111611,Partner Organization G,Functioning,9,13,2025-07-31
+618111612,Partner Organization G,Partly functioning,4,12,2025-11-15
+618117613,Partner Organization G,Partly functioning,6,12,2025-10-05
+618117614,Partner Organization G,Partly functioning,4,12,2025-07-09
+618117615,Partner Organization G,Partly functioning,4,11,2025-07-28
+618117616,Partner Organization G,Functioning,11,8,2025-12-07
+618117617,Partner Organization G,Partly functioning,4,13,2025-11-28
+618117618,Partner Organization G,Partly functioning,4,11,2025-08-22
+618117619,Partner Organization G,Functioning,11,11,2025-08-16
+618117620,Partner Organization G,Partly functioning,6,8,2025-10-24
+618117621,Partner Organization G,Partly functioning,7,10,2025-09-08
+618117622,Partner Organization G,Partly functioning,4,11,2025-08-17
+618117623,Partner Organization G,Functioning,12,12,2025-12-11
+618117624,Partner Organization G,Partly functioning,7,8,2025-10-01
+618117625,Partner Organization G,Functioning,10,9,2025-10-14
+618117626,Partner Organization G,Functioning,11,13,2025-07-27
+618117627,Partner Organization G,Functioning,10,8,2025-07-26
+618118530,Partner Organization G,Functioning,12,13,2025-10-24
+618118531,Partner Organization G,Functioning,12,11,2025-09-27
+618118532,Partner Organization G,Partly functioning,5,12,2025-08-05
+618118533,Partner Organization G,Partly functioning,6,11,2025-06-22
+618118534,Partner Organization G,Functioning,12,12,2025-12-05
+618118535,Partner Organization G,Partly functioning,4,13,2025-06-22
+618118536,Partner Organization G,Partly functioning,5,8,2025-11-30
+618118537,Partner Organization G,Functioning,10,8,2025-07-16
+618118538,Partner Organization G,Functioning,8,9,2025-09-18
+618118539,Partner Organization G,Functioning,11,9,2025-07-29
+618154562,Partner Organization G,Functioning,8,10,2025-08-20
+618154563,Partner Organization G,Partly functioning,6,8,2025-06-27
+618154564,Partner Organization G,Functioning,12,11,2025-12-18
+618154565,Partner Organization G,Functioning,8,7,2025-06-21
+618154566,Partner Organization G,Partly functioning,7,11,2025-11-17
+618154567,Partner Organization G,Functioning,12,9,2025-07-29
+618158555,Partner Organization G,Functioning,8,13,2025-08-21
+618158556,Partner Organization G,Functioning,12,9,2025-10-22
+618158557,Partner Organization G,Functioning,9,10,2025-09-05
+618158558,Partner Organization G,Functioning,10,11,2025-07-10
+618158559,Partner Organization G,Functioning,11,11,2025-12-18
+618158560,Partner Organization G,Functioning,8,8,2025-09-19
+618158561,Partner Organization G,Functioning,12,12,2025-12-12
+618163568,Partner Organization G,Functioning,11,7,2025-07-20
+618163569,Partner Organization G,Functioning,8,7,2025-12-07
+618163570,Partner Organization G,Functioning,12,12,2025-08-02
+618163571,Partner Organization G,Partly functioning,5,7,2025-09-15
+618163572,Partner Organization G,Functioning,10,12,2025-12-10
+618163573,Partner Organization G,Functioning,8,9,2025-10-06
+618163574,Partner Organization G,Functioning,9,8,2025-07-28
+618163575,Partner Organization G,Functioning,11,8,2025-07-23
+618163576,Partner Organization G,Functioning,8,11,2025-06-21
+618163577,Partner Organization G,Functioning,12,11,2025-07-23
+618163578,Partner Organization G,Functioning,12,10,2025-06-19
+618163579,Partner Organization G,Functioning,10,7,2025-07-03
+618163580,Partner Organization G,Functioning,10,7,2025-11-13
+618163581,Partner Organization G,Functioning,11,8,2025-09-22
+618163582,Partner Organization G,Functioning,8,9,2025-07-07
+618163583,Partner Organization G,Functioning,9,8,2025-12-12
+618163584,Partner Organization G,Partly functioning,4,7,2025-10-09
+618163585,Partner Organization G,Partly functioning,5,7,2025-09-18
+618163586,Partner Organization G,Functioning,10,8,2025-08-06
+618163587,Partner Organization G,Functioning,12,8,2025-07-09
+618163588,Partner Organization G,Functioning,10,7,2025-11-27
+618167514,Partner Organization G,Partly functioning,7,13,2025-09-08
+618167515,Partner Organization G,Functioning,8,8,2025-07-01
+618167516,Partner Organization G,Functioning,10,13,2025-08-27
+618167517,Partner Organization G,Functioning,11,11,2025-09-28
+618167518,Partner Organization G,Partly functioning,7,11,2025-11-18
+618167519,Partner Organization G,Functioning,8,7,2025-10-30
+618167520,Partner Organization G,Partly functioning,5,10,2025-11-15
+618167521,Partner Organization G,Partly functioning,4,7,2025-10-21
+618167522,Partner Organization G,Partly functioning,6,8,2025-11-26
+618167523,Partner Organization G,Partly functioning,7,9,2025-11-03
+618167524,Partner Organization G,Functioning,9,12,2025-06-14
+618167525,Partner Organization G,Partly functioning,5,13,2025-09-22
+618167526,Partner Organization G,Partly functioning,5,11,2025-10-24
+618167527,Partner Organization G,Partly functioning,5,12,2025-07-29
+618167528,Partner Organization G,Functioning,9,8,2025-07-08
+618167529,Partner Organization G,Partly functioning,4,11,2025-07-02
+618176589,Partner Organization G,Functioning,12,10,2025-11-01
+618176590,Partner Organization G,Functioning,9,7,2025-12-08
+618176591,Partner Organization G,Functioning,8,10,2025-11-14
+618176592,Partner Organization G,Functioning,9,10,2025-08-14
+618176593,Partner Organization G,Functioning,12,9,2025-12-14
+618176594,Partner Organization G,Partly functioning,4,12,2025-07-25
+618176595,Partner Organization G,Functioning,11,9,2025-10-01
+618176596,Partner Organization G,Functioning,12,9,2025-07-29
+618176597,Partner Organization G,Functioning,9,9,2025-10-02
+618176598,Partner Organization G,Functioning,12,8,2025-12-21
+618176599,Partner Organization G,Functioning,9,12,2025-07-01
+618176600,Partner Organization G,Functioning,10,13,2025-08-03
+618176601,Partner Organization G,Functioning,10,8,2025-07-10
+618181501,Partner Organization G,Functioning,9,7,2025-11-15
+618181502,Partner Organization G,Functioning,9,10,2025-09-11
+618181503,Partner Organization G,Functioning,10,8,2025-12-15
+618181504,Partner Organization G,Partly functioning,4,13,2025-11-14
+618181505,Partner Organization G,Partly functioning,7,8,2025-09-29
+618181506,Partner Organization G,Functioning,11,13,2025-08-05
+618181507,Partner Organization G,Partly functioning,7,11,2025-12-07
+618181508,Partner Organization G,Functioning,10,7,2025-07-28
+618181509,Partner Organization G,Functioning,12,10,2025-07-26
+618181510,Partner Organization G,Functioning,11,9,2025-09-26
+618181511,Partner Organization G,Functioning,10,9,2025-06-18
+618181512,Partner Organization G,Functioning,9,7,2025-10-02
+618181513,Partner Organization G,Functioning,8,7,2025-06-16
+618183628,Partner Organization G,Partly functioning,7,7,2025-11-03
+618183629,Partner Organization G,Partly functioning,5,8,2025-10-15
+618183630,Partner Organization G,Functioning,9,13,2025-11-17
+618183631,Partner Organization G,Functioning,9,9,2025-09-12
+618183632,Partner Organization G,Partly functioning,4,12,2025-09-19
+618183633,Partner Organization G,Functioning,8,11,2025-11-25
+618183634,Partner Organization G,Functioning,11,8,2025-10-09
+618183635,Partner Organization G,Functioning,9,8,2025-08-06
+618183636,Partner Organization G,Partly functioning,5,11,2025-08-24
+618183637,Partner Organization G,Functioning,9,7,2025-08-08
+618183638,Partner Organization G,Functioning,11,7,2025-09-18
+618183639,Partner Organization G,Functioning,11,12,2025-09-15
+618183640,Partner Organization G,Functioning,10,12,2025-12-20
+618190540,Partner Organization G,Functioning,12,13,2025-10-07
+618190541,Partner Organization G,Partly functioning,5,11,2025-07-10
+618190542,Partner Organization G,Functioning,10,9,2025-12-18
+618190543,Partner Organization G,Functioning,12,11,2025-08-25
+618190544,Partner Organization G,Functioning,8,8,2025-10-17
+618190545,Partner Organization G,Functioning,8,13,2025-06-30
+618190546,Partner Organization G,Functioning,9,7,2025-09-19
+618190547,Partner Organization G,Functioning,9,10,2025-09-30
+618190548,Partner Organization G,Functioning,8,8,2025-07-20
+618190549,Partner Organization G,Functioning,11,11,2025-08-06
+618190550,Partner Organization G,Functioning,8,11,2025-10-28
+618190551,Partner Organization G,Functioning,11,10,2025-07-15
+618190552,Partner Organization G,Functioning,8,9,2025-11-14
+618190553,Partner Organization G,Functioning,9,8,2025-08-23
+618190554,Partner Organization G,Functioning,9,10,2025-08-24

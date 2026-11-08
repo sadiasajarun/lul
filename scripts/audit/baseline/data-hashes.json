@@ -1,0 +1,23 @@
+{
+  "data/assessments.csv": "cac510499933c27392e8ad3a3083ea1013e83acbaaf62fd22a227493cee9828f",
+  "data/attendance.csv": "c573948e430e423db2f5f05b71593be9a1a9d5b7d44981c0cf83b18b12131851",
+  "data/centers.csv": "a6a7dc4df51379ccd484855d385630d6e7ed487395eb7c8c819fbbf76acc4163",
+  "data/manifest.json": "55cdbddc0c26a0d8ac8f2b212b62a9b2e42de5c6dd181d9c8aee0a4511ec0d89",
+  "data/students.csv": "8e3c8a7945c7ae91f0bf22c13abed16be875cdf2ebc9fa7356f03bd7d8b4e3f0",
+  "data/teachers.csv": "e7fcdb263be8854d90fb65113a0bc871c24e27ca48250c140e8fce9327a9137e",
+  "data-v2/assessments.csv": "93d277a17ceefe16ba846884d3c4451fba6f47ac4f8e668b9125744aed6579eb",
+  "data-v2/attendance.csv": "78d8c9e02c18520f6748abf5eeeaf7d5a708f33079362f4ec4a6879f26c96afb",
+  "data-v2/centers.csv": "c8f029a1cdc811b60da9c28e3f3b94b402cc72fc577749b59440eead1c2ced88",
+  "data-v2/manifest.json": "6acef82af5a50b190426fccbd7f72a897d0a44857dd396018e5ea8c50cde7ea7",
+  "data-v2/students.csv": "6da21f153658748e9f7ad9d744fd5b0650f0096c18ca400eaf4b1583df79f903",
+  "data-v2/teachers.csv": "f005edd56a4f9eaa71db31edaeac276694806baf610ab82133fed81f6f0b3725",
+  "data-tuned/assessments.csv": "5f5dc204cf7cde9c00896cd3152e1b3c0a3c4aec787566217667316b10cef810",
+  "data-tuned/attendance.csv": "fe32d3d817fa28c77f8f57cee8604834a7a440b07fa3af6c0e0e10b95ced11ce",
+  "data-tuned/attendance_center_monthly.csv": "973d3105835caa62d97e656474bcb849415565b1e890626e8e287dbc582cfd3b",
+  "data-tuned/attendance_gaps.csv": "e2333999f9e013fbf0c086ab728a2eff9a1e394569fb94d51cce7ea85c89f85e",
+  "data-tuned/attendance_monthly.csv": "3f585b3b6b85ea278d706cb08543d8f011677d3f412e410acfed06190e5992d8",
+  "data-tuned/centers.csv": "f206f5a87b937dd921bd84a46ddbd7b65ba06e106534bf3fbba48218ba62cfc7",
+  "data-tuned/manifest.json": "731be10cf1bfe475f7a0f2019ea398166b8886a44c313fde4e3a4d46a996d0ab",
+  "data-tuned/students.csv": "80b7e90f7ccd323d866a7f544bd0c6015ebd2aeae9f064f77d2da3da2fb2b98c",
+  "data-tuned/teachers.csv": "3fe1693435aacacda99c160a911c96ac6f4ee8185afecc283c15ae3f52d9e191"
+}

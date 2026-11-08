@@ -1,0 +1,4066 @@
+[
+  {
+    "section": "Executive Overview",
+    "text": "How many total students are currently registered?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "How many active students are there?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "How many students have mainstreamed?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "How many students have dropped out?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "How many total centers are currently operating?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "How many teachers are currently assigned?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "Show the student status distribution.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "Compare the last six months with the previous six months.",
+    "real": {
+      "bucket": "B",
+      "why": "dated activity for period comparisons"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated activity for period comparisons"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated activity for period comparisons"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "Which division has the highest number of students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "Which district has the highest number of centers?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "Show PPE vs NFPE center distribution.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "Executive Overview",
+    "text": "Which sub-program serves the highest number of students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the top 10 best-performing centers.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the bottom 10 performing centers.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the top 5 centers in Dhaka Division.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the top 10 NFPE centers.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the bottom 10 PPE centers.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Which district has the highest average center performance?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Which organization has the highest-performing centers?",
+    "real": {
+      "bucket": "B",
+      "why": "the organization running each center"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "the organization running each center"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "the organization running each center"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Which 10 centers improved the most compared with the previous cycle?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Which 10 centers declined the most?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show high-performing centers with the lowest dropout rates.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the top 10 centers based on student results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Show the top centers based on baseline-to-latest-cycle improvement.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Center Ranking",
+    "text": "Which centers have consistently remained in the top-performing group?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Analyze Center X.",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Why is this center performing well?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What are the strongest factors behind this center's performance?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What is the attendance trend for this center?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "How have student results changed over time?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "How much did students improve from baseline to the latest cycle?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Which subjects improved the most?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Which subjects are still weak?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What is the dropout rate?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What is the mainstream transition rate?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "How are the teachers performing?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "How frequently has this center been visited by staff or PO?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What do the monitoring observations say about this center?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What is the center's M&E performance?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Are there any issues related to cash transfer?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Is the CMC functioning effectively?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Compare this center with similar centers.",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What makes this center different from average centers?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "What practices from this center could be replicated elsewhere?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Center Postmortem Analysis",
+    "text": "Give me a complete postmortem of this center.",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Why is Center X underperforming?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "What are the major reasons behind its poor performance?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Is attendance the main problem?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Is poor academic performance the main problem?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Is dropout contributing significantly?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "When did the performance decline begin?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Which subjects are declining the most?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Which student groups are performing poorly?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Are boys or girls performing worse?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Is teacher performance a potential issue?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Has the center received enough monitoring visits?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Are there repeated negative monitoring observations?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Is the CMC functioning properly?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Compare this center with the best center in the same district.",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "What are the five biggest gaps between this center and the best center?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Which problems can management realistically address?",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Recommend the top five interventions for this center.",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Poor-Performing Center Diagnosis",
+    "text": "Create a 90-day improvement plan for this center.",
+    "real": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "v2": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    },
+    "tuned": {
+      "bucket": "A",
+      "why": "depends on an earlier answer"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "How many students have dropped out?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which division has the highest dropout count?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which district has the highest dropout rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which center has the highest dropout rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which centers have unusually high dropout rates?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Compare dropout rates between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Compare dropout rates between PPE and NFPE.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which month had the highest number of dropouts?",
+    "real": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which centers had the biggest increase in dropout?",
+    "real": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which centers reduced dropout the most?",
+    "real": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "the date a student dropped out"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Do low-attendance students have higher dropout rates?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Do students with low baseline scores drop out more frequently?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "How does dropout vary by family-income group?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "What is the dropout rate among children with disabilities?",
+    "real": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (true_dropout)"
+    },
+    "v2": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (true_dropout)"
+    },
+    "tuned": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (true_dropout)"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Which teachers have the highest dropout rate among their students?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Dropout Analysis",
+    "text": "Show the top 20 students currently at highest dropout risk, based only on available indicators.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "How many students have already mainstreamed?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "How many students are ready for mainstreaming?",
+    "real": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "What is the overall mainstream conversion rate?",
+    "real": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    },
+    "v2": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    },
+    "tuned": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "Which centers have the highest mainstream conversion rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "Which district has the highest mainstream transition rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "Compare mainstream transition between PPE and NFPE.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "Compare mainstream transition between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "What is the mainstream rate among CwD students?",
+    "real": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    },
+    "v2": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    },
+    "tuned": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "What were the average attendance levels of mainstreamed students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "What were their baseline scores?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "Which centers are preparing students for mainstreaming most effectively?",
+    "real": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    }
+  },
+  {
+    "section": "Mainstream Transition Analysis",
+    "text": "Which centers have many students ready for mainstreaming but low actual transition?",
+    "real": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "What is the overall student pass rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which subject has the highest average score?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which subject has the lowest average score?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which subject needs the most improvement?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Show subject-wise student performance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Show unit-wise performance.",
+    "real": {
+      "bucket": "B",
+      "why": "unit-level marks"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "unit-level marks"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "unit-level marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Compare Cycle 1 and Cycle 2 results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Compare baseline with the latest cycle.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which centers improved most from baseline?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which centers improved least from baseline?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which district performs best in Mathematics?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Compare Bangla and Mathematics results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Compare boys' and girls' results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Compare PPE and NFPE academic performance.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which subject has the largest gender performance gap?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which centers started with low baseline scores but achieved strong results?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which centers started with high baseline scores but showed limited improvement?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which students improved the most between cycles?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Result Analysis",
+    "text": "Which students showed continuous decline?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show low-income students and their academic performance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show low-income female students and their results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show low-income students with disabilities.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Compare low-income and higher-income student outcomes.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Compare academic performance by family-income group.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show female NFPE students with low attendance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show CwD students with poor attendance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show students with low baseline scores but strong improvement.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show students with good attendance but poor results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show students with poor attendance but strong results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show active students with consistently declining scores.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Student Segmentation",
+    "text": "Show students who are ready for mainstreaming but have weak attendance.",
+    "real": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "a ready-for-mainstreaming flag"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "What is the male-to-female student ratio?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Compare pass rates between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Compare dropout rates between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Compare mainstream transition rates between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Which division has the largest gender gap?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Which district has the largest gender performance gap?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Which subjects show the biggest difference between boys and girls?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Where are girls outperforming boys?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Where are boys outperforming girls?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Compare attendance between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Compare low-income boys and low-income girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Gender Analysis",
+    "text": "Compare CwD boys and CwD girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "How many children with disabilities are registered?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Show students by disability type.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Which disability type is most common?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Which district has the highest number of CwD students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Which centers serve the highest number of CwD students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Compare CwD and non-CwD academic performance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Compare CwD and non-CwD attendance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Compare CwD and non-CwD dropout rates.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "What is the mainstream transition rate among CwD students?",
+    "real": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    },
+    "v2": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    },
+    "tuned": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (mainstreamed)"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Which centers achieve the best outcomes for CwD students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Which centers are underperforming for CwD students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Disability and Inclusion Analysis",
+    "text": "Compare results by physical, mental, speech, hearing, vision, and multiple disability categories.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Show students by family-income group.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Which income group has the lowest pass rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Which income group has the highest dropout rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Compare low-income and high-income student attendance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Compare results across income groups.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Is lower family income associated with lower baseline scores?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Which low-income students are performing exceptionally well?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Which centers achieve the best outcomes for low-income students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Which districts have the highest-performing low-income students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Compare mainstream transition by income group.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Compare CwD outcomes by income group.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Family Income Analysis",
+    "text": "Compare dropout by income group.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Show the top 10 teachers based on student performance.",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teachers have the highest-performing students?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teachers have the highest student improvement rates?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students, cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teachers have the lowest student dropout rates?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Compare teachers within Center X.",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teacher has the best attendance record?",
+    "real": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Compare teacher attendance with student attendance.",
+    "real": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Compare teacher attendance with student results.",
+    "real": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teachers are working with the highest number of CwD students?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teachers produce the strongest outcomes for low-baseline students?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Which teachers supervise students with high dropout?",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Compare teachers in the best and worst centers.",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Show supervised teachers under Staff X.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Teacher Analysis",
+    "text": "Analyze Teacher X's student outcomes.",
+    "real": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "which teacher teaches which students"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "What is the overall student attendance rate?",
+    "real": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (attendance_zero)"
+    },
+    "v2": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (attendance_zero)"
+    },
+    "tuned": {
+      "bucket": "C",
+      "why": "routed to definition: plain \"what is X\" about a known term (attendance_zero)"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Show monthly attendance trends.",
+    "real": {
+      "bucket": "B",
+      "why": "month-by-month attendance"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "month-by-month attendance"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Which centers have the highest attendance?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Which centers have the lowest attendance?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Show students with attendance below 60%.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Compare attendance between boys and girls.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Compare PPE and NFPE attendance.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Compare teacher attendance and student attendance.",
+    "real": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "teacher attendance"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Is higher attendance associated with better results?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Is low attendance associated with dropout?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Which centers have good attendance but poor results?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Which centers have poor attendance but good results?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Which students have experienced the largest attendance decline?",
+    "real": {
+      "bucket": "B",
+      "why": "month-by-month attendance per student"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "month-by-month attendance per student"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "month-by-month attendance per student"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Show unusual attendance patterns.",
+    "real": {
+      "bucket": "B",
+      "why": "month-by-month attendance per student"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "month-by-month attendance per student"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "month-by-month attendance per student"
+    }
+  },
+  {
+    "section": "Attendance Analysis",
+    "text": "Which district has the strongest average attendance?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which centers received the most visits?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which centers received the fewest visits?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which centers have not been visited recently?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Show PO-wise visit counts.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Show staff-wise visit counts.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which staff member covers the most centers?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Compare visit frequency with center performance.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Compare visit frequency with dropout rate.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Compare visit frequency with student results.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Did center performance improve after repeated visits?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs, cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which poor-performing centers have received limited monitoring?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which frequently visited centers are still underperforming?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Which high-performing centers receive fewer-than-average visits?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Staff / PO Visit Analysis",
+    "text": "Show sub-program-wise PO visits.",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Which centers have the lowest M&E scores?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Which centers have the highest M&E scores?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Show centers with repeated negative observations.",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Show the most common monitoring issues.",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Which observation categories fail most frequently?",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Which centers have unresolved issues from previous observations?",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Compare monitoring score with student results.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Compare monitoring score with attendance.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Compare monitoring score with dropout.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "What are the most common characteristics of high-scoring centers?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "What are the most common issues among low-scoring centers?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Show the complete observation history for Center X.",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Compare Center X's last three observations.",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Which centers improved after negative observations?",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Monitoring and M&E Analysis",
+    "text": "Which centers continue to decline despite repeated monitoring?",
+    "real": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "dated monitoring observations"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Show student count by division.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Show student count by district.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Show student count by upazila.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which division performs best?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which district performs worst?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which upazilas have the highest dropout rate?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which districts have the best student attendance?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which areas have the highest concentration of CwD students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which areas have the highest concentration of low-income students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which districts have many centers but relatively few students?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Which areas appear underserved by centers?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Compare all districts within Dhaka Division.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Show the top-performing centers within a specific upazila.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Geographic Analysis",
+    "text": "Show the worst-performing centers within a specific district.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare PPE and NFPE performance.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare PPE and NFPE attendance.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare PPE and NFPE dropout.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare PPE and NFPE mainstream transition.",
+    "real": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PPE centers and learners"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Show center count by sub-program.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Which sub-program has the best results?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Which sub-program has the weakest results?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Which sub-program has the highest PO visit frequency?",
+    "real": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "PO and staff visit logs"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare baseline improvement by sub-program.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cycle-by-cycle marks"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare CwD inclusion across sub-programs.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Compare family-income distribution across programs.",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "PPE / NFPE / Sub-Program Analysis",
+    "text": "Which sub-program has the strongest low-income student outcomes?",
+    "real": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "v2": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    },
+    "tuned": {
+      "bucket": "D",
+      "why": "data exists and routing is fine"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "What is the total cash transfer amount?",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Show monthly cash transfer trends.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Show cash transfer by center.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Show payment history for Student X.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Which students have not received expected payments?",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Show duplicate transaction numbers.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Show unusually high payment amounts.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Which centers have the highest total cash transfers?",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Compare cash transfer recipients and non-recipients by attendance.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Compare cash transfer recipients and non-recipients by dropout.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Compare cash transfer timing with student retention.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  },
+  {
+    "section": "Cash Transfer Analysis",
+    "text": "Show payment records with missing transaction information.",
+    "real": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "v2": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    },
+    "tuned": {
+      "bucket": "B",
+      "why": "cash transfer payments"
+    }
+  }
+]

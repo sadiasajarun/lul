@@ -21,6 +21,8 @@ export interface DataSource {
   /** APP-ONLY write seam (INSERT/UPDATE/ALTER) for the editable-data overlay. NEVER exposed to the
    *  LLM — LLM queries always go through validateSql (SELECT-only). Throws on error. */
   exec(sql: string): Promise<void>;
+  /** Loads one optional Preview-only CSV into a table of that name. Does nothing in other datasets. */
+  loadPreviewCsv?(table: string, columns: string): Promise<void>;
 }
 
 /** The analytics tables loaded from public/data/*.csv (built by scripts/build-analytics-data.mjs). */

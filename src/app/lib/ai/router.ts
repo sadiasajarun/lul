@@ -112,6 +112,11 @@ export interface RouteResult {
   termIds: string[];
 }
 
+/** True for wording that clearly asks what something means, or about the data itself. */
+export function isExplanationRequest(question: string): boolean {
+  return DEFINITION_STRONG.test(question) || DATASET_STRONG.test(question);
+}
+
 export function routeQuestion(question: string): RouteResult {
   const q = (question ?? '').trim();
   const terms = findTerms(q);

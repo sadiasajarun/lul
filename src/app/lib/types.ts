@@ -8,6 +8,7 @@
 import type { DynamicDashboardResponse } from "./dashboard-types";
 import type { AnswerEvidence } from "./ai/evidence";
 import type { AnswerReasoning } from "./ai/reasoning";
+import type { TurnDelta } from "./ai/context/types";
 
 export type ViewMode = "overview" | "ai-dashboard" | "chat";
 
@@ -59,6 +60,8 @@ export interface ChatMsg {
   evidence?: AnswerEvidence;
   /** The four reasoning layers behind this answer (finding / factors / confidence / action). */
   reasoning?: AnswerReasoning;
+  /** What this answer contributes to the conversation, so later turns can refer back to it. */
+  turn?: TurnDelta;
 }
 
 /** A single chat thread in the Copilot's history sidebar. */

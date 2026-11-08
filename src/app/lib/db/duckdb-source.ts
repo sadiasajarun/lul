@@ -126,6 +126,21 @@ export class DuckDbSource implements DataSource {
     }
   }
 
+  /** Loads one Preview side table on first use. A missing file leaves the table empty. */
+  async loadPreviewCsv(table: string, columns: string): Promise<void> {
+    await this.init();
+    if (!this.db || this.mode !== 'tuned') return;
+    const res = await fetch(`${import.meta.env.BASE_URL || '/'}${FOLDER.tuned}/${table}.csv`);
+    if (!res.ok || !(res.headers.get('content-type') ?? '').includes('csv')) return;
+    await this.db.registerFileBuffer(`${table}.csv`, new Uint8Array(await res.arrayBuffer()));
+    const conn = await this.db.connect();
+    try {
+      await conn.query(`CREATE OR REPLACE TABLE ${table} AS SELECT * FROM read_csv('${table}.csv', header=true, columns={${columns}})`);
+    } finally {
+      await conn.close();
+    }
+  }
+
   /** App-only write seam for the editable-data overlay (never used for LLM SQL). */
   async exec(sql: string): Promise<void> {
     await this.init();
