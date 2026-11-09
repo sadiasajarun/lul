@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { askViaPipeline, type AskResult, type HistoryTurn } from "./lib/ai/ask-browser";
 import { foldContext } from "./lib/ai/context/fold";
+import { chainFollowups } from "./lib/ai/context/next";
 import { getDataMode, setDataSourceMode, type DataMode } from "./lib/db";
 import type { DynamicDashboardResponse } from "./lib/dashboard-types";
 import type { ChatMsg, Conversation } from "./lib/types";
@@ -192,12 +193,15 @@ export default function App() {
   // Map a pipeline result → chat message. The pipeline is grounded by construction (every number
   // comes straight from the SQL result over the semantic views), so there is no narrative guardrail
   // to run here; a refusal simply carries no widgets. The executed SQL is attached as the source.
-  const buildPipelineMessage = (text: string, res: AskResult): ChatMsg => {
+  const buildPipelineMessage = (text: string, res: AskResult, prior: ChatMsg[]): ChatMsg => {
     const response = res.response as DynamicDashboardResponse;
     const widgets = response.widgets ?? [];
     const summary = response.summary;
-    const lens = res.refused || res.explained || res.clarifying ? "context" : inferLens(summary, widgets);
-    const severity = res.rateLimited ? "warn" : res.refused ? "info" : inferSeverity(summary, lens);
+    // A follow-up answer gets the neutral badge: guessing "issue" from words like "dropout" mislabels
+    // an answer about the LOWEST dropout.
+    const chained = !!res.turn?.bound;
+    const lens = res.refused || res.explained || res.clarifying || chained ? "context" : inferLens(summary, widgets);
+    const severity = res.rateLimited ? "warn" : res.refused || chained ? "info" : inferSeverity(summary, lens);
     // Predictive analyses add a specific advisory recommendation + an honest coverage note. Any other
     // (non-refused) analysis gets a generic, severity-aware recommendation so every answer is actionable.
     // An explanation is not an analysis: no playbook recommendation, no coverage caption, no
@@ -222,7 +226,7 @@ export default function App() {
       explained: res.explained,
       clarifying: res.clarifying,
       cached: res.cached,
-      followups: plain ? undefined : deriveFollowups(text, widgets),
+      followups: plain ? undefined : chained && res.turn ? chainFollowups(res.turn, foldContext([...prior, { turn: res.turn }], dataMode)) : deriveFollowups(text, widgets),
       coverage: res.refused || plain || res.trained ? undefined : playbookCoverage(text, dataMode),
       engine: res.cached || res.provider === "cache" ? "cache" : res.provider === "openai" ? "openai" : "gemini",
       sources: res.sql ? [res.sql] : undefined,
@@ -261,7 +265,7 @@ export default function App() {
         .slice(-10)
         .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null, columns: m.evidence?.columns, rows: m.evidence?.rows, rowCount: m.evidence?.rowCount }));
       const res = await askViaPipeline(text, history, foldContext(messages, dataMode));
-      appendAi(buildPipelineMessage(text, res));
+      appendAi(buildPipelineMessage(text, res, messages));
     } catch (e) {
       console.error("AI query error:", e);
       appendAi({
@@ -294,7 +298,7 @@ export default function App() {
         .slice(-10)
         .map((m) => ({ role: m.role, text: m.text, sql: m.sources?.[0] ?? null, columns: m.evidence?.columns, rows: m.evidence?.rows, rowCount: m.evidence?.rowCount }));
       const res = await askViaPipeline(userText, history, foldContext(msgs.slice(0, index), dataMode));
-      const ai = buildPipelineMessage(userText, res);
+      const ai = buildPipelineMessage(userText, res, msgs.slice(0, index));
       setConversations((prev) => prev.map((c) => (c.id === targetId ? { ...c, messages: c.messages.map((m, i) => (i === index ? ai : m)) } : c)));
     } catch (e) {
       console.error("Regenerate error:", e);

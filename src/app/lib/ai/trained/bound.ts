@@ -132,7 +132,18 @@ function gapsBetween(a: Row, bValue: (k: ScoreColumn) => number | null): Gap[] {
   return gaps.sort((x, y) => Math.abs(y.z) - Math.abs(x.z));
 }
 
-const network = (k: ScoreColumn) => networkStats()[k].avg;
+const network = (k: ScoreColumn) => networkStats()[k].median;
+const NETWORK = 'network_median';
+const NETWORK_NOTE = 'Network median: the middle value across all centers.';
+
+/** Measures with no value here, so a missing row is stated rather than silently dropped. */
+function notRecorded(row: Row, label: string, mode: DataMode): string[] {
+  const datasetWide: ScoreColumn[] = mode === 'tuned' ? [] : ['visits', 'negative_observations'];
+  const missing = METRICS.filter((m) => !datasetWide.includes(m.key) && !isNum(row[m.key])).map((m) => m.label);
+  const lines = missing.length ? [`* Not recorded for ${label}: ${missing.join(', ')}.`] : [];
+  if (datasetWide.length) lines.push('* Not recorded in this dataset: staff and PO visits, monitoring observations.');
+  return lines;
+}
 
 async function scorecardRows(deps: BoundDeps, where: string): Promise<Row[]> {
   return (await run(deps, `SELECT * FROM tv_center_scorecard WHERE ${where} ORDER BY center_id`)).rows;
@@ -187,17 +198,19 @@ async function selectEntity(question: string, entity: EntityRef, deps: BoundDeps
     if (row) {
       enriched = { ...entity, label: String(row.center_name), division: String(row.division ?? ''), district: String(row.district ?? ''), upazila: String(row.upazila ?? '') };
       const gaps = gapsBetween(row, network);
-      widgets = [table(`${enriched.label}: compared with the network`, gapRows(gaps, 'this_center', 'network_average'), 'Network average is the mean across centers.')];
+      widgets = [table(`${enriched.label}: compared with the network`, gapRows(gaps, 'this_center', NETWORK), NETWORK_NOTE)];
       lines.push(`* Selected **${enriched.label}**${row.district ? ` in ${row.district}` : ''}: ${fmt(row.students)} students.`);
       if ((row.students as number) < SMALL_GROUP) lines.push(`* With so few students, its rates can swing on one or two learners.`);
+      lines.push(...notRecorded(row, 'this center', deps.mode));
     }
   } else if (entity.kind === 'district' || entity.kind === 'upazila' || entity.kind === 'division') {
     const rows = await scorecardRows(deps, inArea(entity.kind, entity.id));
     const row = meanRow(rows);
-    widgets = [table(`${entity.label ?? entity.id}: compared with the network`, gapRows(gapsBetween(row, network), 'this_area', 'network_average'), `Means across its ${rows.length} centers.`)];
+    widgets = [table(`${entity.label ?? entity.id}: compared with the network`, gapRows(gapsBetween(row, network), 'this_area', NETWORK), `This area: the mean across its ${rows.length} centers. ${NETWORK_NOTE}`)];
     const students = (await run(deps, `SELECT count(*) AS n FROM v_students WHERE ${entity.kind} = ${quote(entity.id)}`)).rows[0].n as number;
     lines.push(`* Selected **${entity.label ?? entity.id}** ${entity.kind}: ${rows.length} center${rows.length === 1 ? '' : 's'}, ${students.toLocaleString()} students.`);
     if (students < SMALL_GROUP) lines.push(`* With so few students, its rates can swing on one or two learners.`);
+    lines.push(...notRecorded(row, 'any center in this area', deps.mode));
   }
   if (!lines.length) lines.push(`* Selected **${entity.label ?? entity.id}**.`);
   return finish(question, deps, { summary: lines, widgets, turn: { selected: enriched } });
@@ -237,20 +250,25 @@ async function refine(question: string, ctx: ConversationContext, criteria: Crit
   const sortMetric = (ranked ?? usable[0]).metric;
   const dir = ranked ? (ranked.direction === 'highest' ? 'DESC' : 'ASC') : metaFor(sortMetric)?.better === 'lower' ? 'ASC' : 'DESC';
   const columns = [...new Set(usable.map((c) => c.metric))].join(', ');
-  const base = `SELECT center_id, center_name, district, ${columns}, students FROM tv_center_scorecard WHERE ${conds.join(' AND ')} ORDER BY ${sortMetric} ${dir}, center_id`;
+  // Ties go to the larger center: a 0% rate over 200 learners says more than one over 10.
+  const base = `SELECT center_id, center_name, district, ${columns}, students FROM tv_center_scorecard WHERE ${conds.join(' AND ')} ORDER BY ${sortMetric} ${dir}, students DESC, center_id`;
   const all = await run(deps, base);
   if (!all.rowCount) {
     return finish(question, deps, { summary: [...notes, `* None of those ${ctx.cohort?.total ?? ''} centers meet that condition.`] });
   }
   const shown = limit ? all.rows.slice(0, limit) : all.rows;
   const lastValue = shown[shown.length - 1][sortMetric];
-  const tied = limit ? all.rows.slice(limit).filter((r) => r[sortMetric] === lastValue).length : 0;
+  const tiedAll = all.rows.filter((r) => r[sortMetric] === lastValue).length;
+  const tiedShown = shown.filter((r) => r[sortMetric] === lastValue).length;
   const metric: MetricDef = { column: sortMetric, label: CRITERION_LABEL[sortMetric] ?? sortMetric, betterWhen: metaFor(sortMetric)?.better ?? 'higher' };
   const items = shown.map((r) => ({ id: String(r.center_id), label: String(r.center_name), value: isNum(r[sortMetric]) ? r[sortMetric] as number : undefined }));
   const title = `${shown.length} of the previous ${ctx.cohort?.total ?? ''} centers by ${metric.label}`;
   const result: QueryResult = { columns: all.columns, rows: shown, rowCount: shown.length };
-  const summary = [`* **${shown.length}** of the previous ${ctx.cohort?.total ?? ''} centers. First: **${String(shown[0].center_name)}** (${fmt(shown[0][sortMetric])} ${metric.label}).`, ...notes];
-  if (tied) summary.push(`* ${tied} other center${tied === 1 ? '' : 's'} tied on ${fmt(lastValue)}. Ties are ordered by center id.`);
+  const valueText = (v: unknown) => `${fmt(v)}${sortMetric.endsWith('_pct') ? '%' : ''} ${metric.label}`;
+  const summary = [`* **${shown.length}** of the previous ${ctx.cohort?.total ?? ''} centers. First: **${String(shown[0].center_name)}** (${valueText(shown[0][sortMetric])}).`, ...notes];
+  if (tiedAll > tiedShown) {
+    summary.push(`* ${tiedAll} of the ${ctx.cohort?.total ?? all.rowCount} centers have ${valueText(lastValue)}; showing the ${tiedShown} with the most students.`);
+  }
   return finish(question, deps, {
     summary,
     built: [{ part: { title, intent: 'list', sql: base }, result }],
@@ -275,15 +293,17 @@ async function analyse(question: string, focus: Focus, facets: FacetKey[], diagn
     const data = await focusRow(deps, focus);
     if (data) {
       const gaps = gapsBetween(data.row, network);
-      widgets.push(table(`${focus.label}: compared with the network`, gapRows(gaps, 'this_focus', 'network_average')));
+      widgets.push(table(`${focus.label}: compared with the network`, gapRows(gaps, 'this_focus', NETWORK), NETWORK_NOTE));
       const worst = gaps.filter((g) => !g.aBetter && g.meta.controllable).slice(0, 3);
       const strongest = gaps.filter((g) => g.aBetter && g.meta.controllable).slice(0, 3);
       const fallback = [
-        worst.length ? `* Furthest behind the network: ${worst.map((g) => `**${g.meta.label}** (${fmt(g.a)} vs ${fmt(g.b)})`).join('; ')}.` : '* No measure is behind the network average.',
+        worst.length ? `* Furthest behind the network: ${worst.map((g) => `**${g.meta.label}** (${fmt(g.a)} vs ${fmt(g.b)})`).join('; ')}.` : '* No measure is behind the network median.',
         strongest.length ? `* Furthest ahead: ${strongest.map((g) => `**${g.meta.label}** (${fmt(g.a)} vs ${fmt(g.b)})`).join('; ')}.` : '',
         '* These are associations in the data, not proven causes.',
       ].filter(Boolean);
       summary.push(...await narrate(deps, question, `${focus.label}\n${factsOf(gaps)}`, fallback));
+      // Dataset-wide gaps are already named by the facets that needed them.
+      summary.push(...notRecorded(data.row, focus.grouped ? 'any of these centers' : 'this center', deps.mode).filter((l) => !l.includes('in this dataset')));
     }
   } else {
     const firstRows = built.find((b) => b.result.rowCount > 0);
@@ -360,7 +380,7 @@ async function currentGaps(ctx: ConversationContext, focus: Focus, deps: BoundDe
     if (a && b) return { gaps: gapsBetween(a, (k) => (isNum(b[k]) ? b[k] as number : null)), aName: String(a.center_name), bName: String(b.center_name) };
   }
   const data = await focusRow(deps, focus);
-  return data ? { gaps: gapsBetween(data.row, network), aName: focus.label, bName: 'network_average' } : null;
+  return data ? { gaps: gapsBetween(data.row, network), aName: focus.label, bName: NETWORK } : null;
 }
 
 function toDerived(gaps: Gap[], aName: string, bName: string): DerivedItem[] {
@@ -472,7 +492,7 @@ async function characteristics(question: string, ctx: ConversationContext, n: nu
   };
   const scored = gaps.filter((g) => shareBetter(g) > 50).map((g) => ({ g, share: shareBetter(g) })).sort((x, y) => y.share * Math.abs(y.g.z) - x.share * Math.abs(x.g.z));
   const top = scored.slice(0, n ?? 6);
-  const rows = top.map(({ g, share }) => ({ pattern: `${g.meta.label} ${g.gap >= 0 ? 'above' : 'below'} the network`, group_average: round(g.a), network_average: round(g.b), pct_of_these_centers_sharing_it: share }));
+  const rows = top.map(({ g, share }) => ({ pattern: `${g.meta.label} ${g.gap >= 0 ? 'above' : 'below'} the network`, group_average: round(g.a), [NETWORK]: round(g.b), pct_of_these_centers_sharing_it: share }));
   return finish(question, deps, {
     summary: [
       top.length ? `* Most consistent across these ${data.rows.length} centers: ${top.slice(0, 3).map(({ g }) => `**${g.meta.label}**`).join(', ')}.` : '* These centers do not share a consistent pattern.',
@@ -528,7 +548,7 @@ async function hypothesis(question: string, ctx: ConversationContext, step: 'tes
   const assess = gaps.find((g) => g.meta.key === 'assessment_quality');
   const weak = [pedagogy, assess].filter((g): g is Gap => !!g && !g.aBetter);
   const rows = gaps.map((g) => ({
-    measure: g.meta.label, these_centers: round(g.a), network_average: round(g.b),
+    measure: g.meta.label, these_centers: round(g.a), [NETWORK]: round(g.b),
     reading: g.meta.key === 'pedagogy' || g.meta.key === 'assessment_quality'
       ? (g.aBetter ? 'Against the hypothesis' : 'Supports the hypothesis')
       : 'Context: another possible explanation',

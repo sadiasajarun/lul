@@ -20,6 +20,8 @@ const OPENING_SQL = {
 
 const pipe = await openPipeline(mode);
 const { foldContext } = await pipe.load('/src/app/lib/ai/context/fold.ts');
+const { chainFollowups } = await pipe.load('/src/app/lib/ai/context/next.ts');
+const { resolveTurn } = await pipe.load('/src/app/lib/ai/context/resolve.ts');
 
 pipe.setReply((body) => {
   const user = body.messages.at(-1).content;
@@ -104,10 +106,29 @@ for (const [name, turns] of [...SCENARIOS, ...PARAPHRASED]) {
       if (!res.turn.cohort.ids.every((id) => prior.has(id))) fail('cohort escaped the previous list');
     }
     if (/^select/i.test(text) && !after.selected) fail('nothing was selected');
+    const ordinal = text.toLowerCase().match(/\b(first|second|third|fourth|fifth|\d+)(?:st|nd|rd|th)?\b(?= (?:one|center|centre|district|row))/);
+    if (ordinal && before.list?.items.length) {
+      const n = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5 }[ordinal[1]] ?? Number(ordinal[1]);
+      const expected = before.list.items[n - 1]?.id;
+      if (after.selected?.id !== expected) fail(`picked ${after.selected?.id}, expected row ${n} (${expected})`);
+    }
     if (/same (district|upazila)/i.test(text) && !after.comparison && !/only center|not recorded|no comparable/i.test(res.response.summary)) fail('no comparison pair recorded');
     if (after.comparison && after.comparison.a.id === after.comparison.b.id) fail('compared a center with itself');
     if (mode !== 'tuned' && /estimated/i.test(res.response.summary)) fail('Preview label in a real dataset');
     if (mode === 'tuned' && bound && !/estimated/i.test(res.response.summary)) fail('missing Preview label');
+    // Every suggested next question must continue this same chain when clicked.
+    if (bound && res.turn) {
+      const suggestions = chainFollowups(res.turn, after);
+      if (!suggestions.length) fail('no suggested next questions');
+      for (const s of suggestions) {
+        const r = resolveTurn(s, after);
+        if (!r || r.type === 'clarify' || r.type === 'refine_open') fail(`suggestion does not continue the chain: "${s}"`);
+      }
+    }
+    if (/lowest dropout/i.test(text) && res.turn?.list) {
+      const students = res.response.widgets[0]?.data?.map((r) => r.students) ?? [];
+      if (students.some((n, k) => k && n > students[k - 1] && res.turn.list.items[k].value === res.turn.list.items[k - 1].value)) fail('ties not ordered by most students');
+    }
   }
 }
 
@@ -138,13 +159,29 @@ const NEGATIVE = [
   'Sort by attendance instead.', 'Break that down by district.', 'Add family income as a factor.', 'Only girls.', 'Show more.', 'Only Chattogram.',
   'Which division performs best?', 'How is this center\'s score calculated?',
 ];
-const { resolveTurn } = await pipe.load('/src/app/lib/ai/context/resolve.ts');
 const live = {
   mode, live: true, stale: false,
   list: { kind: 'center', items: [{ id: '1', label: 'A', value: 1 }, { id: '2', label: 'B', value: 2 }], total: 2 },
   cohort: { kind: 'center', ids: ['1', '2'], total: 2 },
   selected: { kind: 'center', id: '1', label: 'A', district: 'D' },
 };
+// Every way of picking a row must land on exactly that row.
+console.log('\n== Picking rows');
+{
+  const five = { ...live, list: { kind: 'center', total: 5, metric: { column: 'dropout_rate_pct', label: 'Dropout', betterWhen: 'lower' }, items: [3, 1, 5, 0, 4].map((v, i) => ({ id: `c${i + 1}`, label: `C${i + 1}`, value: v })) } };
+  const PICKS = [
+    ['Select the first center.', 'c1'], ['Select the second center.', 'c2'], ['Select the third center.', 'c3'], ['Select the fourth center.', 'c4'],
+    ['Select the fifth center.', 'c5'], ['Pick the 2nd one', 'c2'], ['Select the 3rd center', 'c3'], ['Choose number 4', 'c4'], ['Take the 1st one', 'c1'],
+    ['Select the last center.', 'c5'], ['Select the worst one.', 'c3'], ['Select the best one.', 'c4'], ['The second one', 'c2'],
+  ];
+  for (const [q, want] of PICKS) {
+    const r = resolveTurn(q, five);
+    const got = r?.type === 'select' ? r.entity.id : r?.type ?? 'none';
+    console.log(`  ${got === want ? 'ok   ' : 'WRONG'} ${q} -> ${got}`);
+    if (got !== want) fail(`"${q}" picked ${got}, expected ${want}`);
+  }
+}
+
 console.log('\n== Must stand alone');
 for (const q of NEGATIVE) {
   const r = resolveTurn(q, live);

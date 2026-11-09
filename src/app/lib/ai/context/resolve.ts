@@ -191,7 +191,8 @@ export function resolveTurn(question: string, ctx: ConversationContext | undefin
     if (wanted && wanted !== ctx.list.kind) {
       return { type: 'clarify', question: `The last list shows ${ctx.list.kind}s, not ${wanted}s. Which ${ctx.list.kind} do you mean?`, options: ctx.list.items.slice(0, 10).map((i) => ({ kind: ctx.list!.kind, id: i.id, label: i.label })) };
     }
-    const which = selection[1].replace(/(st|nd|rd|th)$/, '');
+    // Only "2nd" loses its suffix: stripping it from words turned "second" into "seco".
+    const which = selection[1].replace(/^(\d+)(?:st|nd|rd|th)$/, '$1');
     const chosen = pick(ctx, which);
     if ('clarify' in chosen) return { type: 'clarify', question: chosen.clarify, options: ctx.list.items.slice(0, 10).map((i) => ({ kind: ctx.list!.kind, id: i.id, label: i.label })) };
     return { type: 'select', entity: chosen };

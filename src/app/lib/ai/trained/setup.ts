@@ -34,7 +34,9 @@ export const SCORE_COLUMNS = [
   'documentation', 'learning_environment', 'engagement', 'students_per_teacher', 'pct_low_income', 'pct_cwd', 'visits', 'negative_observations',
 ] as const;
 export type ScoreColumn = (typeof SCORE_COLUMNS)[number];
-export type NetworkStats = Record<ScoreColumn, { avg: number | null; sd: number | null }>;
+/** `avg` is for "above-average" conditions. `median` is the reference in comparisons, because a few
+ *  extreme centers drag the mean (centers with no linked teacher inflate students per teacher). */
+export type NetworkStats = Record<ScoreColumn, { avg: number | null; median: number | null; sd: number | null }>;
 
 const SCORECARD = `
 CREATE OR REPLACE TABLE tv_center_scorecard AS
@@ -105,10 +107,10 @@ async function build(ds: DataSource, mode: DataMode): Promise<void> {
   await ds.exec(`CREATE OR REPLACE VIEW tv_marks_cycle AS
     SELECT student_id, center_id, programme, subject, phase, mark FROM assessments
     UNION ALL SELECT student_id, center_id, programme, subject, phase, mark FROM side_cycle_marks`);
-  const select = SCORE_COLUMNS.flatMap((c) => [`avg(${c}) AS avg_${c}`, `stddev_samp(${c}) AS sd_${c}`]).join(', ');
+  const select = SCORE_COLUMNS.flatMap((c) => [`avg(${c}) AS avg_${c}`, `median(${c}) AS med_${c}`, `stddev_samp(${c}) AS sd_${c}`]).join(', ');
   const row = (await ds.query(`SELECT ${select} FROM tv_center_scorecard`)).rows[0];
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
-  stats = Object.fromEntries(SCORE_COLUMNS.map((c) => [c, { avg: num(row[`avg_${c}`]), sd: num(row[`sd_${c}`]) }])) as NetworkStats;
+  stats = Object.fromEntries(SCORE_COLUMNS.map((c) => [c, { avg: num(row[`avg_${c}`]), median: num(row[`med_${c}`]), sd: num(row[`sd_${c}`]) }])) as NetworkStats;
 }
 
 /** Builds the trained tables once per dataset. Safe to await repeatedly. */
