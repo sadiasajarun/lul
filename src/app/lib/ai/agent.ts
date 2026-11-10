@@ -10,6 +10,7 @@ import { toResponse, type DashboardResponse, type DashboardWidget, type Intent }
 import { renderHistory, buildAgentSystemPrompt, type HistoryTurn } from './prompt';
 import { getDbProfile, renderDbProfile } from '../db/profile';
 import { CAVEATS } from '../db/catalog';
+import { caveatsFor } from './coverage';
 import { computeFactors, detectCohort, type FactorResult } from './factors';
 import { classifyIntent, classifyTopic, wantsFactorAnalysis } from './intent';
 import { buildReasoning, type AnswerReasoning } from './reasoning';
@@ -100,7 +101,7 @@ async function explainEmpty(question: string, evidence: Evidence[], dataMode: st
     'to find students with no recorded attendance/marks, though many reflect data gaps"). Never invent numbers.',
     'Reply with ONLY the bullets, no preamble, no JSON.',
   ].join(' ');
-  const user = `QUESTION: ${question}\nDATA MODE: ${dataMode}\nQUERIES THAT RETURNED 0 ROWS:\n${sqls.join('\n')}\n\nDATA CAVEATS:\n${CAVEATS.map((c) => '- ' + c).join('\n')}`;
+  const user = `QUESTION: ${question}\nDATA MODE: ${dataMode}\nQUERIES THAT RETURNED 0 ROWS:\n${sqls.join('\n')}\n\nDATA CAVEATS:\n${caveatsFor(CAVEATS, dataMode).map((c) => '- ' + c).join('\n')}`;
   try { return (await synth(system, user)).trim(); } catch { return ''; }
 }
 
@@ -170,7 +171,7 @@ async function synthesize(question: string, evidence: Evidence[], action: AgentA
       const preview = ordered
         .map((e) => `${e.title} (${e.result.rowCount} rows): ${JSON.stringify(e.result.rows.slice(0, 25)).slice(0, 1800)}`)
         .join('\n');
-      reasoning = await buildReasoning(question, intent, deterministic, preview, factors, cohortFound, dataMode, CAVEATS, synth);
+      reasoning = await buildReasoning(question, intent, deterministic, preview, factors, cohortFound, dataMode, caveatsFor(CAVEATS, dataMode), synth);
       summary = reasoning.finding;
     } catch {
       /* keep the deterministic summary */

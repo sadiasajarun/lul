@@ -11,6 +11,7 @@ import { executeValidatedSql, extractJson } from '../exec';
 import { unsupportedNumbers } from '../explain';
 import { toResponse, type DashboardResponse, type DashboardWidget, type Intent } from '../interpret';
 import type { AskResult, Generate } from '../pipeline';
+import type { HistoryTurn } from '../prompt';
 import { resolveTurn, type Criterion, type FacetKey, type Resolved, type Scope } from '../context/resolve';
 import type { ConversationContext, DerivedItem, EntityRef, MetricDef, TurnDelta } from '../context/types';
 import { facetParts, metaFor, METRICS, type MetricMeta, type Part, type Where } from './facets';
@@ -330,13 +331,18 @@ async function dropoutContributors(question: string, focus: Focus, n: number, de
   });
 }
 
-const COLUMN_ALIASES: [RegExp, ScoreColumn][] = [[/drop/i, 'dropout_rate_pct'], [/attend/i, 'avg_attendance'], [/mark|result/i, 'avg_mark'], [/mainstream/i, 'mainstream_rate_pct'], [/me_score|overall|m_e|score/i, 'me_score']];
+/** A scorecard column a list can be ranked by: any compared measure, or the combined score. */
+type RankColumn = ScoreColumn | 'performance_score';
+
+const COLUMN_ALIASES: [RegExp, RankColumn][] = [[/performance/i, 'performance_score'], [/drop/i, 'dropout_rate_pct'], [/attend/i, 'avg_attendance'], [/mark|result/i, 'avg_mark'], [/mainstream/i, 'mainstream_rate_pct'], [/me_score|overall|m_e|score/i, 'me_score']];
 
 /** The scorecard column for the metric the user has been ranking by. */
-function rankingColumn(ctx: ConversationContext): ScoreColumn {
+function rankingColumn(ctx: ConversationContext): RankColumn {
   const col = ctx.metric?.column ?? '';
   return COLUMN_ALIASES.find(([re]) => re.test(col))?.[1] ?? 'me_score';
 }
+
+const rankLabel = (c: string) => (c === 'performance_score' ? 'performance score' : metaFor(c)?.label ?? c);
 
 async function compareWithPeer(question: string, ctx: ConversationContext, focus: Focus, target: 'best' | 'worst', geo: 'district' | 'upazila', deps: BoundDeps): Promise<AskResult> {
   const self = focus.entity;
@@ -344,14 +350,16 @@ async function compareWithPeer(question: string, ctx: ConversationContext, focus
   const place = self[geo];
   if (!place) return finish(question, deps, { summary: [`* The ${geo} of **${self.label ?? self.id}** is not recorded, so I can't find a center in the same ${geo}.`] });
 
-  let column = rankingColumn(ctx);
+  let column: RankColumn = rankingColumn(ctx);
   const conds = `${geo} = ${quote(place)} AND center_id <> ${quote(self.id)}`;
-  const anyWith = async (c: ScoreColumn) => (await run(deps, `SELECT count(*) AS n FROM tv_center_scorecard WHERE ${conds} AND ${c} IS NOT NULL`)).rows[0].n as number;
+  const anyWith = async (c: RankColumn) => (await run(deps, `SELECT count(*) AS n FROM tv_center_scorecard WHERE ${conds} AND ${c} IS NOT NULL`)).rows[0].n as number;
   const notes: string[] = [];
   if (!(await anyWith(column))) {
     const others = (await run(deps, `SELECT count(*) AS n FROM tv_center_scorecard WHERE ${conds}`)).rows[0].n as number;
     if (!others) return finish(question, deps, { summary: [`* **${self.label ?? self.id}** is the only center recorded in ${place}, so there is no other center to compare it with.`] });
-    notes.push(`* ${metaFor(column)?.label ?? column} is not recorded for the other centers in ${place}, so average marks were used to rank them.`);
+    notes.push(column === 'performance_score'
+      ? `* The other centers in ${place} are too small, or have too few measures, for a performance score, so average marks were used to rank them.`
+      : `* ${rankLabel(column)} is not recorded for the other centers in ${place}, so average marks were used to rank them.`);
     column = 'avg_mark';
     if (!(await anyWith(column))) return finish(question, deps, { summary: [`* The other centers in ${place} have no comparable measures recorded.`] });
   }
@@ -365,7 +373,7 @@ async function compareWithPeer(question: string, ctx: ConversationContext, focus
   const gaps = gapsBetween(a, (k) => (isNum(b[k]) ? b[k] as number : null));
   const rows = gapRows(gaps, String(a.center_name), String(b.center_name));
   return finish(question, deps, {
-    summary: [`* **${self.label ?? self.id}** compared with **${peerRef.label}**, the ${target} center in ${place} by ${metaFor(column)?.label ?? column}.`, ...notes],
+    summary: [`* **${self.label ?? self.id}** compared with **${peerRef.label}**, the ${target} center in ${place} by ${rankLabel(column)}.`, ...notes],
     widgets: [table(`${a.center_name} vs ${b.center_name}`, rows)],
     primary: { sql: peerSql, columns: Object.keys(rows[0] ?? {}), rows: rows.slice(0, 20), rowCount: rows.length },
     turn: { comparison: { a: self, b: peerRef } },
@@ -518,7 +526,7 @@ async function applyToBottom(question: string, ctx: ConversationContext, n: numb
     return { pattern: m.label, action_for_these_centers: m.fix, centers_behind_network: behind, of_centers: result.rowCount };
   });
   return finish(question, deps, {
-    summary: [`* The bottom **${result.rowCount}** centers by ${metaFor(column)?.label ?? column}, and how each replicable pattern applies to them.`, '* Start where most of these centers fall behind the network.'],
+    summary: [`* The bottom **${result.rowCount}** centers by ${rankLabel(column)}, and how each replicable pattern applies to them.`, '* Start where most of these centers fall behind the network.'],
     widgets: [table('How to apply each pattern', rows)],
     built: [{ part: { title: `Bottom ${result.rowCount} centers`, intent: 'list', sql }, result }],
   });
@@ -610,8 +618,10 @@ function refineInstruction(ctx: ConversationContext, question: string): string |
 export interface BoundOutcome { result?: AskResult; instruction?: string }
 
 /** Answers the turn if it refers back to an earlier one. Empty outcome means it stands alone. */
-export async function answerBoundTurn(question: string, ctx: ConversationContext | undefined, deps: BoundDeps): Promise<BoundOutcome> {
-  const r: Resolved | null = resolveTurn(question, ctx);
+export async function answerBoundTurn(question: string, ctx: ConversationContext | undefined, deps: BoundDeps, history: HistoryTurn[] = []): Promise<BoundOutcome> {
+  const last = [...history].reverse().find((t) => t.role === 'ai' && t.rows?.length);
+  const priorSingleCenter = !!last && (last.rowCount ?? last.rows!.length) === 1 && !!last.columns?.some((c) => c === 'center_id' || c === 'center_name');
+  const r: Resolved | null = resolveTurn(question, ctx, { priorSingleCenter });
   if (!r || !ctx) return {};
   if (r.type === 'clarify') return { result: clarify(question, r.question, r.options, deps.mode) };
   if (r.type === 'refine_open') {

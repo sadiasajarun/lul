@@ -31,7 +31,7 @@ for (const item of QUESTIONS) {
   }
   const estimated = /estimated/i.test(res.response.summary);
 
-  if (missing.length || misrouted) {
+  if (missing.length || misrouted || item.fixed) {
     if (!res.trained) { fail(item.text, `expected a trained answer, took the AI path (needs ${missing.join(', ') || 'routing fix'})`); continue; }
     if (res.clarifying) { counts.clarified++; continue; }
     if (mode !== 'tuned' && missing.length) {

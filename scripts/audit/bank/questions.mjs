@@ -23,6 +23,8 @@ export const DOMAINS = {
 };
 
 const q = (text, ...needs) => ({ text, needs });
+/** Worked on the AI path, but now has a fixed answer at the user's request (combined ranking). */
+const fixed = (text) => ({ text, needs: [], fixed: true });
 const c = (text, ...needs) => ({ text, needs, ctx: true });
 
 export const SECTIONS = [
@@ -41,8 +43,8 @@ export const SECTIONS = [
     q('Which sub-program serves the highest number of students?'),
   ]],
   ['Center Ranking', [
-    q('Show the top 10 best-performing centers.'),
-    q('Show the bottom 10 performing centers.'),
+    fixed('Show the top 10 best-performing centers.'),
+    fixed('Show the bottom 10 performing centers.'),
     q('Show the top 5 centers in Dhaka Division.'),
     q('Show the top 10 NFPE centers.'),
     q('Show the bottom 10 PPE centers.', 'ppe'),

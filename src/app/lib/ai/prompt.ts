@@ -2,6 +2,7 @@
 // is translation — it never sees or invents numbers here; trusted SQL over the views produces those.
 import { renderCatalogForPrompt } from '../db/catalog';
 import { renderFewShots } from './fewshot';
+import { withCoverage } from './coverage';
 
 /** The ACTIVE DATASET line — shared by the single-shot and agent prompts. */
 function modeLine(dataMode?: string): string {
@@ -9,7 +10,7 @@ function modeLine(dataMode?: string): string {
   if (dataMode === 'v2') {
     return [
       'ACTIVE DATASET: REAL ·26 (the 14-Aug-2026 export). Real recorded data, much better covered than the older Real set:',
-      'attendance is recorded for ~83% of learners (ABAL ~100%, Catchup ~80%, but Innovation only ~9% — say so before comparing programmes),',
+      'attendance is recorded for ~64% of learners (ABAL ~99%, Catchup ~58%, but Innovation only ~20% — say so before comparing programmes),',
       'and ~99.5% of centres have a monitoring score. v_attendance_monthly is EMPTY here: attendance is still ONE lifetime figure per',
       'learner with no dates, so refuse month-by-month and forecast questions exactly as in Real mode.',
       'THIS DATASET HAS NO STUDENT NAMES — student_name is always NULL. When listing learners, return student_id with division and',
@@ -45,7 +46,7 @@ const SQL_RULES: string[] = [
 
 export function buildSystemPrompt(dataMode?: string): string {
   const ml = modeLine(dataMode);
-  return [
+  return withCoverage([
     'You are a data analyst for the NFPE–EMDC primary-education programme in Bangladesh.',
     'Translate the user question into exactly ONE read-only DuckDB SQL query over the semantic views below.',
     'The query will be executed and the resulting rows returned — so you do NOT compute numbers yourself.',
@@ -65,14 +66,14 @@ export function buildSystemPrompt(dataMode?: string): string {
     '',
     'EXAMPLES (learn the view names, synonyms, and honest-metric patterns):',
     renderFewShots(),
-  ].join('\n');
+  ].join('\n'), dataMode);
 }
 
 /** System prompt for the AGENTIC loop: same schema/rules, but a multi-step run_sql/finish/refuse
  *  contract plus the live DATABASE PROFILE so the agent knows exactly where the data is. */
 export function buildAgentSystemPrompt(dataMode: string | undefined, profileBlock: string): string {
   const ml = modeLine(dataMode);
-  return [
+  return withCoverage([
     'You are an expert data analyst for the NFPE–EMDC primary-education programme in Bangladesh, working like an autonomous analyst in a "chat with your database" tool.',
     'You answer by running read-only DuckDB SQL over the semantic views below and REASONING over the real rows you get back. Every number comes from SQL results — you never invent figures.',
     ...(ml ? ['', ml] : []),
@@ -109,7 +110,7 @@ export function buildAgentSystemPrompt(dataMode: string | undefined, profileBloc
     '',
     'EXAMPLES (single-query patterns for view names / synonyms / honest metrics — you may run several):',
     renderFewShots(),
-  ].join('\n');
+  ].join('\n'), dataMode);
 }
 
 /** A prior conversation turn, used to resolve follow-up references. For AI turns we optionally carry

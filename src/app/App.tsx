@@ -213,7 +213,11 @@ export default function App() {
     // "prioritise the worst cases and route to the field team" default is gone — it appeared on
     // every answer and told a decision-maker nothing.
     const reco = pb ? pb.recommendation : undefined;
-    const summaryText = reco ? `${summary}\n* **Recommended:** ${reco}` : summary;
+    const withReco = reco ? `${summary}\n* **Recommended:** ${reco}` : summary;
+    const coverage = res.refused || plain || res.trained ? undefined : playbookCoverage(text, dataMode);
+    // Every Preview answer says its figures are estimated, not only the ones a playbook happens to label.
+    const unlabelled = dataMode === "tuned" && !res.refused && !res.clarifying && !/estimated/i.test(`${withReco} ${coverage ?? ""}`);
+    const summaryText = unlabelled ? `${withReco}\n* Preview data: figures are estimated and not for decisions.` : withReco;
     return {
       role: "ai",
       text: summaryText,
@@ -227,7 +231,7 @@ export default function App() {
       clarifying: res.clarifying,
       cached: res.cached,
       followups: plain ? undefined : chained && res.turn ? chainFollowups(res.turn, foldContext([...prior, { turn: res.turn }], dataMode)) : deriveFollowups(text, widgets),
-      coverage: res.refused || plain || res.trained ? undefined : playbookCoverage(text, dataMode),
+      coverage,
       engine: res.cached || res.provider === "cache" ? "cache" : res.provider === "openai" ? "openai" : "gemini",
       sources: res.sql ? [res.sql] : undefined,
       // Carry the primary result rows so a follow-up ("why are these…") reasons over the exact cohort.

@@ -5,6 +5,7 @@
 import type { AskResult } from './pipeline';
 import { VIEWS, CAVEATS } from '../db/catalog';
 import { renderFewShots } from './fewshot';
+import { coverageReplacements } from './coverage';
 
 const CACHE_KEY = 'lul_answer_cache_v1';
 const MAX = 60;
@@ -21,7 +22,10 @@ function normalize(q: string): string {
   return q.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
 }
 function keyOf(question: string, dataMode: string): string {
-  return `${normalize(question)}|${dataMode}|${SCHEMA_VERSION}`;
+  // Answers cached before a dataset's coverage figures changed carry the old figures, so those
+  // datasets get a new key space. Real's figures did not change, so neither do its keys.
+  const coverage = coverageReplacements(dataMode).length ? '|cov1' : '';
+  return `${normalize(question)}|${dataMode}|${SCHEMA_VERSION}${coverage}`;
 }
 
 interface Entry { key: string; value: AskResult; t: number }

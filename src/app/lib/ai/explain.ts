@@ -20,6 +20,7 @@ import type { AskResult, Generate } from './pipeline';
 import { GLOSSARY, findTerms, renderTermFacts, renderTermAnswer, type GlossaryEntry } from './glossary';
 import { getDbProfile, type DbProfile } from '../db/profile';
 import { CAVEATS, VIEWS } from '../db/catalog';
+import { caveatsFor } from './coverage';
 import { MODULES } from '../modules';
 import { aiLog } from './debug';
 
@@ -167,7 +168,7 @@ export function renderDatasetFacts(profile: DbProfile, question: string): string
   }
 
   lines.push('', 'KNOWN DATA PROBLEMS (state these plainly, they are real):');
-  for (const c of CAVEATS) lines.push(`  - ${c}`);
+  for (const c of caveatsFor(CAVEATS, profile.dataMode)) lines.push(`  - ${c}`);
 
   lines.push('', 'WHAT THIS SYSTEM CANNOT ANSWER, AND WHY:');
   for (const l of KNOWN_LIMITS) {

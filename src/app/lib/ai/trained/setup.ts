@@ -38,6 +38,9 @@ export type ScoreColumn = (typeof SCORE_COLUMNS)[number];
  *  extreme centers drag the mean (centers with no linked teacher inflate students per teacher). */
 export type NetworkStats = Record<ScoreColumn, { avg: number | null; median: number | null; sd: number | null }>;
 
+/** Smaller centers are not ranked on the combined score: one or two learners swing their rates. */
+export const MIN_RANKED_STUDENTS = 30;
+
 const SCORECARD = `
 CREATE OR REPLACE TABLE tv_center_scorecard AS
 WITH s AS (
@@ -63,7 +66,7 @@ WITH s AS (
   SELECT center_id, count(*) AS visits, max(visit_date) AS last_visit FROM side_center_visits GROUP BY center_id
 ), o AS (
   SELECT center_id, count(*) FILTER (WHERE rating = 'Negative') AS negative_observations FROM side_center_observations GROUP BY center_id
-)
+), base AS (
 SELECT s.center_id, COALESCE(c.center_name, 'Center ' || s.center_id) AS center_name, s.division, s.district, s.upazila,
   c.sub_program, s.students, s.active, s.mainstreamed, s.dropouts,
   round(100.0 * s.dropouts / s.students, 1) AS dropout_rate_pct,
@@ -79,7 +82,21 @@ LEFT JOIN a USING (center_id)
 LEFT JOIN m USING (center_id)
 LEFT JOIN t USING (center_id)
 LEFT JOIN v USING (center_id)
-LEFT JOIN o USING (center_id)`;
+LEFT JOIN o USING (center_id)
+), ranked AS (
+  -- Each measure as a percentile among the centers big enough to rank (${MIN_RANKED_STUDENTS}+ students).
+  SELECT center_id,
+    CASE WHEN eligible AND me_score IS NOT NULL THEN percent_rank() OVER (PARTITION BY eligible AND me_score IS NOT NULL ORDER BY me_score) END AS pr_me,
+    CASE WHEN eligible AND avg_mark IS NOT NULL THEN percent_rank() OVER (PARTITION BY eligible AND avg_mark IS NOT NULL ORDER BY avg_mark) END AS pr_mark,
+    CASE WHEN eligible AND avg_attendance IS NOT NULL THEN percent_rank() OVER (PARTITION BY eligible AND avg_attendance IS NOT NULL ORDER BY avg_attendance) END AS pr_att,
+    CASE WHEN eligible THEN percent_rank() OVER (PARTITION BY eligible ORDER BY dropout_rate_pct DESC) END AS pr_drop
+  FROM (SELECT *, students >= ${MIN_RANKED_STUDENTS} AS eligible FROM base)
+)
+SELECT base.*,
+  CASE WHEN (pr_me IS NOT NULL)::INT + (pr_mark IS NOT NULL)::INT + (pr_att IS NOT NULL)::INT + (pr_drop IS NOT NULL)::INT >= 2
+    THEN round(100 * (COALESCE(pr_me, 0) + COALESCE(pr_mark, 0) + COALESCE(pr_att, 0) + COALESCE(pr_drop, 0))
+      / ((pr_me IS NOT NULL)::INT + (pr_mark IS NOT NULL)::INT + (pr_att IS NOT NULL)::INT + (pr_drop IS NOT NULL)::INT), 1) END AS performance_score
+FROM base LEFT JOIN ranked USING (center_id)`;
 
 let readyMode: DataMode | null = null;
 let ready: Promise<void> | null = null;

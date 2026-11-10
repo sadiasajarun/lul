@@ -186,7 +186,7 @@ async function answerQuestion(question: string, history: HistoryTurn[], context?
   if (guarded) return guarded;
 
   // Does this turn refer back to an earlier answer? If not, nothing below changes.
-  const bound = await answerBoundTurn(question, context, { ds: getDataSource(), mode: dataMode, generate: r.generate });
+  const bound = await answerBoundTurn(question, context, { ds: getDataSource(), mode: dataMode, generate: r.generate }, history);
   if (bound.result) return bound.result;
   // A fixed answer exists only for questions the normal path provably cannot handle.
   if (!bound.instruction) {

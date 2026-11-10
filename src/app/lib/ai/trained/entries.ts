@@ -78,9 +78,16 @@ const T = (match: RegExp, title: string, intent: Intent, sql: string | ((p: stri
   match, title, intent, previewOnly: true, side, sql: typeof sql === 'string' ? () => sql : sql, ...extra,
 });
 
+// "Best" and "bottom" rank on the same combined score, so the two scenarios judge centers alike.
+const TOP_PERFORMING = /^show the top (10|ten) best[- ]performing centers$/;
+const BOTTOM_PERFORMING = /^show the bottom (10|ten) (performing |worst[- ]performing )?centers$/;
+const PERFORMANCE_COLUMNS = 'center_id, center_name, district, performance_score, me_score, avg_mark, avg_attendance, dropout_rate_pct, students';
+
 /* ─────────────────────────────── misrouted today, in every dataset ────────────────────────────── */
 
 const ALL_MODES: TrainedEntry[] = [
+  { match: TOP_PERFORMING, title: 'Top 10 best-performing centers', intent: 'list', sql: () => `SELECT ${PERFORMANCE_COLUMNS} FROM ${sc} WHERE performance_score IS NOT NULL ORDER BY performance_score DESC, students DESC, center_id LIMIT 10` },
+  { match: BOTTOM_PERFORMING, title: 'Bottom 10 performing centers', intent: 'list', sql: () => `SELECT ${PERFORMANCE_COLUMNS} FROM ${sc} WHERE performance_score IS NOT NULL ORDER BY performance_score ASC, students DESC, center_id LIMIT 10` },
   { match: /^what is the dropout rate among (children with disabilities|cwd students)$/, title: 'Dropout rate among children with disabilities', intent: 'lookup', sql: () => `SELECT count(*) AS children_with_disabilities, count(*) FILTER (WHERE ${TRUE_DROP}) AS dropouts, ${pct(TRUE_DROP)} AS dropout_rate_pct FROM v_students WHERE disability_type IS NOT NULL AND disability_type <> ''` },
   { match: /^what is the overall mainstream (conversion|transition) rate$/, title: 'Overall mainstream conversion rate', intent: 'lookup', sql: () => `SELECT count(*) AS students, count(*) FILTER (WHERE is_mainstreamed) AS mainstreamed, ${pct('is_mainstreamed')} AS mainstream_rate_pct FROM v_students` },
   { match: /^what is the mainstream (transition )?rate among (cwd students|children with disabilities)$/, title: 'Mainstream rate among children with disabilities', intent: 'lookup', sql: () => `SELECT count(*) AS children_with_disabilities, count(*) FILTER (WHERE is_mainstreamed) AS mainstreamed, ${pct('is_mainstreamed')} AS mainstream_rate_pct FROM v_students WHERE disability_type IS NOT NULL AND disability_type <> ''` },
@@ -191,4 +198,10 @@ const PREVIEW: TrainedEntry[] = [
 
 export const TRAINED_ENTRIES: TrainedEntry[] = [...ALL_MODES, ...PREVIEW];
 
-export const NOTES: { match: RegExp; note: string }[] = [{ match: /ready for mainstream|preparing students for mainstream/, note: READY_NOTE }];
+const PERFORMANCE_NOTE = 'Performance score (0-100): the average of each center\'s percentile on M&E score, marks, attendance and dropout (lower dropout ranks higher). Only centers with 30 or more students and at least two of these measures are ranked.';
+
+export const NOTES: { match: RegExp; note: string }[] = [
+  { match: /ready for mainstream|preparing students for mainstream/, note: READY_NOTE },
+  { match: TOP_PERFORMING, note: PERFORMANCE_NOTE },
+  { match: BOTTOM_PERFORMING, note: PERFORMANCE_NOTE },
+];

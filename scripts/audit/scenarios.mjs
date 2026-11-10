@@ -99,6 +99,8 @@ for (const [name, turns] of [...SCENARIOS, ...PARAPHRASED]) {
     console.log(`      ${res.response.summary.split('\n')[0].slice(0, 120)}`);
 
     if (res.refused) fail('refused');
+    if (/top 10 best-performing|bottom 10 centers/i.test(text) && !/Performance score \(0-100\)/.test(res.response.summary)) fail('not ranked by the combined performance score');
+    if (/top 10 best-performing|bottom 10 centers/i.test(text) && res.response.widgets[0]?.data?.some((r) => r.students < 30)) fail('a center with fewer than 30 students was ranked');
     if (i > 0 && !bound) fail('was not answered in context');
     if (!widgets && !/not recorded|only center|no comparable|None of those|No records|no recorded/i.test(res.response.summary)) fail('no widgets and no honest explanation');
     if (res.turn?.cohort && before.cohort && /among|top five/i.test(text)) {
@@ -150,6 +152,25 @@ console.log('\n== Center follow-up questions');
     else bound++;
   }
   console.log(`  ${bound} of ${contextual.length} answered in context`);
+}
+
+// A reference to "this center" with nothing chosen must ask, not let the model guess.
+console.log('\n== Center reference with nothing chosen');
+{
+  const studentsOnly = { mode, live: false, stale: false, list: { kind: 'student', items: [{ id: 's1' }, { id: 's2' }], total: 2 } };
+  const centers = { mode, live: false, stale: false, list: { kind: 'center', items: [{ id: 'c1', label: 'C1' }, { id: 'c2', label: 'C2' }], total: 2 } };
+  const CASES = [
+    ['Compare it with the worst-performing center in the same district.', studentsOnly, {}, 'clarify'],
+    ['What is the dropout rate of this center?', studentsOnly, {}, 'clarify'],
+    ['Compare it with the worst-performing center in the same district.', centers, {}, 'clarify-options'],
+    ['Why is this center underperforming?', studentsOnly, { priorSingleCenter: true }, 'none'],
+  ];
+  for (const [q, ctx, opts, want] of CASES) {
+    const r = resolveTurn(q, ctx, opts);
+    const got = !r ? 'none' : r.type === 'clarify' ? (r.options?.length ? 'clarify-options' : 'clarify') : r.type;
+    console.log(`  ${got === want ? 'ok   ' : 'WRONG'} ${q} -> ${got}`);
+    if (got !== want) fail(`"${q}" gave ${got}, expected ${want}`);
+  }
 }
 
 // These must NOT be treated as references to an earlier answer.

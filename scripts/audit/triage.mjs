@@ -19,6 +19,7 @@ const MODES = ['real', 'v2', 'tuned'];
 
 function bucketFor(item, mode) {
   if (item.ctx) return { bucket: 'A', why: 'depends on an earlier answer' };
+  if (item.fixed) return { bucket: 'C', why: 'fixed answer requested by the user' };
   const missing = item.needs.filter((d) => DOMAINS[d][mode] !== 1);
   if (missing.length) return { bucket: 'B', why: missing.map((d) => DOMAINS[d].label).join(', ') };
   const guard = modeGuard(item.text, mode);

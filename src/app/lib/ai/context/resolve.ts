@@ -162,7 +162,15 @@ function liveScope(ctx: ConversationContext): Scope | null {
   return null;
 }
 
-export function resolveTurn(question: string, ctx: ConversationContext | undefined): Resolved | null {
+/** A question that only makes sense once a particular center has been chosen. */
+const NEEDS_CENTER = /\b(best|worst)(?:[- ]performing)? center in the same (district|upazila)\b|\b(this|that|the same) center\b|\bthe center's\b/;
+
+export interface ResolveOptions {
+  /** The last answer showed exactly one center, so "this center" already means something. */
+  priorSingleCenter?: boolean;
+}
+
+export function resolveTurn(question: string, ctx: ConversationContext | undefined, opts: ResolveOptions = {}): Resolved | null {
   if (!ctx) return null;
   const raw = (question ?? '').trim();
   const n = normalize(raw);
@@ -215,6 +223,19 @@ export function resolveTurn(question: string, ctx: ConversationContext | undefin
   const scope = scopeFor(n, ctx);
   const live = liveScope(ctx);
   const focus = scope ?? live;
+
+  // "Compare it with the worst center in the same district" with no center chosen: asking is better
+  // than letting the model guess which center, and which district, was meant.
+  if (NEEDS_CENTER.test(n) && !focus && !opts.priorSingleCenter) {
+    const options = ctx.list?.kind === 'center' ? ctx.list.items.slice(0, 10).map((i) => ({ kind: 'center' as const, id: i.id, label: i.label })) : undefined;
+    return {
+      type: 'clarify',
+      question: options
+        ? 'Which center do you mean? Reply with its number from the last list:'
+        : 'No center has been selected yet. Ask for a list of centers first, for example "Show me the top 10 best-performing centers.", then select one.',
+      options,
+    };
+  }
 
   // ── Reasoning over things already derived in this chain ───────────────────────────────────────
   const apply = n.match(new RegExp(`\\bapply (?:them|these|those).*\\bbottom (${NUMBER}) centers?\\b`));
